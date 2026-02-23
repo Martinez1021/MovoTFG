@@ -18,20 +18,3 @@ App de seguimiento de hábitos con gamificación RPG.
 ```bash
 cd backend
 ./mvnw spring-boot:run
-```
-
-### Frontend
-```bash
-cd frontend
-npx expo start
-```
-
-## 📋 Progreso
-
-- [ ] Sprint 0 – Configuración
-- [ ] Sprint 1 – MVP
-- [ ] Sprint 2 – Defensa
-
-## 👤 Autor
-
-Ernesto Martinez Magraner — [@Martinez1021](https://github.com/Martinez1021)
