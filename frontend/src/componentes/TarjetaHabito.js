@@ -1,9 +1,9 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colores, sombra } from '../estilos/tema';
+import { LinearGradient } from 'expo-linear-gradient';
+import { colores, sombra, radio } from '../estilos/tema';
 
-// Iconos disponibles para hábitos
 const ICONOS = {
     estrella: 'star',
     fuego: 'flame',
@@ -19,80 +19,151 @@ const ICONOS = {
     meditacion: 'leaf',
 };
 
-const TarjetaHabito = ({ habito, onCompletar, completando }) => {
+const TarjetaHabito = ({ habito, onCompletar, completando, index = 0 }) => {
     const nombreIcono = ICONOS[habito.icono] || 'star';
     const estaCompletado = habito.completadoHoy || false;
+    const scaleAnim = useRef(new Animated.Value(0)).current;
+    const slideAnim = useRef(new Animated.Value(30)).current;
+
+    useEffect(() => {
+        Animated.parallel([
+            Animated.spring(scaleAnim, {
+                toValue: 1, friction: 6, tension: 80, useNativeDriver: true,
+                delay: index * 80,
+            }),
+            Animated.timing(slideAnim, {
+                toValue: 0, duration: 400, useNativeDriver: true,
+                delay: index * 80,
+            }),
+        ]).start();
+    }, []);
+
+    const manejarPress = () => {
+        Animated.sequence([
+            Animated.timing(scaleAnim, { toValue: 0.95, duration: 80, useNativeDriver: true }),
+            Animated.spring(scaleAnim, { toValue: 1, friction: 4, useNativeDriver: true }),
+        ]).start();
+        onCompletar();
+    };
 
     return (
-        <View style={[estilos.tarjeta, estaCompletado && estilos.tarjetaCompletada]}>
-            <View style={[estilos.iconoCirculo, { backgroundColor: habito.color || colores.primario }]}>
-                <Ionicons name={nombreIcono} size={22} color="#fff" />
-            </View>
+        <Animated.View style={[
+            estilos.contenedor,
+            {
+                transform: [{ scale: scaleAnim }, { translateY: slideAnim }],
+                opacity: scaleAnim,
+            },
+            estaCompletado && estilos.contenedorCompletado,
+        ]}>
+            {/* Franja de color izquierda */}
+            <View style={[estilos.franja, { backgroundColor: habito.color || colores.primario }]} />
 
+            {/* Icono */}
+            <LinearGradient
+                colors={[habito.color || colores.primario, (habito.color || colores.primario) + 'CC']}
+                style={estilos.iconoCirculo}
+            >
+                <Ionicons name={nombreIcono} size={22} color="#fff" />
+            </LinearGradient>
+
+            {/* Info */}
             <View style={estilos.info}>
-                <Text style={estilos.nombre} numberOfLines={1}>{habito.nombre}</Text>
+                <Text style={[estilos.nombre, estaCompletado && estilos.nombreCompletado]} numberOfLines={1}>
+                    {habito.nombre}
+                </Text>
                 {habito.descripcion ? (
                     <Text style={estilos.descripcion} numberOfLines={1}>{habito.descripcion}</Text>
                 ) : null}
-                <View style={estilos.filaRacha}>
-                    <Text style={estilos.racha}>🔥 {habito.rachaActual || 0} días seguidos</Text>
-                    <Text style={estilos.xpTag}>+{habito.xpRecompensa || 10} XP</Text>
+                <View style={estilos.metaRow}>
+                    <View style={estilos.rachaBadge}>
+                        <Text style={estilos.rachaTexto}>🔥 {habito.rachaActual || 0}</Text>
+                    </View>
+                    <View style={estilos.xpBadge}>
+                        <Text style={estilos.xpTexto}>+{habito.xpRecompensa || 10} XP</Text>
+                    </View>
+                    {habito.frecuencia && (
+                        <Text style={estilos.frecuencia}>
+                            {habito.frecuencia === 'DIARIO' ? '📅 Diario' : habito.frecuencia}
+                        </Text>
+                    )}
                 </View>
             </View>
 
+            {/* Botón completar */}
             <TouchableOpacity
-                style={[estilos.botonCompletar, estaCompletado && estilos.botonCompletado]}
-                onPress={onCompletar}
+                onPress={manejarPress}
                 disabled={estaCompletado || completando}
+                activeOpacity={0.7}
             >
-                {completando
-                    ? <Text style={estilos.textoBoton}>⏳</Text>
-                    : estaCompletado
-                        ? <Ionicons name="checkmark-circle" size={26} color="#fff" />
-                        : <Text style={estilos.textoBotonPendiente}>✓</Text>
-                }
+                {estaCompletado ? (
+                    <View style={estilos.botonCompletado}>
+                        <Ionicons name="checkmark" size={22} color="#fff" />
+                    </View>
+                ) : completando ? (
+                    <View style={estilos.botonCargando}>
+                        <Text style={{ fontSize: 16 }}>⏳</Text>
+                    </View>
+                ) : (
+                    <LinearGradient colors={colores.gradientePrimario} style={estilos.botonCompletar}>
+                        <Ionicons name="checkmark" size={22} color="#fff" />
+                    </LinearGradient>
+                )}
             </TouchableOpacity>
-        </View>
+        </Animated.View>
     );
 };
 
 const estilos = StyleSheet.create({
-    tarjeta: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#fff',
-        borderRadius: 18,
-        padding: 16,
-        marginBottom: 12,
+    contenedor: {
+        flexDirection: 'row', alignItems: 'center',
+        backgroundColor: '#fff', borderRadius: radio.xl,
+        padding: 14, paddingLeft: 0, marginBottom: 12,
+        overflow: 'hidden',
         ...sombra,
     },
-    tarjetaCompletada: {
+    contenedorCompletado: {
         backgroundColor: '#F0FFF4',
-        borderWidth: 1.5,
-        borderColor: '#86EFAC',
+        borderWidth: 1, borderColor: '#86EFAC50',
+    },
+    franja: {
+        width: 4, height: '120%', borderRadius: 2,
+        marginRight: 12,
     },
     iconoCirculo: {
-        width: 46, height: 46, borderRadius: 14,
+        width: 48, height: 48, borderRadius: radio.lg,
         justifyContent: 'center', alignItems: 'center',
-        marginRight: 14,
+        marginRight: 12,
     },
     info: { flex: 1, marginRight: 8 },
-    nombre: { fontSize: 16, fontWeight: '700', color: colores.texto, marginBottom: 2 },
-    descripcion: { fontSize: 12, color: colores.textoTenue, marginBottom: 4 },
-    filaRacha: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    racha: { fontSize: 12, color: colores.textoSecundario, fontWeight: '500' },
-    xpTag: {
-        fontSize: 11, color: colores.primario, fontWeight: '700',
-        backgroundColor: '#EDE9FF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6,
+    nombre: { fontSize: 16, fontWeight: '700', color: colores.texto, marginBottom: 3 },
+    nombreCompletado: { textDecorationLine: 'line-through', color: colores.textoTenue },
+    descripcion: { fontSize: 12, color: colores.textoTenue, marginBottom: 6 },
+    metaRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    rachaBadge: {
+        backgroundColor: '#FFF7ED', borderRadius: 8,
+        paddingHorizontal: 8, paddingVertical: 3,
     },
+    rachaTexto: { fontSize: 11, fontWeight: '700', color: '#EA580C' },
+    xpBadge: {
+        backgroundColor: colores.primarioSuave, borderRadius: 8,
+        paddingHorizontal: 8, paddingVertical: 3,
+    },
+    xpTexto: { fontSize: 11, fontWeight: '700', color: colores.primario },
+    frecuencia: { fontSize: 10, color: colores.textoTenue },
     botonCompletar: {
-        width: 42, height: 42, borderRadius: 13,
-        backgroundColor: colores.primario,
+        width: 44, height: 44, borderRadius: 14,
         justifyContent: 'center', alignItems: 'center',
     },
-    botonCompletado: { backgroundColor: colores.exito },
-    textoBoton: { fontSize: 18 },
-    textoBotonPendiente: { fontSize: 20, color: '#fff', fontWeight: '800' },
+    botonCompletado: {
+        width: 44, height: 44, borderRadius: 14,
+        backgroundColor: colores.exito,
+        justifyContent: 'center', alignItems: 'center',
+    },
+    botonCargando: {
+        width: 44, height: 44, borderRadius: 14,
+        backgroundColor: '#F3F4F6',
+        justifyContent: 'center', alignItems: 'center',
+    },
 });
 
 export default TarjetaHabito;

@@ -1,41 +1,52 @@
 import React, { useState } from 'react';
 import {
-    View, Text, TextInput, TouchableOpacity,
-    StyleSheet, Alert, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform
+    View, Text, TextInput, TouchableOpacity, StyleSheet,
+    Alert, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { crearHabito } from '../servicios/api';
-import { colores, sombra } from '../estilos/tema';
+import { colores, sombra, sombraFuerte, radio } from '../estilos/tema';
 
 const ICONOS = [
-    { clave: 'estrella', ion: 'star', etiqueta: '⭐' },
-    { clave: 'fuego', ion: 'flame', etiqueta: '🔥' },
-    { clave: 'corazon', ion: 'heart', etiqueta: '❤️' },
-    { clave: 'musculo', ion: 'barbell', etiqueta: '💪' },
-    { clave: 'libro', ion: 'book', etiqueta: '📖' },
-    { clave: 'agua', ion: 'water', etiqueta: '💧' },
-    { clave: 'comida', ion: 'nutrition', etiqueta: '🥦' },
-    { clave: 'sueno', ion: 'moon', etiqueta: '🌙' },
-    { clave: 'yoga', ion: 'body', etiqueta: '🧘' },
-    { clave: 'correr', ion: 'walk', etiqueta: '🏃' },
-    { clave: 'musica', ion: 'musical-notes', etiqueta: '🎵' },
-    { clave: 'meditacion', ion: 'leaf', etiqueta: '🍃' },
+    { clave: 'estrella', emoji: '⭐', label: 'Estrella' },
+    { clave: 'fuego', emoji: '🔥', label: 'Fuego' },
+    { clave: 'corazon', emoji: '❤️', label: 'Corazón' },
+    { clave: 'musculo', emoji: '💪', label: 'Ejercicio' },
+    { clave: 'libro', emoji: '📖', label: 'Lectura' },
+    { clave: 'agua', emoji: '💧', label: 'Agua' },
+    { clave: 'comida', emoji: '🥦', label: 'Comida' },
+    { clave: 'sueno', emoji: '🌙', label: 'Sueño' },
+    { clave: 'yoga', emoji: '🧘', label: 'Yoga' },
+    { clave: 'correr', emoji: '🏃', label: 'Correr' },
+    { clave: 'musica', emoji: '🎵', label: 'Música' },
+    { clave: 'meditacion', emoji: '🍃', label: 'Meditar' },
 ];
 
 const COLORES = [
-    '#6C63FF', '#FF6584', '#43C59E', '#F59E0B',
-    '#3B82F6', '#EF4444', '#8B5CF6', '#10B981',
+    '#6C63FF', '#FF6B6B', '#43C59E', '#F59E0B',
+    '#3B82F6', '#EC4899', '#8B5CF6', '#10B981',
+    '#F97316', '#06B6D4', '#EF4444', '#14B8A6',
+];
+
+const FRECUENCIAS = [
+    { clave: 'DIARIO', label: '📅 Diario' },
+    { clave: 'SEMANAL', label: '📆 Semanal' },
+    { clave: 'LIBRE', label: '🆓 Libre' },
 ];
 
 const PantallaAnadirHabito = ({ navigation }) => {
     const [nombre, setNombre] = useState('');
     const [descripcion, setDescripcion] = useState('');
-    const [iconoSeleccionado, setIconoSeleccionado] = useState('estrella');
-    const [colorSeleccionado, setColorSeleccionado] = useState('#6C63FF');
+    const [icono, setIcono] = useState('estrella');
+    const [color, setColor] = useState('#6C63FF');
+    const [frecuencia, setFrecuencia] = useState('DIARIO');
     const [xpRecompensa, setXpRecompensa] = useState('10');
     const [cargando, setCargando] = useState(false);
+    const [focus, setFocus] = useState(null);
 
-    const manejarCrear = async () => {
+    const crear = async () => {
         if (!nombre.trim()) {
             Alert.alert('Campo obligatorio', 'El nombre del hábito es obligatorio.');
             return;
@@ -43,165 +54,218 @@ const PantallaAnadirHabito = ({ navigation }) => {
         setCargando(true);
         try {
             await crearHabito({
-                nombre: nombre.trim(),
-                descripcion: descripcion.trim(),
-                icono: iconoSeleccionado,
-                color: colorSeleccionado,
-                frecuencia: 'DIARIO',
+                nombre: nombre.trim(), descripcion: descripcion.trim(),
+                icono, color, frecuencia,
                 xpRecompensa: parseInt(xpRecompensa) || 10,
             });
             Alert.alert('¡Éxito! 🎉', '¡Hábito creado con éxito!', [
-                { text: 'Genial', onPress: () => navigation.goBack() }
+                { text: '¡Genial!', onPress: () => navigation.goBack() },
             ]);
-        } catch (error) {
-            Alert.alert('Error', 'No se pudo crear el hábito. Inténtalo de nuevo.');
-        } finally {
-            setCargando(false);
-        }
+        } catch {
+            Alert.alert('Error', 'No se pudo crear el hábito.');
+        } finally { setCargando(false); }
     };
 
     return (
-        <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={estilos.contenedor}
-        >
-            <ScrollView contentContainerStyle={estilos.desplazable} keyboardShouldPersistTaps="handled">
-                <Text style={estilos.titulo}>Nuevo hábito</Text>
+        <View style={{ flex: 1, backgroundColor: colores.fondo }}>
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+                <ScrollView contentContainerStyle={estilos.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
-                <View style={estilos.seccion}>
-                    <Text style={estilos.etiqueta}>Nombre *</Text>
-                    <TextInput
-                        style={estilos.campo}
-                        placeholder="ej. Meditar 10 minutos"
-                        placeholderTextColor={colores.textoTenue}
-                        value={nombre}
-                        onChangeText={setNombre}
-                        maxLength={100}
-                    />
-
-                    <Text style={estilos.etiqueta}>Descripción</Text>
-                    <TextInput
-                        style={[estilos.campo, estilos.campoMultilinea]}
-                        placeholder="Describe tu hábito (opcional)"
-                        placeholderTextColor={colores.textoTenue}
-                        value={descripcion}
-                        onChangeText={setDescripcion}
-                        multiline
-                        numberOfLines={3}
-                        maxLength={255}
-                    />
-
-                    <Text style={estilos.etiqueta}>XP de recompensa</Text>
-                    <TextInput
-                        style={estilos.campo}
-                        placeholder="10"
-                        placeholderTextColor={colores.textoTenue}
-                        value={xpRecompensa}
-                        onChangeText={setXpRecompensa}
-                        keyboardType="numeric"
-                    />
-                </View>
-
-                {/* Selector de icono */}
-                <View style={estilos.seccion}>
-                    <Text style={estilos.etiqueta}>Icono</Text>
-                    <View style={estilos.cuadricula}>
-                        {ICONOS.map((icono) => (
-                            <TouchableOpacity
-                                key={icono.clave}
-                                style={[
-                                    estilos.opcionIcono,
-                                    iconoSeleccionado === icono.clave && {
-                                        borderColor: colorSeleccionado,
-                                        backgroundColor: colorSeleccionado + '20',
-                                    }
-                                ]}
-                                onPress={() => setIconoSeleccionado(icono.clave)}
-                            >
-                                <Text style={estilos.emojiIcono}>{icono.etiqueta}</Text>
-                            </TouchableOpacity>
-                        ))}
+                    {/* Preview tarjeta */}
+                    <View style={estilos.previewCard}>
+                        <LinearGradient
+                            colors={[color, color + 'AA']}
+                            style={estilos.previewIcono}
+                        >
+                            <Text style={{ fontSize: 28 }}>{ICONOS.find(i => i.clave === icono)?.emoji || '⭐'}</Text>
+                        </LinearGradient>
+                        <Text style={estilos.previewNombre}>{nombre || 'Nombre del hábito'}</Text>
+                        <Text style={estilos.previewDesc}>{descripcion || 'Descripción opcional'}</Text>
+                        <View style={estilos.previewTags}>
+                            <View style={[estilos.previewTag, { backgroundColor: color + '20' }]}>
+                                <Text style={[estilos.previewTagText, { color }]}>+{xpRecompensa || 10} XP</Text>
+                            </View>
+                            <View style={estilos.previewTag}>
+                                <Text style={estilos.previewTagText}>{FRECUENCIAS.find(f => f.clave === frecuencia)?.label}</Text>
+                            </View>
+                        </View>
                     </View>
-                </View>
 
-                {/* Selector de color */}
-                <View style={estilos.seccion}>
-                    <Text style={estilos.etiqueta}>Color</Text>
-                    <View style={estilos.filaColores}>
-                        {COLORES.map((color) => (
-                            <TouchableOpacity
-                                key={color}
-                                style={[estilos.circuloColor, { backgroundColor: color },
-                                colorSeleccionado === color && estilos.circuloSeleccionado]}
-                                onPress={() => setColorSeleccionado(color)}
-                            >
-                                {colorSeleccionado === color && (
-                                    <Ionicons name="checkmark" size={16} color="#fff" />
-                                )}
-                            </TouchableOpacity>
-                        ))}
+                    {/* Campos de texto */}
+                    <View style={estilos.seccion}>
+                        <Text style={estilos.seccionTitulo}>📝 Información</Text>
+
+                        <View style={[estilos.inputWrapper, focus === 'nombre' && estilos.inputFocused]}>
+                            <TextInput
+                                style={estilos.input} placeholder="Nombre del hábito *"
+                                placeholderTextColor={colores.textoTenue}
+                                value={nombre} onChangeText={setNombre}
+                                onFocus={() => setFocus('nombre')} onBlur={() => setFocus(null)}
+                                maxLength={100}
+                            />
+                        </View>
+
+                        <View style={[estilos.inputWrapper, focus === 'desc' && estilos.inputFocused]}>
+                            <TextInput
+                                style={[estilos.input, { height: 68, textAlignVertical: 'top' }]}
+                                placeholder="Descripción (opcional)"
+                                placeholderTextColor={colores.textoTenue}
+                                value={descripcion} onChangeText={setDescripcion}
+                                onFocus={() => setFocus('desc')} onBlur={() => setFocus(null)}
+                                multiline maxLength={255}
+                            />
+                        </View>
+
+                        <View style={[estilos.inputWrapper, { width: 120 }, focus === 'xp' && estilos.inputFocused]}>
+                            <Text style={estilos.inputIcon}>⚡</Text>
+                            <TextInput
+                                style={estilos.input} placeholder="XP"
+                                placeholderTextColor={colores.textoTenue}
+                                value={xpRecompensa} onChangeText={setXpRecompensa}
+                                onFocus={() => setFocus('xp')} onBlur={() => setFocus(null)}
+                                keyboardType="numeric"
+                            />
+                        </View>
                     </View>
-                </View>
 
-                <View style={estilos.botones}>
-                    <TouchableOpacity
-                        style={estilos.botonCancelar}
-                        onPress={() => navigation.goBack()}
-                    >
-                        <Text style={estilos.textoCancelar}>Cancelar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={[estilos.botonCrear, { backgroundColor: colorSeleccionado }, cargando && estilos.deshabilitado]}
-                        onPress={manejarCrear}
-                        disabled={cargando}
-                    >
-                        {cargando
-                            ? <ActivityIndicator color="#fff" />
-                            : <Text style={estilos.textoCrear}>Crear hábito</Text>
-                        }
-                    </TouchableOpacity>
-                </View>
-            </ScrollView>
-        </KeyboardAvoidingView>
+                    {/* Frecuencia */}
+                    <View style={estilos.seccion}>
+                        <Text style={estilos.seccionTitulo}>🔄 Frecuencia</Text>
+                        <View style={estilos.freqRow}>
+                            {FRECUENCIAS.map(f => (
+                                <TouchableOpacity key={f.clave}
+                                    style={[estilos.freqChip, frecuencia === f.clave && { backgroundColor: color + '20', borderColor: color }]}
+                                    onPress={() => setFrecuencia(f.clave)}
+                                >
+                                    <Text style={[estilos.freqText, frecuencia === f.clave && { color, fontWeight: '700' }]}>{f.label}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </View>
+
+                    {/* Selector icono */}
+                    <View style={estilos.seccion}>
+                        <Text style={estilos.seccionTitulo}>🎭 Icono</Text>
+                        <View style={estilos.gridIconos}>
+                            {ICONOS.map(i => (
+                                <TouchableOpacity key={i.clave}
+                                    style={[estilos.iconoOpcion, icono === i.clave && { borderColor: color, backgroundColor: color + '15' }]}
+                                    onPress={() => setIcono(i.clave)}
+                                >
+                                    <Text style={{ fontSize: 24 }}>{i.emoji}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </View>
+
+                    {/* Selector color */}
+                    <View style={estilos.seccion}>
+                        <Text style={estilos.seccionTitulo}>🎨 Color</Text>
+                        <View style={estilos.gridColores}>
+                            {COLORES.map(c => (
+                                <TouchableOpacity key={c}
+                                    style={[estilos.colorCirculo, { backgroundColor: c },
+                                    color === c && { borderWidth: 3, borderColor: '#fff', ...sombraFuerte }
+                                    ]}
+                                    onPress={() => setColor(c)}
+                                >
+                                    {color === c && <Ionicons name="checkmark" size={18} color="#fff" />}
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </View>
+
+                    {/* Botones */}
+                    <View style={estilos.botonRow}>
+                        <TouchableOpacity style={estilos.botonCancelar} onPress={() => navigation.goBack()}>
+                            <Text style={estilos.cancelarTexto}>Cancelar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={crear} disabled={cargando} activeOpacity={0.8} style={{ flex: 2 }}>
+                            <LinearGradient
+                                colors={[color, color + 'CC']}
+                                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                                style={[estilos.botonCrear, cargando && { opacity: 0.6 }]}
+                            >
+                                {cargando
+                                    ? <ActivityIndicator color="#fff" />
+                                    : <><Text style={estilos.crearTexto}>Crear hábito</Text><Ionicons name="sparkles" size={18} color="#fff" /></>
+                                }
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
+        </View>
     );
 };
 
 const estilos = StyleSheet.create({
-    contenedor: { flex: 1, backgroundColor: colores.fondo },
-    desplazable: { padding: 20, paddingBottom: 40 },
-    titulo: { fontSize: 28, fontWeight: '800', color: colores.texto, marginBottom: 20 },
-    seccion: {
-        backgroundColor: '#fff', borderRadius: 18, padding: 16,
-        marginBottom: 14, ...sombra,
+    scroll: { padding: 20, paddingBottom: 40 },
+
+    // Preview
+    previewCard: {
+        alignItems: 'center', backgroundColor: '#fff',
+        borderRadius: radio.xxl, padding: 28, marginBottom: 16, ...sombraFuerte,
     },
-    etiqueta: { fontSize: 13, fontWeight: '600', color: colores.textoSecundario, marginBottom: 8 },
-    campo: {
-        borderWidth: 1.5, borderColor: '#E8E8F0', borderRadius: 12,
-        paddingHorizontal: 14, paddingVertical: 11, fontSize: 15,
-        color: colores.texto, backgroundColor: '#FAFAFA', marginBottom: 14,
+    previewIcono: {
+        width: 72, height: 72, borderRadius: 24,
+        justifyContent: 'center', alignItems: 'center', marginBottom: 12,
     },
-    campoMultilinea: { height: 80, textAlignVertical: 'top' },
-    cuadricula: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-    opcionIcono: {
-        width: 50, height: 50, borderRadius: 14, borderWidth: 2,
-        borderColor: '#E8E8F0', justifyContent: 'center', alignItems: 'center',
+    previewNombre: { fontSize: 20, fontWeight: '800', color: colores.texto, textAlign: 'center' },
+    previewDesc: { fontSize: 13, color: colores.textoTenue, marginTop: 4, textAlign: 'center' },
+    previewTags: { flexDirection: 'row', gap: 8, marginTop: 12 },
+    previewTag: { backgroundColor: '#F3F4F6', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 4 },
+    previewTagText: { fontSize: 12, fontWeight: '600', color: colores.textoSecundario },
+
+    // Secciones
+    seccion: { backgroundColor: '#fff', borderRadius: radio.xl, padding: 16, marginBottom: 12, ...sombra },
+    seccionTitulo: { fontSize: 15, fontWeight: '700', color: colores.texto, marginBottom: 12 },
+
+    // Inputs
+    inputWrapper: {
+        borderWidth: 1.5, borderColor: colores.bordeClaro, backgroundColor: colores.fondoInput,
+        borderRadius: radio.md, paddingHorizontal: 16, paddingVertical: Platform.OS === 'ios' ? 12 : 8,
+        marginBottom: 10, flexDirection: 'row', alignItems: 'center', gap: 8,
     },
-    emojiIcono: { fontSize: 22 },
-    filaColores: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-    circuloColor: {
-        width: 36, height: 36, borderRadius: 18,
+    inputFocused: { borderColor: colores.primario, backgroundColor: '#fff' },
+    input: { flex: 1, fontSize: 15, color: colores.texto },
+    inputIcon: { fontSize: 18 },
+
+    // Frecuencia
+    freqRow: { flexDirection: 'row', gap: 8 },
+    freqChip: {
+        flex: 1, borderWidth: 1.5, borderColor: colores.bordeClaro,
+        borderRadius: radio.md, paddingVertical: 10, alignItems: 'center',
+    },
+    freqText: { fontSize: 13, color: colores.textoSecundario },
+
+    // Iconos grid
+    gridIconos: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    iconoOpcion: {
+        width: 54, height: 54, borderRadius: radio.lg, borderWidth: 2,
+        borderColor: colores.bordeClaro, justifyContent: 'center', alignItems: 'center',
+    },
+
+    // Colores grid
+    gridColores: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+    colorCirculo: {
+        width: 38, height: 38, borderRadius: 19,
         justifyContent: 'center', alignItems: 'center',
     },
-    circuloSeleccionado: { borderWidth: 3, borderColor: '#fff', ...sombra },
-    botones: { flexDirection: 'row', gap: 12, marginTop: 8 },
+
+    // Botones
+    botonRow: { flexDirection: 'row', gap: 12, marginTop: 8 },
     botonCancelar: {
-        flex: 1, borderRadius: 14, paddingVertical: 14,
-        borderWidth: 1.5, borderColor: colores.borde, alignItems: 'center',
+        flex: 1, borderRadius: radio.lg, borderWidth: 1.5,
+        borderColor: colores.borde, paddingVertical: 15, alignItems: 'center',
     },
-    textoCancelar: { fontSize: 15, fontWeight: '700', color: colores.textoSecundario },
-    botonCrear: { flex: 2, borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
-    textoCrear: { color: '#fff', fontSize: 15, fontWeight: '700' },
-    deshabilitado: { opacity: 0.6 },
+    cancelarTexto: { fontSize: 15, fontWeight: '700', color: colores.textoSecundario },
+    botonCrear: {
+        flexDirection: 'row', gap: 8, borderRadius: radio.lg,
+        paddingVertical: 15, alignItems: 'center', justifyContent: 'center',
+        ...sombraFuerte,
+    },
+    crearTexto: { color: '#fff', fontSize: 15, fontWeight: '700' },
 });
 
 export default PantallaAnadirHabito;
