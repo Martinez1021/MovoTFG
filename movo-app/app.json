@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "MOVO",
+    "slug": "movo-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0A0A0A"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.movo.app",
+      "infoPlist": {
+        "NSUserNotificationsUsageDescription": "MOVO te envía recordatorios diarios para mantener tu racha de entrenamiento."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0A0A0A"
+      },
+      "package": "com.movo.app",
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#6C63FF",
+          "sounds": []
+        }
+      ]
+    ],
+    "extra": {
+      "supabaseUrl": "https://uyxysrodgxxduzyekgjo.supabase.co"
+    }
+  }
+}

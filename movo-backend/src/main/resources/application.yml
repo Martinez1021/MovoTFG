@@ -1,0 +1,39 @@
+spring:
+  datasource:
+    url: ${SUPABASE_DB_URL}
+    username: ${SUPABASE_DB_USER}
+    password: ${SUPABASE_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: public
+
+server:
+  port: 8080
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+  grok:
+    api-key: ${GROK_API_KEY}
+    base-url: https://api.x.ai/v1
+    model: grok-beta
+  supabase:
+    jwt-secret: ${SUPABASE_JWT_SECRET}
+    url: ${SUPABASE_URL}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    com.movo: DEBUG
+    org.springframework.security: WARN

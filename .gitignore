@@ -1,0 +1,70 @@
+# Root .gitignore for MOVO App
+
+# dependencies
+node_modules/
+bin/
+target/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*.DS_Store
+
+# local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# typescript
+*.tsbuildinfo
+
+# generated native folders
+movo-app/ios
+movo-app/android
+
+# Java / Maven
+*.class
+*.log
+*.ctxt
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+!**/src/main/resources/**/*.jar
+!**/src/main/resources/**/*.class
+.mvn/wrapper/maven-wrapper.jar
+**/target/
+**/build/
