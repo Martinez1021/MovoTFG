@@ -7,7 +7,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { useFeedStore, Post, Comment } from '../../store/feedStore';
+import { useFeedStore, Post, Comment, WorkoutData } from '../../store/feedStore';
 import { useAuthStore } from '../../store/authStore';
 import { useThemeStore } from '../../store/themeStore';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../utils/constants';
@@ -20,6 +20,101 @@ const timeAgo = (iso: string) => {
     if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
     return `${Math.floor(diff / 86400)}d`;
 };
+
+// ── Effort bar color helper ──────────────────────────────
+const effortColor = (n: number) => {
+    if (n <= 3) return '#4CAF50';
+    if (n <= 6) return '#FF9800';
+    if (n <= 8) return '#FF5722';
+    return '#F44336';
+};
+
+// ── Workout summary embedded in post card ────────────────
+const WorkoutCard: React.FC<{ data: WorkoutData; primary: string }> = ({ data, primary }) => {
+    const durationMin = Math.round(data.duration_seconds / 60);
+    const color = effortColor(data.effort_score);
+    return (
+        <View style={wc.wrap}>
+            {/* Header strip */}
+            <View style={[wc.strip, { backgroundColor: primary + '18', borderColor: primary + '33' }]}>
+                <Ionicons name="barbell-outline" size={16} color={primary} />
+                <Text style={[wc.routineName, { color: primary }]}>{data.routine_name}</Text>
+                <View style={[wc.durationBadge, { borderColor: primary + '44' }]}>
+                    <Ionicons name="time-outline" size={12} color={Colors.textSecondary} />
+                    <Text style={wc.durationText}>{durationMin}min</Text>
+                </View>
+            </View>
+
+            {/* Stats row */}
+            <View style={wc.statsRow}>
+                {[
+                    { icon: 'layers-outline',  value: String(data.total_sets),    label: 'Series' },
+                    { icon: 'repeat-outline',  value: String(data.total_reps),    label: 'Reps' },
+                    { icon: 'barbell-outline', value: `${data.total_weight}kg`,   label: 'Movido' },
+                ].map((s) => (
+                    <View key={s.label} style={wc.statCell}>
+                        <Ionicons name={s.icon as any} size={14} color={Colors.textSecondary} />
+                        <Text style={wc.statVal}>{s.value}</Text>
+                        <Text style={wc.statLabel}>{s.label}</Text>
+                    </View>
+                ))}
+            </View>
+
+            {/* Effort bar */}
+            <View style={wc.effortRow}>
+                <Text style={wc.effortLabel}>Esfuerzo</Text>
+                <View style={wc.barRow}>
+                    {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                        <View
+                            key={n}
+                            style={[
+                                wc.barSeg,
+                                n <= data.effort_score && { backgroundColor: color, opacity: 0.85 },
+                            ]}
+                        />
+                    ))}
+                </View>
+                <Text style={[wc.effortScore, { color }]}>{data.effort_score}/10</Text>
+            </View>
+
+            {/* Top 3 exercises */}
+            {data.exercises.slice(0, 3).map((ex, i) => (
+                <View key={i} style={wc.exRow}>
+                    <View style={[wc.exDot, { backgroundColor: primary }]} />
+                    <Text style={wc.exName} numberOfLines={1}>{ex.name}</Text>
+                    <Text style={wc.exSets} numberOfLines={1}>
+                        {ex.sets.slice(0, 4).map((s) => `${s.reps}×${s.weight > 0 ? `${s.weight}kg` : 'BW'}`).join('  ')}
+                    </Text>
+                </View>
+            ))}
+            {data.exercises.length > 3 && (
+                <Text style={wc.moreEx}>+{data.exercises.length - 3} ejercicio{data.exercises.length - 3 > 1 ? 's' : ''} más</Text>
+            )}
+        </View>
+    );
+};
+
+const wc = StyleSheet.create({
+    wrap: { marginHorizontal: Spacing.base, borderRadius: BorderRadius.md, overflow: 'hidden', marginBottom: Spacing.md, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface + 'AA' },
+    strip: { flexDirection: 'row', alignItems: 'center', gap: 6, padding: Spacing.sm, borderBottomWidth: 1 },
+    routineName: { fontWeight: '800', fontSize: FontSizes.sm, flex: 1 },
+    durationBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
+    durationText: { fontSize: FontSizes.xs, color: Colors.textSecondary, fontWeight: '600' },
+    statsRow: { flexDirection: 'row', paddingHorizontal: Spacing.sm, paddingTop: Spacing.sm },
+    statCell: { flex: 1, alignItems: 'center', gap: 2 },
+    statVal: { fontSize: FontSizes.base, fontWeight: '800', color: Colors.textPrimary },
+    statLabel: { fontSize: FontSizes.xs, color: Colors.textSecondary },
+    effortRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: Spacing.sm, paddingVertical: Spacing.sm },
+    effortLabel: { fontSize: FontSizes.xs, color: Colors.textSecondary, minWidth: 52 },
+    barRow: { flex: 1, flexDirection: 'row', gap: 2 },
+    barSeg: { flex: 1, height: 8, borderRadius: 3, backgroundColor: Colors.border },
+    effortScore: { fontSize: FontSizes.sm, fontWeight: '800', minWidth: 32, textAlign: 'right' },
+    exRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: Spacing.sm, paddingVertical: 4, borderTopWidth: 1, borderTopColor: Colors.border + '55' },
+    exDot: { width: 6, height: 6, borderRadius: 3 },
+    exName: { fontSize: FontSizes.xs, color: Colors.textPrimary, fontWeight: '600', flex: 1 },
+    exSets: { fontSize: FontSizes.xs, color: Colors.textSecondary },
+    moreEx: { fontSize: FontSizes.xs, color: Colors.textSecondary, paddingHorizontal: Spacing.sm, paddingVertical: 6, borderTopWidth: 1, borderTopColor: Colors.border + '55', fontStyle: 'italic' },
+});
 
 // ── Post card ────────────────────────────────────────────
 const PostCard: React.FC<{ post: Post; primary: string; onLike: () => void; onOpenComments: () => void }> = ({ post, primary, onLike, onOpenComments }) => (
@@ -36,6 +131,12 @@ const PostCard: React.FC<{ post: Post; primary: string; onLike: () => void; onOp
                 <Text style={pc.userName}>{post.user_name}</Text>
                 <Text style={pc.time}>{timeAgo(post.created_at)}</Text>
             </View>
+            {post.workout_data && (
+                <View style={[pc.workoutBadge, { backgroundColor: primary + '22', borderColor: primary + '44' }]}>
+                    <Ionicons name="barbell-outline" size={12} color={primary} />
+                    <Text style={[pc.workoutBadgeText, { color: primary }]}>Entreno</Text>
+                </View>
+            )}
         </View>
 
         {/* Content — tappable para abrir comentarios */}
@@ -45,6 +146,11 @@ const PostCard: React.FC<{ post: Post; primary: string; onLike: () => void; onOp
               </TouchableOpacity>
             : null
         }
+
+        {/* Workout summary card */}
+        {post.workout_data && (
+            <WorkoutCard data={post.workout_data} primary={primary} />
+        )}
 
         {/* Image — tappable para abrir comentarios */}
         {post.image_url
@@ -87,6 +193,8 @@ const pc = StyleSheet.create({
     actions: { flexDirection: 'row', gap: Spacing.lg, padding: Spacing.base, borderTopWidth: 1, borderTopColor: Colors.border },
     actionBtn: { flexDirection: 'row', alignItems: 'center', gap: 6 },
     actionCount: { fontSize: FontSizes.sm, color: Colors.textSecondary, fontWeight: '600' },
+    workoutBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1 },
+    workoutBadgeText: { fontSize: FontSizes.xs, fontWeight: '700' },
 });
 
 // ── Comments Modal ───────────────────────────────────────

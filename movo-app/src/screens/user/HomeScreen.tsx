@@ -1,7 +1,8 @@
-﻿import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAuthStore } from '../../store/authStore';
 import { useRoutineStore } from '../../store/routineStore';
 import { useThemeStore } from '../../store/themeStore';
@@ -48,6 +49,8 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
     const load = async () => { await Promise.all([fetchAssigned(), fetchStats(), fetchSessions?.()]); };
     useEffect(() => { load(); }, []);
+    // Refresh stats every time this tab comes into focus (e.g. after a workout)
+    useFocusEffect(useCallback(() => { fetchStats(); fetchSessions?.(); }, []));
     const onRefresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
 
     const hour = new Date().getHours();

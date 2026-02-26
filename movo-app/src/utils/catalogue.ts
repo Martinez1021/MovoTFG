@@ -167,7 +167,7 @@ export const CATALOGUE: CatalogueRoutine[] = [
         category: 'pilates', difficulty: 'beginner', duration_minutes: 25,
         created_by: 'movo', is_public: true, created_at: '',
         tags: ['bienestar', 'pilates', 'recuperacion'],
-        image_url: 'https://images.unsplash.com/photo-1651731804059-60b3fe13d74f?w=600&q=80',
+        image_url: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&q=80',
     },
 ];
 

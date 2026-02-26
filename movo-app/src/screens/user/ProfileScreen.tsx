@@ -5,13 +5,13 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuthStore } from '../../store/authStore';
 import { useRoutineStore } from '../../store/routineStore';
-import { useFeedStore, Comment } from '../../store/feedStore';
+import { useFeedStore, Comment, WorkoutData } from '../../store/feedStore';
 import { supabase } from '../../services/supabase';
 import { Colors, Spacing, FontSizes, BorderRadius, Goals, ActivityLevels } from '../../utils/constants';
 import { useThemeStore } from '../../store/themeStore';
 
 const W = Dimensions.get('window').width;
-const GRID_SIZE = (W - 4) / 3;
+const GRID_SIZE = Math.floor((W - 8) / 3);
 
 type Tab = 'posts' | 'entrenos' | 'ajustes';
 
@@ -200,6 +200,7 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
     const [savingStats, setSavingStats] = useState(false);
 
     const myPosts = posts.filter((p) => p.supabase_uid === user?.id);
+    const myWorkoutPosts = myPosts.filter((p) => (p as any).workout_data);
 
     const loadSocialData = useCallback(async () => {
         if (!user?.id) return;
@@ -410,6 +411,45 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                 {/* ── TAB: ENTRENOS ── */}
                 {tab === 'entrenos' && (
                     <View style={{ paddingHorizontal: Spacing.base, paddingTop: Spacing.lg }}>
+                        {/* Shared workout posts — top */}
+                        {myWorkoutPosts.length > 0 && (
+                            <View style={[s.section, { borderColor: primary + '33' }]}>
+                                <View style={s.sectionHeader}>
+                                    <Ionicons name="share-social-outline" size={18} color={primary} />
+                                    <Text style={s.sectionTitle}>Entrenamientos compartidos</Text>
+                                </View>
+                                {myWorkoutPosts.slice(0, 5).map((p, i) => {
+                                    const wd: WorkoutData = (p as any).workout_data;
+                                    const dmin = Math.round(wd.duration_seconds / 60);
+                                    const effortC = wd.effort_score >= 9 ? '#F44336' : wd.effort_score >= 7 ? '#FF5722' : wd.effort_score >= 5 ? '#FF9800' : '#4CAF50';
+                                    return (
+                                        <TouchableOpacity
+                                            key={p.id}
+                                            onPress={() => setSelectedPost(p)}
+                                            activeOpacity={0.75}
+                                            style={[s.sessionRow, i === myWorkoutPosts.slice(0, 5).length - 1 && { borderBottomWidth: 0 }]}
+                                        >
+                                            <View style={[s.workoutIcon, { backgroundColor: primary + '22' }]}>
+                                                <Ionicons name="barbell-outline" size={14} color={primary} />
+                                            </View>
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={s.sessionName}>{wd.routine_name}</Text>
+                                                <Text style={s.sessionSub}>
+                                                    {dmin}min · {wd.total_sets} series · {wd.total_weight}kg movidos
+                                                </Text>
+                                            </View>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                <View style={[s.sessionBadge, { backgroundColor: effortC + '22' }]}>
+                                                    <Text style={[s.sessionBadgeText, { color: effortC, fontSize: 10 }]}>⚡{wd.effort_score}</Text>
+                                                </View>
+                                                <Ionicons name="chevron-forward" size={14} color={Colors.textSecondary} />
+                                            </View>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+                        )}
+
                         {/* Physical stats header + edit */}
                         <View style={s.tabSectionHeader}>
                             <View style={s.sectionHeader}>
@@ -695,6 +735,7 @@ const s = StyleSheet.create({
     sessionSub: { color: Colors.textSecondary, fontSize: FontSizes.xs, marginTop: 2 },
     sessionBadge: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
     sessionBadgeText: { fontWeight: '800', fontSize: 12 },
+    workoutIcon: { width: 28, height: 28, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
     // Menu
     menuRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: Spacing.md, gap: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.border },
     menuText: { color: Colors.textPrimary, fontSize: FontSizes.base },

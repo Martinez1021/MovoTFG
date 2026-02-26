@@ -2,6 +2,23 @@ import { create } from 'zustand';
 import { supabase } from '../services/supabase';
 import { useAuthStore } from './authStore';
 
+export interface WorkoutExerciseLog {
+    name: string;
+    muscle_group: string;
+    sets: Array<{ reps: number; weight: number }>;
+}
+
+export interface WorkoutData {
+    routine_name: string;
+    duration_seconds: number;
+    effort_score: number;          // 1-10
+    total_sets: number;
+    total_reps: number;
+    total_weight: number;          // kg moved (reps × weight sum)
+    exercises: WorkoutExerciseLog[];
+    photo_base64?: string;         // optional post-workout photo
+}
+
 export interface Post {
     id: string;
     supabase_uid: string;
@@ -9,6 +26,7 @@ export interface Post {
     user_avatar?: string;
     content: string;
     image_url?: string;
+    workout_data?: WorkoutData;
     likes_count: number;
     comments_count: number;
     liked_by_me: boolean;
@@ -34,6 +52,7 @@ interface FeedState {
     isAddingComment: boolean;
     fetchPosts: () => Promise<void>;
     createPost: (content: string, imageBase64?: string) => Promise<void>;
+    createWorkoutPost: (data: WorkoutData) => Promise<void>;
     toggleLike: (postId: string) => Promise<void>;
     fetchComments: (postId: string) => Promise<void>;
     addComment: (postId: string, text: string) => Promise<void>;
@@ -81,6 +100,7 @@ export const useFeedStore = create<FeedState>((set, get) => ({
                 user_avatar: p.user_avatar,
                 content: p.content ?? '',
                 image_url: p.image_url,
+                workout_data: p.workout_data ?? undefined,
                 likes_count: p.likes_count ?? 0,
                 comments_count: p.comments_count ?? 0,
                 liked_by_me: myLikes.includes(p.id),
@@ -118,6 +138,38 @@ export const useFeedStore = create<FeedState>((set, get) => ({
             await get().fetchPosts();
         } catch (e: any) {
             console.error('[FeedStore] createPost:', e?.message);
+            throw e;
+        } finally {
+            set({ isPosting: false });
+        }
+    },
+
+    createWorkoutPost: async (data) => {
+        set({ isPosting: true });
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session?.user) throw new Error('No autenticado');
+            const authUser = useAuthStore.getState().user;
+
+            const effortEmoji = data.effort_score >= 9 ? '🏆' : data.effort_score >= 7 ? '🔥' : data.effort_score >= 5 ? '💪' : '🧘';
+            const durationMin = Math.round(data.duration_seconds / 60);
+            const content = `${effortEmoji} ${data.routine_name} · ${durationMin}min · Esfuerzo ${data.effort_score}/10`;
+            const imageUrl = data.photo_base64 ? `data:image/jpeg;base64,${data.photo_base64}` : null;
+
+            const { error } = await supabase.from('feed_posts').insert({
+                supabase_uid: session.user.id,
+                user_name: authUser?.full_name ?? session.user.email,
+                user_avatar: authUser?.avatar_url ?? null,
+                content,
+                image_url: imageUrl,
+                workout_data: data,
+                likes_count: 0,
+            });
+
+            if (error) throw error;
+            await get().fetchPosts();
+        } catch (e: any) {
+            console.error('[FeedStore] createWorkoutPost:', e?.message);
             throw e;
         } finally {
             set({ isPosting: false });

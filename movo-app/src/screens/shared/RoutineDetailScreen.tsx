@@ -113,7 +113,7 @@ export const RoutineDetailScreen: React.FC<{ navigation: any; route: any }> = ({
                     {/* Exercises list */}
                     <Text style={s.sectionTitle}>Ejercicios ({exercises.length})</Text>
                     {exercises.sort((a, b) => a.order_index - b.order_index).map((ex, i) => (
-                        <TouchableOpacity key={ex.id} style={s.exerciseRow} onPress={() => navigation.navigate('ExerciseDetail', { exerciseId: ex.id })}>
+                        <View key={ex.id} style={s.exerciseRow}>
                             <View style={s.orderBadge}>
                                 <Text style={s.orderText}>{i + 1}</Text>
                             </View>
@@ -124,7 +124,7 @@ export const RoutineDetailScreen: React.FC<{ navigation: any; route: any }> = ({
                                 </Text>
                             </View>
                             <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
-                        </TouchableOpacity>
+                        </View>
                     ))}
 
                     <Button title="Iniciar entrenamiento 🚀" onPress={handleStart} fullWidth style={{ marginTop: Spacing.xl }} />

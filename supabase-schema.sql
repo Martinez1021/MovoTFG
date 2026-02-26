@@ -301,3 +301,58 @@ CREATE INDEX IF NOT EXISTS idx_posts_user_id   ON posts(user_id);
 CREATE INDEX IF NOT EXISTS idx_posts_created   ON posts(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_post_likes_post ON post_likes(post_id);
 
+-- ─── FEED POSTS (community feed) ─────────────────────────────────────────────
+-- This table is referenced by feedStore.ts. Run these in Supabase SQL Editor
+-- if feed_posts does not exist yet, or run only the ALTER if it already does.
+
+CREATE TABLE IF NOT EXISTS feed_posts (
+  id             UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  supabase_uid   TEXT NOT NULL,
+  user_name      TEXT,
+  user_avatar    TEXT,
+  content        TEXT,
+  image_url      TEXT,
+  workout_data   JSONB,
+  likes_count    INT DEFAULT 0,
+  comments_count INT DEFAULT 0,
+  created_at     TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS feed_likes (
+  id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  post_id      UUID NOT NULL REFERENCES feed_posts(id) ON DELETE CASCADE,
+  supabase_uid TEXT NOT NULL,
+  created_at   TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(post_id, supabase_uid)
+);
+
+CREATE TABLE IF NOT EXISTS feed_comments (
+  id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  post_id      UUID NOT NULL REFERENCES feed_posts(id) ON DELETE CASCADE,
+  supabase_uid TEXT NOT NULL,
+  user_name    TEXT,
+  user_avatar  TEXT,
+  content      TEXT NOT NULL,
+  created_at   TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE feed_posts   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE feed_likes   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE feed_comments ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "feed_posts_select"   ON feed_posts   FOR SELECT USING (true);
+CREATE POLICY "feed_posts_insert"   ON feed_posts   FOR INSERT WITH CHECK (true);
+CREATE POLICY "feed_posts_update"   ON feed_posts   FOR UPDATE USING (true);
+CREATE POLICY "feed_posts_delete"   ON feed_posts   FOR DELETE USING (true);
+
+CREATE POLICY "feed_likes_select"   ON feed_likes   FOR SELECT USING (true);
+CREATE POLICY "feed_likes_insert"   ON feed_likes   FOR INSERT WITH CHECK (true);
+CREATE POLICY "feed_likes_delete"   ON feed_likes   FOR DELETE USING (true);
+
+CREATE POLICY "feed_comments_select" ON feed_comments FOR SELECT USING (true);
+CREATE POLICY "feed_comments_insert" ON feed_comments FOR INSERT WITH CHECK (true);
+
+-- If feed_posts already exists but is missing workout_data:
+ALTER TABLE feed_posts ADD COLUMN IF NOT EXISTS workout_data JSONB;
+
+

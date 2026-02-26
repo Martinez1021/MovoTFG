@@ -3,7 +3,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { View, ActivityIndicator } from 'react-native';
 
 import { useAuthStore } from '../store/authStore';
 import { useThemeStore } from '../store/themeStore';
@@ -34,6 +33,7 @@ import { TrainerProfileScreen } from '../screens/trainer/TrainerProfileScreen';
 // Shared Screens
 import { RoutineDetailScreen } from '../screens/shared/RoutineDetailScreen';
 import { ActiveWorkoutScreen } from '../screens/shared/ActiveWorkoutScreen';
+import { WorkoutSummaryScreen } from '../screens/shared/WorkoutSummaryScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -82,18 +82,13 @@ export const AppNavigator: React.FC = () => {
 
     useEffect(() => { initialize(); loadTheme(); }, []);
 
-    if (isLoading) return (
-        <View style={{ flex: 1, backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center' }}>
-            <ActivityIndicator color={Colors.primary} size="large" />
-        </View>
-    );
+    if (isLoading) return <SplashScreen />;
 
     return (
         <NavigationContainer>
             <Stack.Navigator screenOptions={{ headerShown: false, cardStyle: { backgroundColor: Colors.background } }}>
                 {!isAuthenticated ? (
                     <>
-                        <Stack.Screen name="Splash" component={SplashScreen} />
                         <Stack.Screen name="Login" component={LoginScreen} />
                         <Stack.Screen name="Register" component={RegisterScreen} />
                         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
@@ -103,6 +98,7 @@ export const AppNavigator: React.FC = () => {
                         <Stack.Screen name="MainTabs" component={user?.role === 'trainer' ? TrainerTabs : UserTabs} />
                         <Stack.Screen name="RoutineDetail" component={RoutineDetailScreen} />
                         <Stack.Screen name="ActiveWorkout" component={ActiveWorkoutScreen} />
+                        <Stack.Screen name="WorkoutSummary" component={WorkoutSummaryScreen} />
                         <Stack.Screen name="Progress" component={ProgressScreen} />
                         <Stack.Screen name="ClientDetail" component={ClientDetailScreen} />
                         <Stack.Screen name="EditProfile" component={EditProfileScreen} />

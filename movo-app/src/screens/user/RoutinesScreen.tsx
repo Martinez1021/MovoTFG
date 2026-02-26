@@ -27,7 +27,8 @@ const RoutineCard: React.FC<{
     saved: boolean;
     onPress: () => void;
     onToggleSave: () => void;
-}> = ({ routine, saved, onPress, onToggleSave }) => {
+    onStart: () => void;
+}> = ({ routine, saved, onPress, onToggleSave, onStart }) => {
     const grad = CAT_GRAD[routine.category] ?? ['#6C63FF', '#9C6FFF'];
     const hasImage = !!routine.image_url;
     return (
@@ -66,10 +67,12 @@ const RoutineCard: React.FC<{
                         <Ionicons name="time-outline" size={13} color={Colors.textSecondary} />
                         <Text style={card.statText}>{routine.duration_minutes} min</Text>
                     </View>
-                    <LinearGradient colors={grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={card.startBtn}>
-                        <Text style={card.startText}>Empezar</Text>
-                        <Ionicons name="arrow-forward" size={13} color="#fff" />
-                    </LinearGradient>
+                    <TouchableOpacity onPress={onStart} activeOpacity={0.8}>
+                        <LinearGradient colors={grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={card.startBtn}>
+                            <Text style={card.startText}>Empezar</Text>
+                            <Ionicons name="arrow-forward" size={13} color="#fff" />
+                        </LinearGradient>
+                    </TouchableOpacity>
                 </View>
             </View>
         </TouchableOpacity>
@@ -168,7 +171,14 @@ export const RoutinesScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                                 const isSaved = saved.has(r.id);
                                 return (
                                     <TouchableOpacity key={r.id} onPress={() => navigation.navigate('RoutineDetail', { routineId: r.id })} style={s.recCard} activeOpacity={0.85}>
-                                        <LinearGradient colors={grad} style={StyleSheet.absoluteFill} borderRadius={BorderRadius.md} />
+                                        {r.image_url ? (
+                                            <>
+                                                <Image source={{ uri: r.image_url }} style={[StyleSheet.absoluteFill, { borderRadius: BorderRadius.md }]} resizeMode="cover" />
+                                                <LinearGradient colors={['transparent', 'rgba(0,0,0,0.72)']} style={[StyleSheet.absoluteFill, { borderRadius: BorderRadius.md }]} />
+                                            </>
+                                        ) : (
+                                            <LinearGradient colors={grad} style={StyleSheet.absoluteFill} borderRadius={BorderRadius.md} />
+                                        )}
                                         <TouchableOpacity onPress={() => toggleSave(r.id)} style={s.recHeart} hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}>
                                             <Ionicons name={isSaved ? 'heart' : 'heart-outline'} size={18} color={isSaved ? '#FF4D6D' : 'rgba(255,255,255,0.8)'} />
                                         </TouchableOpacity>
@@ -207,7 +217,8 @@ export const RoutinesScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                     {filtered.map((r) => (
                         <RoutineCard key={r.id} routine={r} saved={saved.has(r.id)}
                             onPress={() => navigation.navigate('RoutineDetail', { routineId: r.id })}
-                            onToggleSave={() => toggleSave(r.id)} />
+                            onToggleSave={() => toggleSave(r.id)}
+                            onStart={() => navigation.navigate('ActiveWorkout', { routineId: r.id })} />
                     ))}
                 </ScrollView>
             ) : (
@@ -228,7 +239,8 @@ export const RoutinesScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                             {savedRoutines.map((r) => (
                                 <RoutineCard key={r.id} routine={r} saved
                                     onPress={() => navigation.navigate('RoutineDetail', { routineId: r.id })}
-                                    onToggleSave={() => toggleSave(r.id)} />
+                                    onToggleSave={() => toggleSave(r.id)}
+                                    onStart={() => navigation.navigate('ActiveWorkout', { routineId: r.id })} />
                             ))}
                         </>
                     )}
