@@ -3,6 +3,14 @@ import { supabase } from '../services/supabase';
 import { authApi } from '../services/api';
 import { User, UserProfile, RegisterData } from '../types';
 
+const withTimeout = <T>(promise: Promise<T>, ms: number): Promise<T> =>
+    Promise.race([
+        promise,
+        new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('La conexión tardó demasiado. Comprueba tu internet.')), ms)
+        ),
+    ]);
+
 interface AuthState {
     user: User | null;
     profile: UserProfile | null;
@@ -27,21 +35,30 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     initialize: async () => {
         try {
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await withTimeout(supabase.auth.getSession(), 8000);
             if (session?.user) {
                 // Set user immediately from Supabase session (no backend needed)
                 const supabaseUser = session.user;
-                set({
-                    user: {
-                        id: supabaseUser.id,
-                        email: supabaseUser.email!,
-                        full_name: supabaseUser.user_metadata?.full_name ?? supabaseUser.email!,
-                        avatar_url: supabaseUser.user_metadata?.avatar_url,
-                        role: supabaseUser.user_metadata?.role ?? 'user',
-                        created_at: supabaseUser.created_at,
-                    },
-                    isAuthenticated: true,
-                });
+                const localUser = {
+                    id: supabaseUser.id,
+                    email: supabaseUser.email!,
+                    full_name: supabaseUser.user_metadata?.full_name ?? supabaseUser.email!,
+                    avatar_url: supabaseUser.user_metadata?.avatar_url,
+                    role: supabaseUser.user_metadata?.role ?? 'user',
+                    created_at: supabaseUser.created_at,
+                };
+                set({ user: localUser, isAuthenticated: true });
+
+                // Load profile from Supabase user_profiles
+                supabase
+                    .from('user_profiles')
+                    .select('*')
+                    .eq('user_id', supabaseUser.id)
+                    .maybeSingle()
+                    .then(({ data: profileData }) => {
+                        if (profileData) set({ profile: profileData });
+                    });
+
                 // Sync with backend in background (non-blocking)
                 authApi.syncUser({
                     supabaseId: supabaseUser.id,
@@ -53,7 +70,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 }).catch(() => { /* backend offline — use Supabase data */ });
             }
         } catch (e) {
-            console.error('Auth init error:', e);
+            console.warn('Auth init error:', e);
         } finally {
             set({ isLoading: false });
         }
@@ -62,17 +79,44 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     login: async (email, password) => {
         set({ isLoading: true });
         try {
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) throw new Error(error.message);
-            if (data.user) {
-                const { data: syncRes } = await authApi.syncUser({
-                    supabaseId: data.user.id,
-                    email: data.user.email!,
-                    fullName: data.user.user_metadata?.full_name ?? '',
-                    role: data.user.user_metadata?.role ?? 'user',
-                });
-                set({ user: syncRes, isAuthenticated: true });
+            const { data, error } = await withTimeout(
+                supabase.auth.signInWithPassword({ email, password }),
+                10000
+            );
+            if (error) {
+                // Translate common Supabase error messages to Spanish
+                const msg = error.message;
+                if (msg.includes('Invalid login credentials') || msg.includes('invalid_credentials'))
+                    throw new Error('Email o contraseña incorrectos');
+                if (msg.includes('Email not confirmed'))
+                    throw new Error('Debes confirmar tu email antes de acceder. Revisa tu bandeja de entrada.');
+                if (msg.includes('Too many requests'))
+                    throw new Error('Demasiados intentos. Espera unos minutos.');
+                throw new Error(msg);
             }
+            if (!data.user) throw new Error('No se pudo obtener el usuario');
+
+            // Set user from Supabase immediately — backend is optional
+            const supabaseUser = data.user;
+            const localUser: User = {
+                id: supabaseUser.id,
+                email: supabaseUser.email!,
+                full_name: supabaseUser.user_metadata?.full_name ?? supabaseUser.email!,
+                avatar_url: supabaseUser.user_metadata?.avatar_url,
+                role: supabaseUser.user_metadata?.role ?? 'user',
+                created_at: supabaseUser.created_at,
+            };
+            set({ user: localUser, isAuthenticated: true });
+
+            // Sync with backend in background (best-effort)
+            authApi.syncUser({
+                supabaseId: supabaseUser.id,
+                email: supabaseUser.email!,
+                fullName: supabaseUser.user_metadata?.full_name ?? '',
+                role: supabaseUser.user_metadata?.role ?? 'user',
+            }).then(({ data: syncRes }) => {
+                if (syncRes) set({ user: syncRes });
+            }).catch(() => { /* backend offline — use Supabase data */ });
         } finally {
             set({ isLoading: false });
         }
@@ -81,14 +125,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     register: async (data) => {
         set({ isLoading: true });
         try {
-            const { data: authData, error } = await supabase.auth.signUp({
+            const { data: authData, error } = await withTimeout(supabase.auth.signUp({
                 email: data.email,
                 password: data.password,
                 options: {
                     data: { full_name: data.full_name, role: data.role },
                 },
-            });
-            if (error) throw new Error(error.message);
+            }), 10000);
+            if (error) {
+                if (error.message.includes('already registered') || error.message.includes('already been registered'))
+                    throw new Error('Este email ya está registrado. Inicia sesión.');
+                throw new Error(error.message);
+            }
             if (authData.user) {
                 // Set user immediately from Supabase (no backend blocking)
                 set({

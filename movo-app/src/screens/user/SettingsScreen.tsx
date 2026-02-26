@@ -10,23 +10,23 @@ import {
     getNotificationsEnabled, setNotificationsEnabled, scheduleWorkoutReminder,
 } from '../../services/notifications';
 import { useAuthStore } from '../../store/authStore';
+import { useThemeStore, ACCENT_COLORS } from '../../store/themeStore';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../utils/constants';
 import { Button } from '../../components/ui/Button';
 
 const REMINDER_HOUR_KEY = '@movo_reminder_hour';
-const THEME_KEY = '@movo_theme';
 
 const HOURS = [6, 7, 8, 9, 10, 18, 19, 20, 21];
 
 export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     const { user, logout } = useAuthStore();
+    const { accentIndex, primary, setAccent } = useThemeStore();
 
     // Notification settings
     const [notifsEnabled, setNotifsEnabled] = useState(true);
     const [reminderHour, setReminderHour] = useState(9);
 
     // App settings
-    const [theme, setTheme] = useState<'dark' | 'system'>('dark');
     const [language, setLanguage] = useState<'es' | 'en'>('es');
 
     useEffect(() => {
@@ -34,8 +34,6 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
             setNotifsEnabled(await getNotificationsEnabled());
             const hour = await AsyncStorage.getItem(REMINDER_HOUR_KEY);
             if (hour) setReminderHour(parseInt(hour));
-            const savedTheme = await AsyncStorage.getItem(THEME_KEY);
-            if (savedTheme) setTheme(savedTheme as 'dark' | 'system');
         })();
     }, []);
 
@@ -53,12 +51,6 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
             await scheduleWorkoutReminder(hour, 0);
             Alert.alert('⏰ Recordatorio actualizado', `Entrenamiento programado para las ${hour}:00 cada día.`);
         }
-    };
-
-    const changeTheme = async (val: 'dark' | 'system') => {
-        setTheme(val);
-        await AsyncStorage.setItem(THEME_KEY, val);
-        // In a full implementation, update the ThemeProvider context here
     };
 
     const handleDeleteAccount = () =>
@@ -133,18 +125,26 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                     )}
                 </View>
 
-                {/* Appearance */}
+                {/* Appearance - accent color picker */}
                 <View style={s.section}>
-                    <Text style={s.sectionTitle}>🎨 Apariencia</Text>
-                    <View style={s.chipRow}>
-                        {[
-                            { id: 'dark', label: '🌙 Oscuro (siempre)' },
-                            { id: 'system', label: '📱 Seguir sistema' },
-                        ].map((opt) => (
-                            <TouchableOpacity key={opt.id}
-                                style={[s.optChip, theme === opt.id && s.optChipActive]}
-                                onPress={() => changeTheme(opt.id as 'dark' | 'system')}>
-                                <Text style={[s.optChipText, theme === opt.id && s.optChipTextActive]}>{opt.label}</Text>
+                    <Text style={s.sectionTitle}>🎨 Color de acento</Text>
+                    <Text style={[s.settingDesc, { marginBottom: Spacing.md }]}>Personaliza el color principal de la app</Text>
+                    <View style={s.colorGrid}>
+                        {ACCENT_COLORS.map((color, idx) => (
+                            <TouchableOpacity key={color.name} onPress={() => setAccent(idx)} style={s.colorItem}>
+                                <LinearGradient
+                                    colors={color.gradient}
+                                    style={[
+                                        s.colorDot,
+                                        accentIndex === idx && { borderWidth: 3, borderColor: '#fff' },
+                                    ]}
+                                />
+                                <Text style={[s.colorName, accentIndex === idx && { color: primary, fontWeight: '700' }]}>
+                                    {color.name}
+                                </Text>
+                                {accentIndex === idx && (
+                                    <Ionicons name="checkmark-circle" size={14} color={primary} />
+                                )}
                             </TouchableOpacity>
                         ))}
                     </View>
@@ -217,11 +217,10 @@ const s = StyleSheet.create({
     hourChipActive: { backgroundColor: Colors.primary + '22', borderColor: Colors.primary },
     hourText: { color: Colors.textSecondary, fontSize: FontSizes.sm, fontWeight: '700' },
     hourTextActive: { color: Colors.primary },
-    chipRow: { flexDirection: 'row', gap: Spacing.sm },
-    optChip: { flex: 1, backgroundColor: Colors.surface, borderRadius: BorderRadius.md, padding: Spacing.md, alignItems: 'center', borderWidth: 1, borderColor: Colors.border },
-    optChipActive: { backgroundColor: Colors.primary + '22', borderColor: Colors.primary },
-    optChipText: { color: Colors.textSecondary, fontWeight: '600', fontSize: FontSizes.sm },
-    optChipTextActive: { color: Colors.primary },
+    colorGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
+    colorItem: { alignItems: 'center', gap: 4, width: '28%' },
+    colorDot: { width: 48, height: 48, borderRadius: 24 },
+    colorName: { fontSize: FontSizes.xs, color: Colors.textSecondary },
     infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: Spacing.sm, borderBottomWidth: 1, borderBottomColor: Colors.border },
     infoLabel: { color: Colors.textSecondary, fontSize: FontSizes.sm },
     infoValue: { color: Colors.textPrimary, fontSize: FontSizes.sm, fontWeight: '600' },

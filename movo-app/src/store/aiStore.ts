@@ -1,10 +1,15 @@
-import { create } from 'zustand';
-import { aiApi } from '../services/api';
+﻿import { create } from 'zustand';
 import { ChatMessage } from '../types';
+
+const GROK_KEY = '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';
+const GROK_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const SYSTEM_PROMPT = `Eres MOVO Coach, un entrenador personal virtual experto en fitness, nutrición y bienestar. 
+Responde SIEMPRE en español, de forma motivadora, práctica y concisa. 
+Máximo 200 palabras por respuesta. Usa emojis con moderación.
+Adapta tu lenguaje para ser cercano y motivador, como un buen entrenador personal.`;
 
 interface AIState {
     messages: ChatMessage[];
-    conversationId: string | null;
     isLoading: boolean;
     sendMessage: (text: string) => Promise<void>;
     clearConversation: () => void;
@@ -12,33 +17,64 @@ interface AIState {
 
 export const useAIStore = create<AIState>((set, get) => ({
     messages: [],
-    conversationId: null,
     isLoading: false,
 
     sendMessage: async (text) => {
+        const prevMessages = get().messages;
         const userMsg: ChatMessage = {
             role: 'user',
             content: text,
             timestamp: new Date().toISOString(),
         };
-        set((s) => ({ messages: [...s.messages, userMsg], isLoading: true }));
+        set({ messages: [...prevMessages, userMsg], isLoading: true });
+
         try {
-            const { data } = await aiApi.chat(text, get().conversationId ?? undefined);
-            const assistantMsg: ChatMessage = {
-                role: 'assistant',
-                content: data.reply,
-                timestamp: new Date().toISOString(),
-            };
+            const response = await fetch(GROK_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${GROK_KEY}`,
+                },
+                body: JSON.stringify({
+                    model: 'llama-3.3-70b-versatile',
+                    messages: [
+                        { role: 'system', content: SYSTEM_PROMPT },
+                        ...prevMessages.map((m) => ({ role: m.role, content: m.content })),
+                        { role: 'user', content: text },
+                    ],
+                    max_tokens: 400,
+                    temperature: 0.8,
+                }),
+            });
+
+            if (!response.ok) {
+                const err = await response.text();
+                throw new Error(`Error ${response.status}: ${err}`);
+            }
+
+            const data = await response.json();
+            const reply = data.choices?.[0]?.message?.content ?? '🤔 No recibí respuesta. Inténtalo de nuevo.';
+
             set((s) => ({
-                messages: [...s.messages, assistantMsg],
-                conversationId: data.conversationId,
+                messages: [...s.messages, {
+                    role: 'assistant' as const,
+                    content: reply,
+                    timestamp: new Date().toISOString(),
+                }],
                 isLoading: false,
             }));
-        } catch (e) {
-            set({ isLoading: false });
-            throw e;
+        } catch (e: any) {
+            console.error('[AIStore] Grok error:', e?.message ?? e);
+            set((s) => ({
+                messages: [...s.messages, {
+                    role: 'assistant' as const,
+                    content: `⚠️ Error: ${e?.message ?? 'desconocido'}`,
+                    timestamp: new Date().toISOString(),
+                }],
+                isLoading: false,
+            }));
         }
     },
 
-    clearConversation: () => set({ messages: [], conversationId: null }),
+    clearConversation: () => set({ messages: [] }),
 }));

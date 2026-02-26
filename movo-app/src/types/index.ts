@@ -18,6 +18,11 @@ export interface User {
     role: UserRole;
     trainer_id?: string;
     created_at: string;
+    // trainer fields
+    specialty?: string;
+    bio?: string;
+    experience_years?: number;
+    certifications?: string;
 }
 
 export interface UserProfile {
@@ -141,7 +146,14 @@ export interface RegisterStep4 {
     trainer_code?: string;
 }
 
-export interface RegisterData extends RegisterStep1, Partial<RegisterStep2>, RegisterStep3, RegisterStep4 { }
+export interface RegisterData extends RegisterStep1, Partial<RegisterStep2>, RegisterStep3, RegisterStep4 {
+    // trainer-specific optional fields
+    specialty?: string;
+    bio?: string;
+    experience_years?: number;
+    certifications?: string;
+    avatarUri?: string;
+}
 
 // ─── API Responses ────────────────────────────
 export interface ApiResponse<T> {

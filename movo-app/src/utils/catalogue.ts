@@ -1,0 +1,287 @@
+import { Routine, Exercise } from '../types';
+
+// ── Goal ID → Spanish label ────────────────────────────────────────────────
+export const GOAL_LABEL: Record<string, string> = {
+    weight_loss: 'perder peso',
+    muscle_gain: 'ganar músculo',
+    flexibility: 'mejorar flexibilidad',
+    endurance: 'aumentar resistencia',
+    stress_reduction: 'reducir estrés',
+    posture: 'mejorar postura',
+    energy: 'aumentar energía',
+    // legacy slugs
+    perder_peso: 'perder peso',
+    ganar_musculo: 'ganar músculo',
+    bienestar: 'bienestar general',
+    resistencia: 'aumentar resistencia',
+    tonificacion: 'tonificar',
+};
+
+// ── Goal ID → tags relevantes ──────────────────────────────────────────────
+export const GOAL_TAGS: Record<string, string[]> = {
+    weight_loss: ['perder_peso', 'cardio', 'hiit'],
+    muscle_gain: ['ganar_musculo', 'fuerza', 'gym'],
+    flexibility: ['flexibilidad', 'yoga', 'pilates'],
+    endurance: ['resistencia', 'cardio', 'hiit'],
+    stress_reduction: ['bienestar', 'yoga', 'pilates'],
+    posture: ['postura', 'pilates', 'yoga'],
+    energy: ['cardio', 'yoga', 'bienestar'],
+    // legacy
+    perder_peso: ['perder_peso', 'cardio'],
+    ganar_musculo: ['ganar_musculo', 'fuerza'],
+    bienestar: ['bienestar', 'yoga'],
+    resistencia: ['resistencia', 'cardio'],
+    tonificacion: ['tonificacion', 'pilates'],
+};
+
+// ── Local catalogue ────────────────────────────────────────────────────────
+export type CatalogueRoutine = Routine & { tags: string[]; image_url: string };
+
+export const CATALOGUE: CatalogueRoutine[] = [
+    // ── GYM ──────────────────────────────────────────────────────────────
+    {
+        id: 'local-g1', title: 'Full Body Fuerza',
+        description: 'Trabajo de fuerza completo: sentadillas, press banca, peso muerto y remo. Ideal para ganar masa muscular de forma equilibrada.',
+        category: 'gym', difficulty: 'intermediate', duration_minutes: 55,
+        created_by: 'movo', is_public: true, created_at: '',
+        tags: ['ganar_musculo', 'fuerza', 'gym'],
+        image_url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80',
+    },
+    {
+        id: 'local-g2', title: 'HIIT Quemagrasas',
+        description: 'Intervalos de alta intensidad con burpees, sprints y saltos. Quema calorías durante horas después del entreno.',
+        category: 'gym', difficulty: 'advanced', duration_minutes: 30,
+        created_by: 'movo', is_public: true, created_at: '',
+        tags: ['perder_peso', 'cardio', 'hiit', 'gym'],
+        image_url: 'https://images.unsplash.com/photo-1601422407692-ec4eeec1d9b3?w=600&q=80',
+    },
+    {
+        id: 'local-g3', title: 'Iniciación al Gym',
+        description: 'Rutina perfecta para comenzar en el gimnasio. Ejercicios básicos con peso moderado y mucha técnica.',
+        category: 'gym', difficulty: 'beginner', duration_minutes: 40,
+        created_by: 'movo', is_public: true, created_at: '',
+        tags: ['iniciacion', 'gym', 'fuerza'],
+        image_url: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=600&q=80',
+    },
+    {
+        id: 'local-g4', title: 'Upper Body Power',
+        description: 'Dominadas, press militar, fondos y curls. Construye la parte superior con volumen y progresión.',
+        category: 'gym', difficulty: 'advanced', duration_minutes: 50,
+        created_by: 'movo', is_public: true, created_at: '',
+        tags: ['ganar_musculo', 'fuerza', 'gym'],
+        image_url: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=600&q=80',
+    },
+    {
+        id: 'local-g5', title: 'Cardio Resistencia',
+        description: 'Circuito de resistencia aeróbica con kettlebell, cuerda y step. Mejora tu capacidad cardiovascular.',
+        category: 'gym', difficulty: 'intermediate', duration_minutes: 45,
+        created_by: 'movo', is_public: true, created_at: '',
+        tags: ['perder_peso', 'cardio', 'resistencia', 'gym'],
+        image_url: 'https://images.unsplash.com/photo-1517963879433-6ad2b056d712?w=600&q=80',
+    },
+    {
+        id: 'local-g6', title: 'Piernas y Glúteos',
+        description: 'Sentadilla búlgara, hip thrust, prensa y zancadas. El entreno definitivo de tren inferior.',
+        category: 'gym', difficulty: 'intermediate', duration_minutes: 50,
+        created_by: 'movo', is_public: true, created_at: '',
+        tags: ['ganar_musculo', 'gym', 'fuerza'],
+        image_url: 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=600&q=80',
+    },
+    // ── YOGA ─────────────────────────────────────────────────────────────
+    {
+        id: 'local-y1', title: 'Yoga Mañanero',
+        description: 'Secuencia suave para despertar el cuerpo. Saludos al sol, posturas de apertura y respiración consciente.',
+        category: 'yoga', difficulty: 'beginner', duration_minutes: 20,
+        created_by: 'movo', is_public: true, created_at: '',
+        tags: ['bienestar', 'flexibilidad', 'yoga'],
+        image_url: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=600&q=80',
+    },
+    {
+        id: 'local-y2', title: 'Vinyasa Flow',
+        description: 'Flujo dinámico que conecta movimiento y respiración. Trabaja fuerza y flexibilidad al mismo tiempo.',
+        category: 'yoga', difficulty: 'intermediate', duration_minutes: 45,
+        created_by: 'movo', is_public: true, created_at: '',
+        tags: ['flexibilidad', 'bienestar', 'yoga'],
+        image_url: 'https://images.unsplash.com/photo-1599447421416-3414500d18a5?w=600&q=80',
+    },
+    {
+        id: 'local-y3', title: 'Yoga Restaurativo',
+        description: 'Sesión profunda de relajación con posturas sostenidas y bloques. Ideal para recuperación muscular.',
+        category: 'yoga', difficulty: 'beginner', duration_minutes: 40,
+        created_by: 'movo', is_public: true, created_at: '',
+        tags: ['bienestar', 'recuperacion', 'yoga'],
+        image_url: 'https://images.unsplash.com/photo-1545389336-cf090694435e?w=600&q=80',
+    },
+    {
+        id: 'local-y4', title: 'Power Yoga',
+        description: 'Yoga intenso basado en el ashtanga. Desarrolla fuerza funcional y resistencia con posturas desafiantes.',
+        category: 'yoga', difficulty: 'advanced', duration_minutes: 60,
+        created_by: 'movo', is_public: true, created_at: '',
+        tags: ['fuerza', 'flexibilidad', 'yoga'],
+        image_url: 'https://images.unsplash.com/photo-1588286840104-8957b019727f?w=600&q=80',
+    },
+    {
+        id: 'local-y5', title: 'Yin Yoga & Meditación',
+        description: 'Posturas profundas de tejido conjuntivo combinadas con mindfulness. Libera tensión acumulada.',
+        category: 'yoga', difficulty: 'beginner', duration_minutes: 50,
+        created_by: 'movo', is_public: true, created_at: '',
+        tags: ['bienestar', 'flexibilidad', 'yoga'],
+        image_url: 'https://images.unsplash.com/photo-1529693662653-9d480530a697?w=600&q=80',
+    },
+    // ── PILATES ───────────────────────────────────────────────────────────
+    {
+        id: 'local-p1', title: 'Pilates Core Profundo',
+        description: 'Trabaja el núcleo desde dentro: transverso, multífido y suelo pélvico. Base de todo movimiento sano.',
+        category: 'pilates', difficulty: 'beginner', duration_minutes: 30,
+        created_by: 'movo', is_public: true, created_at: '',
+        tags: ['bienestar', 'core', 'pilates'],
+        image_url: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&q=80',
+    },
+    {
+        id: 'local-p2', title: 'Pilates Reformer Style',
+        description: 'Rutina inspirada en el reformer usando tu propio peso. Mejora postura, alineación y control corporal.',
+        category: 'pilates', difficulty: 'intermediate', duration_minutes: 40,
+        created_by: 'movo', is_public: true, created_at: '',
+        tags: ['flexibilidad', 'pilates', 'postura'],
+        image_url: 'https://images.unsplash.com/photo-1570691079236-4bca6c45d440?w=600&q=80',
+    },
+    {
+        id: 'local-p3', title: 'Pilates & Glúteos',
+        description: 'Combinación de pilates clásico con trabajo específico de glúteos y cadera. Tonifica y estiliza.',
+        category: 'pilates', difficulty: 'intermediate', duration_minutes: 35,
+        created_by: 'movo', is_public: true, created_at: '',
+        tags: ['perder_peso', 'pilates', 'tonificacion'],
+        image_url: 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=600&q=80',
+    },
+    {
+        id: 'local-p4', title: 'Pilates Avanzado',
+        description: 'Serie completa de Joseph Pilates: hundred, rolling, teaser y control balance. Para practicantes con base.',
+        category: 'pilates', difficulty: 'advanced', duration_minutes: 55,
+        created_by: 'movo', is_public: true, created_at: '',
+        tags: ['flexibilidad', 'fuerza', 'pilates'],
+        image_url: 'https://images.unsplash.com/photo-1593810450967-f9c42742e326?w=600&q=80',
+    },
+    {
+        id: 'local-p5', title: 'Pilates Pre/Postparto',
+        description: 'Rutina segura para fortalecer suelo pélvico y recuperar el core tras el embarazo.',
+        category: 'pilates', difficulty: 'beginner', duration_minutes: 25,
+        created_by: 'movo', is_public: true, created_at: '',
+        tags: ['bienestar', 'pilates', 'recuperacion'],
+        image_url: 'https://images.unsplash.com/photo-1651731804059-60b3fe13d74f?w=600&q=80',
+    },
+];
+
+// ── Local exercises per routine ────────────────────────────────────────────
+export const LOCAL_EXERCISES: Record<string, Exercise[]> = {
+    'local-g1': [
+        { id: 'lg1-1', routine_id: 'local-g1', name: 'Sentadilla con barra', description: 'Pie a la anchura de hombros, baja hasta paralelo.', sets: 4, reps: 8, rest_seconds: 90, order_index: 1, muscle_group: 'Cuádriceps, Glúteos' },
+        { id: 'lg1-2', routine_id: 'local-g1', name: 'Press banca plano', description: 'Agarre medio, baja la barra al pecho con control.', sets: 4, reps: 8, rest_seconds: 90, order_index: 2, muscle_group: 'Pecho, Tríceps' },
+        { id: 'lg1-3', routine_id: 'local-g1', name: 'Peso muerto convencional', description: 'Espalda recta, empuja el suelo con los pies.', sets: 3, reps: 6, rest_seconds: 120, order_index: 3, muscle_group: 'Isquiotibiales, Espalda baja' },
+        { id: 'lg1-4', routine_id: 'local-g1', name: 'Remo con barra', description: 'Torso 45°, tira hacia el ombligo.', sets: 4, reps: 10, rest_seconds: 60, order_index: 4, muscle_group: 'Dorsales, Bíceps' },
+        { id: 'lg1-5', routine_id: 'local-g1', name: 'Press militar', description: 'De pie, empuja la barra por encima de la cabeza.', sets: 3, reps: 10, rest_seconds: 60, order_index: 5, muscle_group: 'Hombros, Tríceps' },
+    ],
+    'local-g2': [
+        { id: 'lg2-1', routine_id: 'local-g2', name: 'Burpees', description: 'Posición de plancha, salta y palmada en lo alto.', sets: 4, reps: 15, rest_seconds: 30, order_index: 1, muscle_group: 'Full body' },
+        { id: 'lg2-2', routine_id: 'local-g2', name: 'Sprints 20 m', description: '100% de potencia en cada repetición.', sets: 6, reps: 1, rest_seconds: 40, order_index: 2, muscle_group: 'Piernas, Cardio' },
+        { id: 'lg2-3', routine_id: 'local-g2', name: 'Saltos al cajón', description: 'Aterriza con rodillas ligeramente flexionadas.', sets: 4, reps: 10, rest_seconds: 30, order_index: 3, muscle_group: 'Cuádriceps, Glúteos' },
+        { id: 'lg2-4', routine_id: 'local-g2', name: 'Mountain climbers', description: 'Core activo, lleva las rodillas al pecho alternando.', duration_seconds: 40, sets: 4, rest_seconds: 20, order_index: 4, muscle_group: 'Core, Cardio' },
+        { id: 'lg2-5', routine_id: 'local-g2', name: 'Kettlebell swing', description: 'Bisagra de cadera explosiva, no sentadilla.', sets: 4, reps: 20, rest_seconds: 30, order_index: 5, muscle_group: 'Glúteos, Espalda baja' },
+    ],
+    'local-g3': [
+        { id: 'lg3-1', routine_id: 'local-g3', name: 'Sentadilla goblet', description: 'Mancuerna al pecho, talones en el suelo.', sets: 3, reps: 12, rest_seconds: 60, order_index: 1, muscle_group: 'Cuádriceps, Glúteos' },
+        { id: 'lg3-2', routine_id: 'local-g3', name: 'Press mancuernas plano', description: 'Codos a 45°, rango completo de movimiento.', sets: 3, reps: 12, rest_seconds: 60, order_index: 2, muscle_group: 'Pecho' },
+        { id: 'lg3-3', routine_id: 'local-g3', name: 'Jalón al pecho', description: 'Agarre ancho, tira hacia la clavícula.', sets: 3, reps: 12, rest_seconds: 60, order_index: 3, muscle_group: 'Dorsales' },
+        { id: 'lg3-4', routine_id: 'local-g3', name: 'Curl bíceps mancuernas', description: 'Codo fijo, supina la muñeca al subir.', sets: 3, reps: 12, rest_seconds: 45, order_index: 4, muscle_group: 'Bíceps' },
+        { id: 'lg3-5', routine_id: 'local-g3', name: 'Plancha', description: 'Cuerpo recto, activa abdominales y glúteos.', duration_seconds: 40, sets: 3, rest_seconds: 45, order_index: 5, muscle_group: 'Core' },
+    ],
+    'local-g4': [
+        { id: 'lg4-1', routine_id: 'local-g4', name: 'Dominadas', description: 'Agarre prono, sube hasta que la barbilla supere la barra.', sets: 4, reps: 8, rest_seconds: 90, order_index: 1, muscle_group: 'Dorsales, Bíceps' },
+        { id: 'lg4-2', routine_id: 'local-g4', name: 'Press militar con barra', description: 'De pie, core activado, sin arquear la espalda.', sets: 4, reps: 8, rest_seconds: 90, order_index: 2, muscle_group: 'Hombros' },
+        { id: 'lg4-3', routine_id: 'local-g4', name: 'Fondos en paralelas', description: 'Inclinación ligeramente hacia adelante para pecho.', sets: 4, reps: 10, rest_seconds: 60, order_index: 3, muscle_group: 'Pecho, Tríceps' },
+        { id: 'lg4-4', routine_id: 'local-g4', name: 'Face pulls', description: 'Cuerda en polea alta, tira hacia la frente abriendo codos.', sets: 3, reps: 15, rest_seconds: 45, order_index: 4, muscle_group: 'Deltoides posterior' },
+        { id: 'lg4-5', routine_id: 'local-g4', name: 'Curl martillo', description: 'Agarre neutro, trabaja el braquial.', sets: 3, reps: 12, rest_seconds: 45, order_index: 5, muscle_group: 'Bíceps, Braquial' },
+    ],
+    'local-g5': [
+        { id: 'lg5-1', routine_id: 'local-g5', name: 'Kettlebell swing', description: '20 repeticiones explosivas, descanso y repite.', sets: 5, reps: 20, rest_seconds: 30, order_index: 1, muscle_group: 'Full body' },
+        { id: 'lg5-2', routine_id: 'local-g5', name: 'Cuerda de salto', description: 'Salto continuo a ritmo medio.', duration_seconds: 60, sets: 4, rest_seconds: 30, order_index: 2, muscle_group: 'Cardio, Pantorrillas' },
+        { id: 'lg5-3', routine_id: 'local-g5', name: 'Step up con mancuernas', description: 'Sube al step con cada pierna alternando.', sets: 4, reps: 16, rest_seconds: 45, order_index: 3, muscle_group: 'Cuádriceps, Glúteos' },
+        { id: 'lg5-4', routine_id: 'local-g5', name: 'Remo kettlebell', description: 'Una mano en banco, tira hasta la cadera.', sets: 4, reps: 12, rest_seconds: 45, order_index: 4, muscle_group: 'Dorsales' },
+        { id: 'lg5-5', routine_id: 'local-g5', name: 'Jumping jacks', description: 'Mantén el ritmo elevado durante toda la serie.', duration_seconds: 45, sets: 4, rest_seconds: 20, order_index: 5, muscle_group: 'Cardio' },
+    ],
+    'local-g6': [
+        { id: 'lg6-1', routine_id: 'local-g6', name: 'Sentadilla búlgara', description: 'Pie trasero en banco, desciende con control.', sets: 4, reps: 10, rest_seconds: 75, order_index: 1, muscle_group: 'Cuádriceps, Glúteos' },
+        { id: 'lg6-2', routine_id: 'local-g6', name: 'Hip thrust con barra', description: 'Barra en cadera, lleva glúteo hacia el techo.', sets: 4, reps: 12, rest_seconds: 60, order_index: 2, muscle_group: 'Glúteos' },
+        { id: 'lg6-3', routine_id: 'local-g6', name: 'Prensa 45°', description: 'Pies altos para más glúteo, descenso profundo.', sets: 4, reps: 12, rest_seconds: 75, order_index: 3, muscle_group: 'Cuádriceps, Glúteos' },
+        { id: 'lg6-4', routine_id: 'local-g6', name: 'Zancadas con mancuernas', description: 'Paso amplio, rodilla trasera casi toca el suelo.', sets: 3, reps: 14, rest_seconds: 60, order_index: 4, muscle_group: 'Cuádriceps, Glúteos' },
+        { id: 'lg6-5', routine_id: 'local-g6', name: 'Patada de glúteo en polea', description: 'Extensión completa de cadera, contrae al llegar arriba.', sets: 3, reps: 15, rest_seconds: 45, order_index: 5, muscle_group: 'Glúteos' },
+    ],
+    'local-y1': [
+        { id: 'ly1-1', routine_id: 'local-y1', name: 'Respiración 4-7-8', description: 'Inhala 4s, retén 7s, exhala 8s. Activa el sistema parasimpático.', duration_seconds: 120, sets: 1, rest_seconds: 0, order_index: 1, muscle_group: 'Respiratorio' },
+        { id: 'ly1-2', routine_id: 'local-y1', name: 'Saludo al sol A (x5)', description: 'Fluye con la respiración: inhala al subir, exhala al bajar.', duration_seconds: 180, sets: 1, rest_seconds: 0, order_index: 2, muscle_group: 'Full body' },
+        { id: 'ly1-3', routine_id: 'local-y1', name: 'Guerrero I y II', description: '30s cada lado, rodilla alineada con tobillo.', duration_seconds: 120, sets: 2, rest_seconds: 10, order_index: 3, muscle_group: 'Piernas, Cadera' },
+        { id: 'ly1-4', routine_id: 'local-y1', name: 'Perro boca abajo', description: 'Talones al suelo, columna elongada, respira.', duration_seconds: 60, sets: 3, rest_seconds: 10, order_index: 4, muscle_group: 'Isquiotibiales, Hombros' },
+        { id: 'ly1-5', routine_id: 'local-y1', name: 'Savasana / Relajación', description: 'Tumbado boca arriba, deja ir toda tensión.', duration_seconds: 180, sets: 1, rest_seconds: 0, order_index: 5, muscle_group: 'Relajación' },
+    ],
+    'local-y2': [
+        { id: 'ly2-1', routine_id: 'local-y2', name: 'Saludo al sol B (x6)', description: 'Incluye Silla y Guerrero I. Ritmo dinámico.', duration_seconds: 240, sets: 1, rest_seconds: 0, order_index: 1, muscle_group: 'Full body' },
+        { id: 'ly2-2', routine_id: 'local-y2', name: 'Secuencia de guerreros', description: 'Guerrero I → II → III → Triángulo. Un lado y luego el otro.', duration_seconds: 180, sets: 2, rest_seconds: 30, order_index: 2, muscle_group: 'Piernas, Core' },
+        { id: 'ly2-3', routine_id: 'local-y2', name: 'Torsiones de pie', description: 'Guerrero torcido, mantén 30s cada lado.', duration_seconds: 120, sets: 2, rest_seconds: 15, order_index: 3, muscle_group: 'Oblicuos, Espalda' },
+        { id: 'ly2-4', routine_id: 'local-y2', name: 'Postura del cuervo', description: 'Manos al suelo, rodillas en triceps, despega los pies.', duration_seconds: 60, sets: 3, rest_seconds: 20, order_index: 4, muscle_group: 'Core, Brazos' },
+        { id: 'ly2-5', routine_id: 'local-y2', name: 'Paloma sentada', description: '60s por lado, abre la cadera profundamente.', duration_seconds: 120, sets: 2, rest_seconds: 0, order_index: 5, muscle_group: 'Cadera, Glúteos' },
+    ],
+    'local-y3': [
+        { id: 'ly3-1', routine_id: 'local-y3', name: 'Respiración abdominal', description: 'Manos en el vientre, siente la expansión.', duration_seconds: 120, sets: 1, rest_seconds: 0, order_index: 1, muscle_group: 'Respiratorio' },
+        { id: 'ly3-2', routine_id: 'local-y3', name: 'Postura del niño sostenida', description: 'Rodillas separadas, frente al suelo, 2 minutos.', duration_seconds: 120, sets: 2, rest_seconds: 30, order_index: 2, muscle_group: 'Espalda, Cadera' },
+        { id: 'ly3-3', routine_id: 'local-y3', name: 'Flexión hacia adelante sentado', description: 'Piernas extendidas, dobla el torso sin redondear.', duration_seconds: 90, sets: 2, rest_seconds: 20, order_index: 3, muscle_group: 'Isquiotibiales' },
+        { id: 'ly3-4', routine_id: 'local-y3', name: 'Puente con soporte', description: 'Bloque bajo el sacro, relaja totalmente la espalda.', duration_seconds: 180, sets: 1, rest_seconds: 0, order_index: 4, muscle_group: 'Espalda baja, Cadera' },
+        { id: 'ly3-5', routine_id: 'local-y3', name: 'Savasana prolongada', description: 'Mantén la quietud 5 minutos, escanea el cuerpo.', duration_seconds: 300, sets: 1, rest_seconds: 0, order_index: 5, muscle_group: 'Sistema nervioso' },
+    ],
+    'local-y4': [
+        { id: 'ly4-1', routine_id: 'local-y4', name: 'Pranayama ujjayi', description: 'Respiración oceánica para calentar el cuerpo.', duration_seconds: 120, sets: 1, rest_seconds: 0, order_index: 1, muscle_group: 'Respiratorio' },
+        { id: 'ly4-2', routine_id: 'local-y4', name: 'Serie Ashtanga A completa', description: 'Saludo al sol B × 5, sin pausas entre vinyasas.', duration_seconds: 600, sets: 1, rest_seconds: 30, order_index: 2, muscle_group: 'Full body' },
+        { id: 'ly4-3', routine_id: 'local-y4', name: 'Postura del barco', description: 'Piernas y torso en V, mantén 5 respiraciones.', duration_seconds: 60, sets: 4, rest_seconds: 15, order_index: 3, muscle_group: 'Core' },
+        { id: 'ly4-4', routine_id: 'local-y4', name: 'Pino (con pared)', description: 'Talones en la pared, activa el core y los brazos.', duration_seconds: 30, sets: 3, rest_seconds: 60, order_index: 4, muscle_group: 'Hombros, Core' },
+        { id: 'ly4-5', routine_id: 'local-y4', name: 'Postura del rey paloma', description: 'Apertura de cadera profunda, rodea la pierna.', duration_seconds: 60, sets: 2, rest_seconds: 30, order_index: 5, muscle_group: 'Cadera, Cuádriceps' },
+    ],
+    'local-y5': [
+        { id: 'ly5-1', routine_id: 'local-y5', name: 'Postura de la mariposa', description: 'Plantas unidas, inclínate poco a poco.', duration_seconds: 300, sets: 1, rest_seconds: 0, order_index: 1, muscle_group: 'Ingles, Cadera' },
+        { id: 'ly5-2', routine_id: 'local-y5', name: 'Dragón (postura de la lagartija)', description: 'Cadera baja, 4 minutos cada lado.', duration_seconds: 240, sets: 2, rest_seconds: 30, order_index: 2, muscle_group: 'Flexores de cadera' },
+        { id: 'ly5-3', routine_id: 'local-y5', name: 'Torsión espinal supina', description: 'Boca arriba, rodilla cruzada, mira al lado contrario.', duration_seconds: 180, sets: 2, rest_seconds: 20, order_index: 3, muscle_group: 'Columna, Oblicuos' },
+        { id: 'ly5-4', routine_id: 'local-y5', name: 'Meditación de body scan', description: 'Cierra los ojos, recorre el cuerpo de pies a cabeza.', duration_seconds: 600, sets: 1, rest_seconds: 0, order_index: 4, muscle_group: 'Sistema nervioso' },
+    ],
+    'local-p1': [
+        { id: 'lp1-1', routine_id: 'local-p1', name: 'Respiración costal pilates', description: 'Inhala expandiendo las costillas lateralmente.', duration_seconds: 120, sets: 1, rest_seconds: 0, order_index: 1, muscle_group: 'Core profundo' },
+        { id: 'lp1-2', routine_id: 'local-p1', name: 'The Hundred', description: 'Piernas en tabla, bombeo de brazos. 10 respiraciones.', duration_seconds: 60, sets: 3, rest_seconds: 20, order_index: 2, muscle_group: 'Core, Abdomen' },
+        { id: 'lp1-3', routine_id: 'local-p1', name: 'Single Leg Stretch', description: 'Rodilla al pecho alternando, espalda plana.', sets: 3, reps: 20, rest_seconds: 20, order_index: 3, muscle_group: 'Core, Oblicuos' },
+        { id: 'lp1-4', routine_id: 'local-p1', name: 'Imprinting de columna', description: 'Imprime cada vértebra en la colchoneta.', duration_seconds: 90, sets: 2, rest_seconds: 15, order_index: 4, muscle_group: 'Espalda baja' },
+        { id: 'lp1-5', routine_id: 'local-p1', name: 'Puente glúteos', description: 'Pelvis neutra, sube y baja vértebra a vértebra.', sets: 3, reps: 12, rest_seconds: 30, order_index: 5, muscle_group: 'Glúteos, Core' },
+    ],
+    'local-p2': [
+        { id: 'lp2-1', routine_id: 'local-p2', name: 'Footwork (simulado)', description: 'Pies en posición pilates, flexoextensión controlada.', sets: 3, reps: 15, rest_seconds: 20, order_index: 1, muscle_group: 'Cuádriceps, Pantorrillas' },
+        { id: 'lp2-2', routine_id: 'local-p2', name: 'Rowing sentado', description: 'Brazos extienden, torso se inclina, regresa con control.', sets: 3, reps: 10, rest_seconds: 20, order_index: 2, muscle_group: 'Dorsales, Postura' },
+        { id: 'lp2-3', routine_id: 'local-p2', name: 'Teaser preparatorio', description: 'Sube a 45°, brazos paralelos al suelo, sostén 3s.', sets: 4, reps: 8, rest_seconds: 30, order_index: 3, muscle_group: 'Core, Cadera' },
+        { id: 'lp2-4', routine_id: 'local-p2', name: 'Side Kick Series', description: 'En lateral, patada al frente y atrás controlada.', sets: 3, reps: 12, rest_seconds: 20, order_index: 4, muscle_group: 'Glúteos, Cadera' },
+        { id: 'lp2-5', routine_id: 'local-p2', name: 'Swimming', description: 'Boca abajo, brazos y piernas opuestos en el aire.', duration_seconds: 30, sets: 4, rest_seconds: 20, order_index: 5, muscle_group: 'Espalda, Glúteos' },
+    ],
+    'local-p3': [
+        { id: 'lp3-1', routine_id: 'local-p3', name: 'Clamshell', description: 'En lateral, abre la rodilla como almeja. Banda opcional.', sets: 4, reps: 20, rest_seconds: 20, order_index: 1, muscle_group: 'Glúteo medio' },
+        { id: 'lp3-2', routine_id: 'local-p3', name: 'Puente con una pierna', description: 'Pierna extendida arriba, caderas niveladas.', sets: 4, reps: 12, rest_seconds: 30, order_index: 2, muscle_group: 'Glúteos, Core' },
+        { id: 'lp3-3', routine_id: 'local-p3', name: 'Hip lifts en cuadrupedia', description: 'Rodilla a 90°, sube el talón al techo.', sets: 3, reps: 15, rest_seconds: 20, order_index: 3, muscle_group: 'Glúteos' },
+        { id: 'lp3-4', routine_id: 'local-p3', name: 'Circles de cadera en lateral', description: 'Círculos pequeños con la pierna elevada.', sets: 3, reps: 12, rest_seconds: 15, order_index: 4, muscle_group: 'TFL, Glúteos' },
+        { id: 'lp3-5', routine_id: 'local-p3', name: 'Hundred con piernas bajas', description: 'Más demandante para el core, piernas a 30°.', duration_seconds: 60, sets: 3, rest_seconds: 20, order_index: 5, muscle_group: 'Core' },
+    ],
+    'local-p4': [
+        { id: 'lp4-1', routine_id: 'local-p4', name: 'The Hundred clásico', description: 'Piernas extendidas, bombeo activo de brazos.', duration_seconds: 60, sets: 3, rest_seconds: 20, order_index: 1, muscle_group: 'Core' },
+        { id: 'lp4-2', routine_id: 'local-p4', name: 'Rolling Like a Ball', description: 'Rueda hacia atrás sin tocar el suelo con la cabeza.', sets: 3, reps: 8, rest_seconds: 15, order_index: 2, muscle_group: 'Columna, Core' },
+        { id: 'lp4-3', routine_id: 'local-p4', name: 'Teaser completo', description: 'Sube en V, baja con control absoluto.', sets: 4, reps: 6, rest_seconds: 30, order_index: 3, muscle_group: 'Core, Cadera' },
+        { id: 'lp4-4', routine_id: 'local-p4', name: 'Control Balance', description: 'Pies sobre la cabeza, equilibrio en escápulas.', sets: 3, reps: 5, rest_seconds: 30, order_index: 4, muscle_group: 'Core avanzado' },
+        { id: 'lp4-5', routine_id: 'local-p4', name: 'Boomerang', description: 'La secuencia más completa del método clásico.', sets: 3, reps: 5, rest_seconds: 30, order_index: 5, muscle_group: 'Core, Columna' },
+    ],
+    'local-p5': [
+        { id: 'lp5-1', routine_id: 'local-p5', name: 'Activación suelo pélvico', description: 'Contrae y sube el suelo pélvico, sostén 5s, relaja.', sets: 3, reps: 10, rest_seconds: 10, order_index: 1, muscle_group: 'Suelo pélvico' },
+        { id: 'lp5-2', routine_id: 'local-p5', name: 'Respiración diafragmática', description: 'Mano en el vientre, sincroniza con el suelo pélvico.', duration_seconds: 120, sets: 2, rest_seconds: 0, order_index: 2, muscle_group: 'Core profundo' },
+        { id: 'lp5-3', routine_id: 'local-p5', name: 'Puente pélvico suave', description: 'Sube vértebra a vértebra, sin forzar la espalda.', sets: 3, reps: 10, rest_seconds: 20, order_index: 3, muscle_group: 'Glúteos, Suelo pélvico' },
+        { id: 'lp5-4', routine_id: 'local-p5', name: 'Postura del gato-vaca', description: 'Sincroniza con la respiración, movimiento fluido.', sets: 3, reps: 10, rest_seconds: 15, order_index: 4, muscle_group: 'Columna, Core' },
+        { id: 'lp5-5', routine_id: 'local-p5', name: 'Relajación en lateral', description: 'Posición fetal, respiración libre, 3 minutos.', duration_seconds: 180, sets: 1, rest_seconds: 0, order_index: 5, muscle_group: 'Relajación' },
+    ],
+};

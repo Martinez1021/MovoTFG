@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { View, ActivityIndicator } from 'react-native';
 
 import { useAuthStore } from '../store/authStore';
+import { useThemeStore } from '../store/themeStore';
 import { Colors } from '../utils/constants';
 
 // Auth Screens
@@ -20,12 +21,15 @@ import { RoutinesScreen } from '../screens/user/RoutinesScreen';
 import { AICoachScreen } from '../screens/user/AICoachScreen';
 import { ProgressScreen } from '../screens/user/ProgressScreen';
 import { ProfileScreen } from '../screens/user/ProfileScreen';
+import { FeedScreen } from '../screens/user/FeedScreen';
+import { NutritionScreen } from '../screens/user/NutritionScreen';
 import { EditProfileScreen } from '../screens/user/EditProfileScreen';
 import { SettingsScreen } from '../screens/user/SettingsScreen';
 
 // Trainer Screens
 import { TrainerDashboardScreen, TrainerClientsScreen, ClientDetailScreen } from '../screens/trainer/TrainerScreens';
 import { TrainerMessagesScreen } from '../screens/trainer/TrainerMessagesScreen';
+import { TrainerProfileScreen } from '../screens/trainer/TrainerProfileScreen';
 
 // Shared Screens
 import { RoutineDetailScreen } from '../screens/shared/RoutineDetailScreen';
@@ -43,32 +47,40 @@ const tabBarStyle = {
 };
 
 // ─── User Tab Navigator ───────────────────────────────────────────────────────
-const UserTabs = () => (
-    <Tab.Navigator screenOptions={{ headerShown: false, tabBarStyle, tabBarActiveTintColor: Colors.primary, tabBarInactiveTintColor: Colors.textSecondary }}>
-        <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: 'Inicio', tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" color={color} size={size} /> }} />
-        <Tab.Screen name="Routines" component={RoutinesScreen} options={{ tabBarLabel: 'Rutinas', tabBarIcon: ({ color, size }) => <Ionicons name="barbell-outline" color={color} size={size} /> }} />
-        <Tab.Screen name="AICoach" component={AICoachScreen} options={{ tabBarLabel: 'Coach IA', tabBarIcon: ({ color, size }) => <Ionicons name="sparkles-outline" color={color} size={size} /> }} />
-        <Tab.Screen name="Progress" component={ProgressScreen} options={{ tabBarLabel: 'Progreso', tabBarIcon: ({ color, size }) => <Ionicons name="stats-chart-outline" color={color} size={size} /> }} />
-        <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarLabel: 'Perfil', tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" color={color} size={size} /> }} />
+const UserTabs = () => {
+    const { primary } = useThemeStore();
+    return (
+    <Tab.Navigator screenOptions={{ headerShown: false, tabBarStyle: { ...tabBarStyle, height: 80, paddingBottom: 20 }, tabBarActiveTintColor: primary, tabBarInactiveTintColor: Colors.textSecondary, tabBarLabelStyle: { fontSize: 10 } }}>
+        <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: 'Inicio', tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" color={color} size={size - 2} /> }} />
+        <Tab.Screen name="Routines" component={RoutinesScreen} options={{ tabBarLabel: 'Rutinas', tabBarIcon: ({ color, size }) => <Ionicons name="barbell-outline" color={color} size={size - 2} /> }} />
+        <Tab.Screen name="Feed" component={FeedScreen} options={{ tabBarLabel: 'Comunidad', tabBarIcon: ({ color, size }) => <Ionicons name="people-outline" color={color} size={size - 2} /> }} />
+        <Tab.Screen name="Nutrition" component={NutritionScreen} options={{ tabBarLabel: 'Nutrición', tabBarIcon: ({ color, size }) => <Ionicons name="nutrition-outline" color={color} size={size - 2} /> }} />
+        <Tab.Screen name="AICoach" component={AICoachScreen} options={{ tabBarLabel: 'Coach IA', tabBarIcon: ({ color, size }) => <Ionicons name="sparkles-outline" color={color} size={size - 2} /> }} />
+        <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarLabel: 'Perfil', tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" color={color} size={size - 2} /> }} />
     </Tab.Navigator>
-);
+    );
+};
 
 // ─── Trainer Tab Navigator ────────────────────────────────────────────────
-const TrainerTabs = () => (
-    <Tab.Navigator screenOptions={{ headerShown: false, tabBarStyle, tabBarActiveTintColor: Colors.primary, tabBarInactiveTintColor: Colors.textSecondary }}>
+const TrainerTabs = () => {
+    const { primary } = useThemeStore();
+    return (
+    <Tab.Navigator screenOptions={{ headerShown: false, tabBarStyle, tabBarActiveTintColor: primary, tabBarInactiveTintColor: Colors.textSecondary }}>
         <Tab.Screen name="TrainerDash" component={TrainerDashboardScreen} options={{ tabBarLabel: 'Panel', tabBarIcon: ({ color, size }) => <Ionicons name="grid-outline" color={color} size={size} /> }} />
         <Tab.Screen name="Clients" component={TrainerClientsScreen} options={{ tabBarLabel: 'Clientes', tabBarIcon: ({ color, size }) => <Ionicons name="people-outline" color={color} size={size} /> }} />
         <Tab.Screen name="TrainerRoutines" component={RoutinesScreen} options={{ tabBarLabel: 'Rutinas', tabBarIcon: ({ color, size }) => <Ionicons name="barbell-outline" color={color} size={size} /> }} />
         <Tab.Screen name="Messages" component={TrainerMessagesScreen} options={{ tabBarLabel: 'Mensajes', tabBarIcon: ({ color, size }) => <Ionicons name="chatbubbles-outline" color={color} size={size} /> }} />
-        <Tab.Screen name="TrainerProfile" component={ProfileScreen} options={{ tabBarLabel: 'Perfil', tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" color={color} size={size} /> }} />
+        <Tab.Screen name="TrainerProfile" component={TrainerProfileScreen} options={{ tabBarLabel: 'Perfil', tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" color={color} size={size} /> }} />
     </Tab.Navigator>
-);
+    );
+};
 
 // ─── Root Navigator ───────────────────────────────────────────────────────────
 export const AppNavigator: React.FC = () => {
     const { isAuthenticated, isLoading, user, initialize } = useAuthStore();
+    const { primary, load: loadTheme } = useThemeStore();
 
-    useEffect(() => { initialize(); }, []);
+    useEffect(() => { initialize(); loadTheme(); }, []);
 
     if (isLoading) return (
         <View style={{ flex: 1, backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center' }}>
@@ -91,6 +103,7 @@ export const AppNavigator: React.FC = () => {
                         <Stack.Screen name="MainTabs" component={user?.role === 'trainer' ? TrainerTabs : UserTabs} />
                         <Stack.Screen name="RoutineDetail" component={RoutineDetailScreen} />
                         <Stack.Screen name="ActiveWorkout" component={ActiveWorkoutScreen} />
+                        <Stack.Screen name="Progress" component={ProgressScreen} />
                         <Stack.Screen name="ClientDetail" component={ClientDetailScreen} />
                         <Stack.Screen name="EditProfile" component={EditProfileScreen} />
                         <Stack.Screen name="Settings" component={SettingsScreen} />

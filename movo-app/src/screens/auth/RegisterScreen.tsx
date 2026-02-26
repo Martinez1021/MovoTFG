@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+﻿import React, { useState } from 'react';
 import {
     View, Text, StyleSheet, ScrollView, TouchableOpacity,
     KeyboardAvoidingView, Platform, Alert, Image,
@@ -8,7 +8,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuthStore } from '../../store/authStore';
-import { userApi } from '../../services/api';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { Colors, Spacing, FontSizes, BorderRadius, Goals, ActivityLevels, WorkoutTypes, SessionDurations } from '../../utils/constants';
@@ -44,11 +43,14 @@ export const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     const [avatarUri, setAvatarUri] = useState<string | null>(null);
     const [showPass, setShowPass] = useState(false);
 
-    const { control, handleSubmit, getValues, formState: { errors } } = useForm<any>({ defaultValues: formData });
+    const { control, handleSubmit, formState: { errors } } = useForm<any>({ defaultValues: formData });
+
+    const isTrainer = formData.role === 'trainer';
+    const totalSteps = isTrainer ? 2 : 4;
 
     const pickAvatar = async () => {
         const res = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            mediaTypes: ImagePicker.MediaType.Images,
             allowsEditing: true,
             aspect: [1, 1],
             quality: 0.7,
@@ -64,10 +66,7 @@ export const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     const toggleGoal = (id: string) => {
         setFormData((prev) => {
             const goals = prev.goals ?? [];
-            return {
-                ...prev,
-                goals: goals.includes(id) ? goals.filter((g) => g !== id) : [...goals, id],
-            };
+            return { ...prev, goals: goals.includes(id) ? goals.filter((g) => g !== id) : [...goals, id] };
         });
     };
 
@@ -76,33 +75,27 @@ export const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
             const types = (prev.preferred_types ?? []) as string[];
             return {
                 ...prev,
-                preferred_types: types.includes(id)
-                    ? (types.filter((t) => t !== id) as RoutineCategory[])
-                    : ([...types, id] as RoutineCategory[]),
+                preferred_types: types.includes(id) ? types.filter((t) => t !== id) as RoutineCategory[] : [...types, id] as RoutineCategory[],
             };
         });
     };
 
     const handleRegister = async () => {
         try {
-            await registerUser(formData as RegisterData);
-            // If we get here without navigating, registration succeeded
-            // but email confirmation may be required
+            await registerUser({ ...formData, avatarUri } as any);
             Alert.alert(
                 '¡Revisa tu email! 📧',
                 'Te hemos enviado un enlace de confirmación. Haz clic en él y luego inicia sesión.',
                 [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
             );
         } catch (e: any) {
-            // Only show error if it's NOT a network error (backend offline is OK)
             if (!e.message?.includes('Network') && !e.message?.includes('localhost')) {
                 Alert.alert('Error al registrarse', e.message);
             }
-            // If Supabase succeeded (user navigates or email sent), do nothing
         }
     };
 
-    // ── Step 1: Datos básicos ───────────────────────────────────────────────────
+    // ── Step 1: Datos básicos (AMBOS roles) ────────────────────────────────────
     const Step1 = () => (
         <>
             <TouchableOpacity onPress={pickAvatar} style={s.avatarWrap}>
@@ -146,14 +139,69 @@ export const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                         <Text style={[s.roleText, formData.role === r && s.roleTextActive]}>
                             {r === 'user' ? 'Soy Usuario' : 'Soy Entrenador'}
                         </Text>
+                        <Text style={s.roleDesc}>
+                            {r === 'user' ? 'Quiero entrenar y mejorar' : 'Quiero gestionar clientes'}
+                        </Text>
                     </TouchableOpacity>
                 ))}
             </View>
         </>
     );
 
-    // ── Step 2: Datos físicos ───────────────────────────────────────────────────
-    const Step2 = () => (
+    // ── Step 2 ENTRENADOR: Perfil profesional ───────────────────────────────────
+    const Step2Trainer = () => (
+        <>
+            <Text style={s.stepHint}>Cuéntanos sobre tu experiencia como entrenador</Text>
+
+            <Controller control={control} name="specialty"
+                render={({ field: { onChange, value } }) => (
+                    <Input label="Especialidad" placeholder="Ej: Fuerza, CrossFit, Yoga, Pérdida de peso..."
+                        onChangeText={(v) => { onChange(v); setFormData((p) => ({ ...p, specialty: v })); }}
+                        value={value}
+                        leftIcon={<Ionicons name="trophy-outline" size={18} color={Colors.textSecondary} />} />
+                )} />
+
+            <Controller control={control} name="experience_years"
+                render={({ field: { onChange, value } }) => (
+                    <Input label="Años de experiencia" placeholder="Ej: 5" keyboardType="numeric"
+                        onChangeText={(v) => { onChange(v); setFormData((p) => ({ ...p, experience_years: parseInt(v) })); }}
+                        value={value?.toString()}
+                        leftIcon={<Ionicons name="time-outline" size={18} color={Colors.textSecondary} />} />
+                )} />
+
+            <Controller control={control} name="certifications"
+                render={({ field: { onChange, value } }) => (
+                    <Input label="Certificaciones (opcional)" placeholder="Ej: NSCA-CPT, CrossFit L2..."
+                        onChangeText={(v) => { onChange(v); setFormData((p) => ({ ...p, certifications: v })); }}
+                        value={value}
+                        leftIcon={<Ionicons name="ribbon-outline" size={18} color={Colors.textSecondary} />} />
+                )} />
+
+            <Controller control={control} name="bio"
+                render={({ field: { onChange, value } }) => (
+                    <Input label="Descripción / Bio (opcional)" placeholder="Describe tu método de trabajo, tu filosofía..."
+                        onChangeText={(v) => { onChange(v); setFormData((p) => ({ ...p, bio: v })); }}
+                        value={value} multiline numberOfLines={4}
+                        leftIcon={<Ionicons name="document-text-outline" size={18} color={Colors.textSecondary} />} />
+                )} />
+
+            <Text style={s.sectionLabel}>Tipos de entrenamiento que ofreces</Text>
+            <View style={s.chipRow}>
+                {WorkoutTypes.map((t) => {
+                    const active = (formData.preferred_types ?? []).includes(t.id as RoutineCategory);
+                    return (
+                        <TouchableOpacity key={t.id} onPress={() => toggleType(t.id)}
+                            style={[s.chip, active && { ...s.chipActive, borderColor: t.color, backgroundColor: t.color + '22' }]}>
+                            <Text style={[s.chipText, active && { color: t.color }]}>{t.emoji} {t.label}</Text>
+                        </TouchableOpacity>
+                    );
+                })}
+            </View>
+        </>
+    );
+
+    // ── Step 2 USUARIO: Datos físicos ───────────────────────────────────────────
+    const Step2User = () => (
         <>
             <View style={s.row}>
                 <Controller control={control} name="weight_kg" rules={{ required: 'Requerido' }}
@@ -197,8 +245,8 @@ export const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         </>
     );
 
-    // ── Step 3: Objetivos ───────────────────────────────────────────────────────
-    const Step3 = () => (
+    // ── Step 3 USUARIO: Objetivos ───────────────────────────────────────────────
+    const Step3User = () => (
         <>
             <Text style={s.stepHint}>Selecciona todos los que apliquen</Text>
             <View style={s.goalsGrid}>
@@ -216,8 +264,8 @@ export const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         </>
     );
 
-    // ── Step 4: Preferencias ────────────────────────────────────────────────────
-    const Step4 = () => (
+    // ── Step 4 USUARIO: Preferencias ────────────────────────────────────────────
+    const Step4User = () => (
         <>
             <Text style={s.sectionLabel}>Tipos de entrenamiento</Text>
             <View style={s.chipRow}>
@@ -261,10 +309,25 @@ export const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         </>
     );
 
-    const steps = [Step1, Step2, Step3, Step4];
-    const StepComponent = steps[step - 1];
-    const isLastStep = step === 4;
-    const showStep2 = formData.role === 'user';
+    // Selecciona el componente del paso actual según el rol
+    const getStepComponent = () => {
+        if (step === 1) return Step1;
+        if (isTrainer) return Step2Trainer;
+        if (step === 2) return Step2User;
+        if (step === 3) return Step3User;
+        return Step4User;
+    };
+
+    const StepComponent = getStepComponent();
+    const isLastStep = step === totalSteps;
+
+    const getStepTitle = () => {
+        if (step === 1) return 'Crea tu cuenta';
+        if (isTrainer) return 'Perfil de entrenador';
+        if (step === 2) return 'Datos físicos';
+        if (step === 3) return 'Tus objetivos';
+        return 'Preferencias';
+    };
 
     return (
         <LinearGradient colors={['#0A0A0A', '#0F0A1E']} style={{ flex: 1 }}>
@@ -274,8 +337,9 @@ export const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                         <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
                     </TouchableOpacity>
 
-                    <Text style={s.heading}>Paso {step} de 4</Text>
-                    <StepIndicator current={step} total={4} />
+                    <Text style={s.heading}>{getStepTitle()}</Text>
+                    <Text style={s.subheading}>Paso {step} de {totalSteps}</Text>
+                    <StepIndicator current={step} total={totalSteps} />
 
                     <StepComponent />
 
@@ -296,7 +360,8 @@ export const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
 const s = StyleSheet.create({
     scroll: { flexGrow: 1, padding: Spacing['2xl'], paddingTop: 60 },
     back: { marginBottom: Spacing.base },
-    heading: { fontSize: FontSizes['3xl'], fontWeight: '800', color: Colors.textPrimary, marginBottom: Spacing.sm },
+    heading: { fontSize: FontSizes['3xl'], fontWeight: '800', color: Colors.textPrimary, marginBottom: 4 },
+    subheading: { fontSize: FontSizes.sm, color: Colors.textSecondary, marginBottom: Spacing.lg },
     avatarWrap: { alignItems: 'center', marginBottom: Spacing.xl },
     avatar: { width: 90, height: 90, borderRadius: 45 },
     avatarPlaceholder: { width: 90, height: 90, borderRadius: 45, alignItems: 'center', justifyContent: 'center' },
@@ -306,8 +371,9 @@ const s = StyleSheet.create({
     roleChip: { flex: 1, backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, padding: Spacing.base, alignItems: 'center', borderWidth: 1.5, borderColor: Colors.border },
     roleChipActive: { borderColor: Colors.primary, backgroundColor: Colors.primary + '22' },
     roleEmoji: { fontSize: 28, marginBottom: 6 },
-    roleText: { color: Colors.textSecondary, fontWeight: '600', fontSize: FontSizes.sm, textAlign: 'center' },
+    roleText: { color: Colors.textSecondary, fontWeight: '700', fontSize: FontSizes.sm, textAlign: 'center' },
     roleTextActive: { color: Colors.primary },
+    roleDesc: { color: Colors.textMuted, fontSize: FontSizes.xs, textAlign: 'center', marginTop: 4 },
     row: { flexDirection: 'row' },
     sectionLabel: { color: Colors.textSecondary, fontSize: FontSizes.sm, fontWeight: '600', marginBottom: Spacing.sm, marginTop: Spacing.md, textTransform: 'uppercase', letterSpacing: 0.8 },
     chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginBottom: Spacing.md },

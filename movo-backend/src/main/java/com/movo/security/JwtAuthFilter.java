@@ -9,32 +9,50 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.math.BigInteger;
+import java.security.AlgorithmParameters;
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.spec.ECGenParameterSpec;
+import java.security.spec.ECParameterSpec;
+import java.security.spec.ECPoint;
+import java.security.spec.ECPublicKeySpec;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * Validates Supabase JWTs on every incoming request.
- * Supabase signs JWTs with the project's JWT secret (found in Project Settings
- * → API).
+ * Validates Supabase JWTs (ES256 / ECC P-256) on every incoming request.
+ * Public key coordinates come from:
+ * https://uyxysrodgxxduzyekgjo.supabase.co/auth/v1/.well-known/jwks.json
  */
 @Component
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    @Value("${app.supabase.jwt-secret}")
-    private String supabaseJwtSecret;
+    // ES256 public key from Supabase JWKS (kid: cce250d6-ff31-412a-8aa3-0e895ce3abf2)
+    private static final String JWK_X = "qU87OhwUzO0YpKxSn2OBu_f7H976uFlYCTlzpt6xtYA";
+    private static final String JWK_Y = "0B7ZiNwBvKL1n7n0D4OGDcfCnX-EJjD1JeX7P6yElpg";
 
     private final UserRepository userRepository;
+
+    private PublicKey buildEcPublicKey() throws Exception {
+        byte[] xBytes = Base64.getUrlDecoder().decode(JWK_X);
+        byte[] yBytes = Base64.getUrlDecoder().decode(JWK_Y);
+        ECPoint point = new ECPoint(new BigInteger(1, xBytes), new BigInteger(1, yBytes));
+        AlgorithmParameters params = AlgorithmParameters.getInstance("EC");
+        params.init(new ECGenParameterSpec("secp256r1"));
+        ECParameterSpec ecSpec = params.getParameterSpec(ECParameterSpec.class);
+        ECPublicKeySpec keySpec = new ECPublicKeySpec(point, ecSpec);
+        return KeyFactory.getInstance("EC").generatePublic(keySpec);
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -49,11 +67,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         try {
             String token = authHeader.substring(7);
-            byte[] keyBytes = supabaseJwtSecret.getBytes(StandardCharsets.UTF_8);
-            var key = new SecretKeySpec(keyBytes, "HmacSHA256");
+            PublicKey publicKey = buildEcPublicKey();
 
             Claims claims = Jwts.parser()
-                    .verifyWith(key)
+                    .verifyWith(publicKey)
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();

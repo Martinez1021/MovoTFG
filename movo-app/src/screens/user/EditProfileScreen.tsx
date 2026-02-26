@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useForm, Controller } from 'react-hook-form';
 import { useAuthStore } from '../../store/authStore';
-import { userApi } from '../../services/api';
+import { supabase } from '../../services/supabase';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { GoalChip } from '../../components/ui/GoalChip';
@@ -24,7 +24,7 @@ interface FormData {
 }
 
 export const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
-    const { user, profile, initialize } = useAuthStore();
+    const { user, profile, setUser, setProfile } = useAuthStore();
     const [saving, setSaving] = useState(false);
     const [avatarUri, setAvatarUri] = useState<string | null>(user?.avatar_url ?? null);
     const [selectedGoals, setSelectedGoals] = useState<string[]>(profile?.goals ?? []);
@@ -42,17 +42,20 @@ export const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation })
     });
 
     const pickAvatar = async () => {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') { Alert.alert('Permisos necesarios', 'Necesitamos acceso a tu galería.'); return; }
         const res = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true, aspect: [1, 1], quality: 0.8,
+            mediaTypes: ['images'] as any,
+            allowsEditing: true, aspect: [1, 1], quality: 0.5, base64: true,
         });
-        if (!res.canceled && user) {
-            const uri = res.assets[0].uri;
-            setAvatarUri(uri);
-            const fd = new FormData();
-            fd.append('file', { uri, type: 'image/jpeg', name: 'avatar.jpg' } as any);
-            try { await userApi.uploadAvatar(user.id, fd); }
-            catch { Alert.alert('Error', 'No se pudo subir la foto'); }
+        if (!res.canceled && res.assets?.[0] && user) {
+            const asset = res.assets[0];
+            if (!asset.base64) { Alert.alert('Error', 'No se pudo leer la imagen.'); return; }
+            const avatarUrl = `data:image/jpeg;base64,${asset.base64}`;
+            setAvatarUri(avatarUrl);
+            const { error } = await supabase.auth.updateUser({ data: { avatar_url: avatarUrl } });
+            if (error) Alert.alert('Error', 'No se pudo guardar la foto.');
+            else setUser({ ...user, avatar_url: avatarUrl });
         }
     };
 
@@ -63,23 +66,39 @@ export const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation })
         if (!user) return;
         setSaving(true);
         try {
-            // Update User entity (full_name)
-            await userApi.updateMe({ full_name: data.full_name });
-            // Update UserProfile entity
-            await userApi.updateProfile(user.id, {
-                weight_kg: data.weight_kg ? parseFloat(data.weight_kg) : undefined,
-                height_cm: data.height_cm ? parseInt(data.height_cm) : undefined,
-                age: data.age ? parseInt(data.age) : undefined,
-                gender: data.gender,
-                activity_level: (selectedActivity || undefined) as any,
-                goals: selectedGoals,
+            // 1. Update full_name in Supabase Auth metadata
+            const { error: authErr } = await supabase.auth.updateUser({
+                data: { full_name: data.full_name },
             });
-            await initialize(); // refresh store
+            if (authErr) throw authErr;
+
+            // 2. Upsert profile data into Supabase user_profiles
+            const profileData = {
+                user_id: user.id,
+                weight_kg: data.weight_kg ? parseFloat(data.weight_kg) : null,
+                height_cm: data.height_cm ? parseInt(data.height_cm) : null,
+                age: data.age ? parseInt(data.age) : null,
+                gender: data.gender,
+                activity_level: selectedActivity || null,
+                goals: selectedGoals,
+                preferred_types: profile?.preferred_types ?? [],
+            };
+            const { data: savedProfile, error: profileErr } = await supabase
+                .from('user_profiles')
+                .upsert(profileData, { onConflict: 'user_id' })
+                .select()
+                .single();
+            if (profileErr) throw profileErr;
+
+            // 3. Update store immediately so ProfileScreen reflects changes
+            setUser({ ...user, full_name: data.full_name });
+            if (savedProfile) setProfile(savedProfile);
+
             Alert.alert('¡Guardado!', 'Tu perfil se actualizó correctamente.', [
                 { text: 'OK', onPress: () => navigation.goBack() },
             ]);
-        } catch {
-            Alert.alert('Error', 'No se pudo guardar el perfil.');
+        } catch (e: any) {
+            Alert.alert('Error', e?.message ?? 'No se pudo guardar el perfil.');
         } finally {
             setSaving(false);
         }

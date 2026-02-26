@@ -36,7 +36,7 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
         try {
             const { data } = await routineApi.getPublic(get().filter);
             set({ publicRoutines: data });
-        } catch (e) { console.error(e); }
+        } catch { /* backend offline — no-op */ }
         finally { set({ isLoading: false }); }
     },
 
@@ -44,21 +44,21 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
         try {
             const { data } = await routineApi.getMyAssigned();
             set({ assignedRoutines: data });
-        } catch (e) { console.error(e); }
+        } catch { /* backend offline — no-op */ }
     },
 
     fetchStats: async () => {
         try {
             const { data } = await sessionApi.getStats();
             set({ stats: data });
-        } catch (e) { console.error(e); }
+        } catch { /* backend offline — no-op */ }
     },
 
     fetchSessions: async () => {
         try {
             const { data } = await sessionApi.getMy();
             set({ sessions: data });
-        } catch (e) { console.error(e); }
+        } catch { /* backend offline — no-op */ }
     },
 
     startSession: async (routineId) => {

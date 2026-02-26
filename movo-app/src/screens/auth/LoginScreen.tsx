@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
     View, Text, StyleSheet, ScrollView, TouchableOpacity,
-    KeyboardAvoidingView, Platform, Alert,
+    KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,14 +19,16 @@ interface LoginForm {
 export const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     const { login, isLoading } = useAuthStore();
     const [showPass, setShowPass] = useState(false);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const { control, handleSubmit, formState: { errors } } = useForm<LoginForm>();
 
     const onSubmit = async (data: LoginForm) => {
+        setErrorMsg(null);
         try {
             await login(data.email, data.password);
         } catch (e: any) {
-            Alert.alert('Error de acceso', e.message || 'Revisa tus credenciales');
+            setErrorMsg(e.message || 'Error al iniciar sesión. Inténtalo de nuevo.');
         }
     };
 
@@ -89,6 +91,13 @@ export const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                             <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
                         </TouchableOpacity>
 
+                        {errorMsg && (
+                            <View style={styles.errorBanner}>
+                                <Ionicons name="alert-circle-outline" size={16} color="#ff4444" />
+                                <Text style={styles.errorBannerText}>{errorMsg}</Text>
+                            </View>
+                        )}
+
                         <Button
                             title="Iniciar sesión"
                             onPress={handleSubmit(onSubmit)}
@@ -129,6 +138,8 @@ const styles = StyleSheet.create({
     form: {},
     forgot: { alignSelf: 'flex-end', marginBottom: Spacing.base },
     forgotText: { color: Colors.primary, fontSize: FontSizes.sm },
+    errorBanner: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#ff444422', borderRadius: BorderRadius.md, padding: Spacing.md, marginBottom: Spacing.base, borderWidth: 1, borderColor: '#ff444444' },
+    errorBannerText: { flex: 1, color: '#ff6666', fontSize: FontSizes.sm, lineHeight: 18 },
     btn: { marginTop: Spacing.sm },
     divider: { flexDirection: 'row', alignItems: 'center', marginVertical: Spacing.lg },
     line: { flex: 1, height: 1, backgroundColor: Colors.border },

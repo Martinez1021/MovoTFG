@@ -1,31 +1,46 @@
 spring:
   datasource:
-    url: ${SUPABASE_DB_URL}
-    username: ${SUPABASE_DB_USER}
-    password: ${SUPABASE_DB_PASSWORD}
+    url: ${SUPABASE_DB_URL:jdbc:postgresql://db.uyxysrodgxxduzyekgjo.supabase.co:5432/postgres}
+    username: ${SUPABASE_DB_USER:postgres}
+    password: ${SUPABASE_DB_PASSWORD:E962405860mm}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      initialization-fail-timeout: -1
+      connection-timeout: 30000
+      maximum-pool-size: 5
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none
     show-sql: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         default_schema: public
+        temp:
+          use_jdbc_metadata_defaults: false
 
 server:
   port: 8080
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
 app:
   jwt:
-    secret: ${JWT_SECRET}
+    secret: ${JWT_SECRET:BRI+F/E+/aVp0YzBtT+0Hpd2c3RaWITFBgpcwbJ50ufxuGdAobjPEhK0q41v0iQfiauB1iIKXwsam6q8Spacag==}
   grok:
-    api-key: ${GROK_API_KEY}
+    api-key: ${GROK_API_KEY:xai-zGczBWaaScDIJEadraP7texPUWtfsTfAdQKMY6W04jMGknE2E5TmSUg8JBI4MdNOBHreVmPA97tBQc0K}
     base-url: https://api.x.ai/v1
-    model: grok-beta
+    model: grok-3-mini
   supabase:
-    jwt-secret: ${SUPABASE_JWT_SECRET}
-    url: ${SUPABASE_URL}
+    jwt-secret: ${SUPABASE_JWT_SECRET:cce250d6-ff31-412a-8aa3-0e895ce3abf2}
+    url: ${SUPABASE_URL:https://uyxysrodgxxduzyekgjo.supabase.co}
 
 springdoc:
   api-docs:

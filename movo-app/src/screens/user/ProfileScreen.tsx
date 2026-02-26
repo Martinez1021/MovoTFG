@@ -1,16 +1,272 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, Switch } from 'react-native';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, Switch, Dimensions, Modal, KeyboardAvoidingView, Platform, TextInput, ActivityIndicator, FlatList } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuthStore } from '../../store/authStore';
-import { userApi } from '../../services/api';
-import { Button } from '../../components/ui/Button';
+import { useRoutineStore } from '../../store/routineStore';
+import { useFeedStore, Comment } from '../../store/feedStore';
+import { supabase } from '../../services/supabase';
 import { Colors, Spacing, FontSizes, BorderRadius, Goals, ActivityLevels } from '../../utils/constants';
+import { useThemeStore } from '../../store/themeStore';
+
+const W = Dimensions.get('window').width;
+const GRID_SIZE = (W - 4) / 3;
+
+type Tab = 'posts' | 'entrenos' | 'ajustes';
+
+// ── Post View Modal ──────────────────────────────────────
+const PostViewModal: React.FC<{
+    post: any | null;
+    visible: boolean;
+    onClose: () => void;
+    primary: string;
+}> = ({ post, visible, onClose, primary }) => {
+    const { comments, isLoadingComments, isAddingComment, fetchComments, addComment } = useFeedStore();
+    const { user } = useAuthStore();
+    const [commentText, setCommentText] = useState('');
+    const listRef = useRef<FlatList>(null);
+
+    useEffect(() => {
+        if (visible && post?.id) fetchComments(post.id);
+    }, [visible, post?.id]);
+
+    const postComments: Comment[] = post ? (comments[post.id] ?? []) : [];
+    const tAgo = (iso: string) => {
+        const d = (Date.now() - new Date(iso).getTime()) / 1000;
+        if (d < 60) return 'ahora';
+        if (d < 3600) return `${Math.floor(d / 60)}m`;
+        if (d < 86400) return `${Math.floor(d / 3600)}h`;
+        return `${Math.floor(d / 86400)}d`;
+    };
+
+    const handleSend = async () => {
+        if (!commentText.trim() || !post) return;
+        const draft = commentText;
+        setCommentText('');
+        try {
+            await addComment(post.id, draft);
+            setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
+        } catch (e: any) {
+            Alert.alert('Error', e?.message ?? 'No se pudo enviar');
+            setCommentText(draft);
+        }
+    };
+
+    return (
+        <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+                <View style={pv.container}>
+                    <View style={pv.handleBar} />
+                    <View style={pv.header}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                            {post?.user_avatar
+                                ? <Image source={{ uri: post.user_avatar }} style={pv.hAvatar} />
+                                : <LinearGradient colors={[primary, primary + 'AA']} style={pv.hAvatarFb}>
+                                    <Text style={pv.hAvatarLetter}>{post?.user_name?.[0]?.toUpperCase()}</Text>
+                                  </LinearGradient>
+                            }
+                            <View>
+                                <Text style={pv.hName}>{post?.user_name}</Text>
+                                {post?.created_at && <Text style={pv.hTime}>{tAgo(post.created_at)}</Text>}
+                            </View>
+                        </View>
+                        <TouchableOpacity onPress={onClose} style={pv.closeBtn}>
+                            <Ionicons name="close" size={22} color={Colors.textSecondary} />
+                        </TouchableOpacity>
+                    </View>
+                    <FlatList
+                        ref={listRef}
+                        data={postComments}
+                        keyExtractor={(item) => item.id}
+                        ListHeaderComponent={
+                            <>
+                                {post?.image_url && (
+                                    <Image source={{ uri: post.image_url }} style={pv.postImg} resizeMode="cover" />
+                                )}
+                                {post?.content ? (
+                                    <Text style={pv.postContent}>{post.content}</Text>
+                                ) : null}
+                                <View style={pv.divider} />
+                                {isLoadingComments && (
+                                    <ActivityIndicator color={primary} style={{ marginVertical: 20 }} />
+                                )}
+                                {!isLoadingComments && postComments.length === 0 && (
+                                    <View style={pv.noComments}>
+                                        <Ionicons name="chatbubbles-outline" size={40} color={Colors.textSecondary} />
+                                        <Text style={pv.noCommentsText}>Sé el primero en comentar</Text>
+                                    </View>
+                                )}
+                            </>
+                        }
+                        renderItem={({ item }: { item: Comment }) => (
+                            <View style={pv.cRow}>
+                                {item.user_avatar
+                                    ? <Image source={{ uri: item.user_avatar }} style={pv.cAv} />
+                                    : <LinearGradient colors={[primary, primary + 'AA']} style={pv.cAvFb}>
+                                        <Text style={pv.cAvLetter}>{item.user_name[0]?.toUpperCase()}</Text>
+                                      </LinearGradient>
+                                }
+                                <View style={pv.cBubble}>
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                        <Text style={pv.cName}>{item.user_name}</Text>
+                                        <Text style={pv.cTime}>{tAgo(item.created_at)}</Text>
+                                    </View>
+                                    <Text style={pv.cText}>{item.content}</Text>
+                                </View>
+                            </View>
+                        )}
+                        contentContainerStyle={{ paddingBottom: 20 }}
+                    />
+                    <View style={[pv.inputRow, { borderTopColor: Colors.border }]}>
+                        <LinearGradient colors={[primary, primary + 'AA']} style={pv.myAv}>
+                            <Text style={pv.myAvLetter}>{user?.full_name?.[0]?.toUpperCase() ?? 'M'}</Text>
+                        </LinearGradient>
+                        <TextInput
+                            style={pv.input}
+                            placeholder="Escribe un comentario…"
+                            placeholderTextColor={Colors.textSecondary}
+                            value={commentText}
+                            onChangeText={setCommentText}
+                            multiline
+                            maxLength={300}
+                        />
+                        <TouchableOpacity
+                            onPress={handleSend}
+                            disabled={!commentText.trim() || isAddingComment}
+                            style={[pv.sendBtn, { backgroundColor: commentText.trim() ? primary : Colors.border }]}
+                        >
+                            {isAddingComment
+                                ? <ActivityIndicator size="small" color="#fff" />
+                                : <Ionicons name="send" size={16} color="#fff" />
+                            }
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </KeyboardAvoidingView>
+        </Modal>
+    );
+};
+
+const pv = StyleSheet.create({
+    container: { flex: 1, backgroundColor: '#111' },
+    handleBar: { width: 40, height: 4, backgroundColor: Colors.border, borderRadius: 2, alignSelf: 'center', marginTop: 10, marginBottom: 4 },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.base, paddingVertical: Spacing.md },
+    hAvatar: { width: 36, height: 36, borderRadius: 18 },
+    hAvatarFb: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+    hAvatarLetter: { color: '#fff', fontWeight: '800', fontSize: 14 },
+    hName: { fontSize: FontSizes.sm, fontWeight: '700', color: Colors.textPrimary },
+    hTime: { fontSize: FontSizes.xs, color: Colors.textSecondary },
+    closeBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.surface, alignItems: 'center', justifyContent: 'center' },
+    postImg: { width: '100%', aspectRatio: 1 },
+    postContent: { fontSize: FontSizes.base, color: Colors.textPrimary, lineHeight: 22, padding: Spacing.base },
+    divider: { height: 1, backgroundColor: Colors.border, marginHorizontal: Spacing.base, marginBottom: 4 },
+    noComments: { alignItems: 'center', gap: 8, paddingTop: 40 },
+    noCommentsText: { color: Colors.textSecondary, fontSize: FontSizes.base },
+    cRow: { flexDirection: 'row', gap: 10, paddingHorizontal: Spacing.base, paddingVertical: 8 },
+    cAv: { width: 30, height: 30, borderRadius: 15, marginTop: 2 },
+    cAvFb: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
+    cAvLetter: { color: '#fff', fontWeight: '800', fontSize: 12 },
+    cBubble: { flex: 1, backgroundColor: Colors.surface, borderRadius: BorderRadius.md, borderWidth: 1, borderColor: Colors.border, padding: 10 },
+    cName: { fontSize: FontSizes.sm, fontWeight: '700', color: Colors.textPrimary },
+    cTime: { fontSize: FontSizes.xs, color: Colors.textSecondary },
+    cText: { fontSize: FontSizes.sm, color: Colors.textPrimary, lineHeight: 18, marginTop: 2 },
+    inputRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 10, padding: Spacing.base, borderTopWidth: 1, backgroundColor: '#111' },
+    myAv: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+    myAvLetter: { color: '#fff', fontWeight: '800', fontSize: 12 },
+    input: { flex: 1, backgroundColor: Colors.surface, borderRadius: BorderRadius.md, borderWidth: 1, borderColor: Colors.border, color: Colors.textPrimary, fontSize: FontSizes.sm, paddingHorizontal: Spacing.md, paddingVertical: 10, maxHeight: 100 },
+    sendBtn: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
+});
 
 export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
-    const { user, profile, logout } = useAuthStore();
+    const { user, profile, logout, setUser, setProfile } = useAuthStore();
+    const { sessions, fetchSessions } = useRoutineStore();
+    const { posts, fetchPosts, fetchComments, addComment, comments, isLoadingComments, isAddingComment } = useFeedStore();
+    const { primary } = useThemeStore();
+
+    const [tab, setTab] = useState<Tab>('posts');
+    const [uploadingAvatar, setUploadingAvatar] = useState(false);
+    const [isPublic, setIsPublic] = useState(true);
+    const [followers, setFollowers] = useState(0);
+    const [following, setFollowing] = useState(0);
     const [notifications, setNotifications] = useState(true);
+    const [savingPrivacy, setSavingPrivacy] = useState(false);
+    const [selectedPost, setSelectedPost] = useState<any | null>(null);
+    // Inline stats editing
+    const [editingStats, setEditingStats] = useState(false);
+    const [draftWeight, setDraftWeight] = useState('');
+    const [draftHeight, setDraftHeight] = useState('');
+    const [draftAge, setDraftAge] = useState('');
+    const [savingStats, setSavingStats] = useState(false);
+
+    const myPosts = posts.filter((p) => p.supabase_uid === user?.id);
+
+    const loadSocialData = useCallback(async () => {
+        if (!user?.id) return;
+        // follower count
+        const { count: fwrs } = await supabase
+            .from('user_follows')
+            .select('*', { count: 'exact', head: true })
+            .eq('following_id', user.id);
+        // following count
+        const { count: fwing } = await supabase
+            .from('user_follows')
+            .select('*', { count: 'exact', head: true })
+            .eq('follower_id', user.id);
+        // privacy setting
+        const { data: up } = await supabase
+            .from('user_profiles')
+            .select('is_public')
+            .eq('user_id', user.id)
+            .maybeSingle();
+        setFollowers(fwrs ?? 0);
+        setFollowing(fwing ?? 0);
+        if (up?.is_public !== undefined) setIsPublic(up.is_public);
+    }, [user?.id]);
+
+    useEffect(() => {
+        fetchPosts();
+        fetchSessions?.();
+        loadSocialData();
+    }, []);
+
+    const togglePrivacy = async (val: boolean) => {
+        setIsPublic(val);
+        if (!user?.id) return;
+        setSavingPrivacy(true);
+        await supabase
+            .from('user_profiles')
+            .update({ is_public: val })
+            .eq('user_id', user.id);
+        setSavingPrivacy(false);
+    };
+
+    const saveStats = async () => {
+        setSavingStats(true);
+        try {
+            // Usar el UID real de auth.users para satisfacer el FK
+            const { data: { session } } = await supabase.auth.getSession();
+            const authUid = session?.user?.id;
+            if (!authUid) throw new Error('No hay sesión activa');
+
+            const updates: Record<string, any> = {};
+            if (draftWeight !== '') updates.weight_kg = parseFloat(draftWeight);
+            if (draftHeight !== '') updates.height_cm = parseInt(draftHeight);
+            if (draftAge !== '') updates.age = parseInt(draftAge);
+
+            const { error } = await supabase
+                .from('user_profiles')
+                .upsert({ user_id: authUid, ...updates }, { onConflict: 'user_id' });
+            if (error) throw error;
+
+            if (setProfile) setProfile({ ...(profile as any), ...updates });
+            setEditingStats(false);
+        } catch (e: any) {
+            Alert.alert('Error al guardar', e?.message ?? 'No se pudo guardar');
+        } finally {
+            setSavingStats(false);
+        }
+    };
 
     const handleLogout = () => Alert.alert('Cerrar sesión', '¿Estás seguro?', [
         { text: 'Cancelar', style: 'cancel' },
@@ -18,127 +274,432 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
     ]);
 
     const pickAvatar = async () => {
-        const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [1, 1], quality: 0.7 });
-        if (!res.canceled && user) {
-            const fd = new FormData();
-            fd.append('file', { uri: res.assets[0].uri, type: 'image/jpeg', name: 'avatar.jpg' } as any);
-            try { await userApi.uploadAvatar(user.id, fd); }
-            catch (e) { Alert.alert('Error', 'No se pudo subir la imagen'); }
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert('Permisos necesarios', 'Necesitamos acceso a tu galería.');
+            return;
+        }
+        const res = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'] as any,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.5,
+            base64: true,
+        });
+        if (res.canceled || !res.assets?.[0]) return;
+        if (!user) return;
+        setUploadingAvatar(true);
+        try {
+            const asset = res.assets[0];
+            if (!asset.base64) { Alert.alert('Error', 'No se pudo leer la imagen.'); return; }
+            const avatarUrl = `data:image/jpeg;base64,${asset.base64}`;
+            const { error } = await supabase.auth.updateUser({ data: { avatar_url: avatarUrl } });
+            if (error) { Alert.alert('Error al guardar', error.message); return; }
+            setUser({ ...user, avatar_url: avatarUrl });
+            Alert.alert('✅ Foto actualizada');
+        } catch (e: any) {
+            Alert.alert('Error', e?.message ?? 'Error desconocido');
+        } finally {
+            setUploadingAvatar(false);
         }
     };
 
     const userGoals = Goals.filter((g) => (profile?.goals ?? []).includes(g.id));
+    const activityLevel = ActivityLevels.find((a) => a.id === profile?.activity_level);
+    const totalMinutes = (sessions ?? []).reduce((acc, s) => acc + (s.duration_minutes ?? 0), 0);
+    const avgMinutes = sessions?.length ? Math.round(totalMinutes / sessions.length) : 0;
+
+    const TABS: { key: Tab; icon: string; label: string }[] = [
+        { key: 'posts', icon: 'grid-outline', label: 'Publicaciones' },
+        { key: 'entrenos', icon: 'barbell-outline', label: 'Entrenos' },
+        { key: 'ajustes', icon: 'settings-outline', label: 'Ajustes' },
+    ];
 
     return (
         <LinearGradient colors={['#0A0A0A', '#0D0A18']} style={{ flex: 1 }}>
             <ScrollView contentContainerStyle={s.scroll}>
-                {/* Avatar header */}
-                <LinearGradient colors={['#1A0A2E', '#0A0A0A']} style={s.headerBg}>
-                    <TouchableOpacity onPress={pickAvatar} style={s.avatarWrap}>
+
+                {/* ── HEADER ── */}
+                <LinearGradient colors={[primary + '33', '#0A0A0A']} style={s.headerBg}>
+                    {/* Avatar */}
+                    <TouchableOpacity onPress={pickAvatar} style={s.avatarWrap} disabled={uploadingAvatar}>
                         {user?.avatar_url
-                            ? <Image source={{ uri: user.avatar_url }} style={s.avatar} />
-                            : <LinearGradient colors={Colors.gradientPrimary} style={s.avatarPlaceholder}>
+                            ? <Image source={{ uri: user.avatar_url }} style={[s.avatar, { borderColor: primary }]} />
+                            : <LinearGradient colors={[primary, primary + '88']} style={s.avatarPlaceholder}>
                                 <Text style={s.avatarInitial}>{user?.full_name?.[0] ?? 'M'}</Text>
                             </LinearGradient>
                         }
-                        <View style={s.cameraBtn}>
-                            <Ionicons name="camera" size={14} color="#fff" />
+                        <View style={[s.cameraBtn, { backgroundColor: primary }]}>
+                            <Ionicons name={uploadingAvatar ? 'hourglass-outline' : 'camera'} size={13} color="#fff" />
                         </View>
                     </TouchableOpacity>
+
+                    {/* Social counters */}
+                    <View style={s.socialRow}>
+                        <View style={s.socialStat}>
+                            <Text style={[s.socialNum, { color: primary }]}>{myPosts.length}</Text>
+                            <Text style={s.socialLabel}>Publicaciones</Text>
+                        </View>
+                        <View style={s.socialDivider} />
+                        <View style={s.socialStat}>
+                            <Text style={[s.socialNum, { color: primary }]}>{followers}</Text>
+                            <Text style={s.socialLabel}>Seguidores</Text>
+                        </View>
+                        <View style={s.socialDivider} />
+                        <View style={s.socialStat}>
+                            <Text style={[s.socialNum, { color: primary }]}>{following}</Text>
+                            <Text style={s.socialLabel}>Siguiendo</Text>
+                        </View>
+                    </View>
+
                     <Text style={s.name}>{user?.full_name}</Text>
                     <Text style={s.email}>{user?.email}</Text>
-                    <View style={s.roleBadge}>
-                        <Text style={s.roleText}>{user?.role === 'trainer' ? '🏋️ Entrenador' : '🏃 Usuario'}</Text>
+
+                    <View style={s.badgeRow}>
+                        <View style={[s.badge, { borderColor: primary + '44', backgroundColor: primary + '22' }]}>
+                            <Text style={[s.badgeText, { color: primary }]}>🏃 Atleta</Text>
+                        </View>
+                        <View style={[s.badge, { borderColor: isPublic ? '#4CAF5044' : '#FF980044', backgroundColor: isPublic ? '#4CAF5022' : '#FF980022' }]}>
+                            <Ionicons name={isPublic ? 'globe-outline' : 'lock-closed-outline'} size={11} color={isPublic ? '#4CAF50' : '#FF9800'} />
+                            <Text style={[s.badgeText, { color: isPublic ? '#4CAF50' : '#FF9800' }]}>{isPublic ? 'Público' : 'Privado'}</Text>
+                        </View>
                     </View>
                 </LinearGradient>
 
-                {/* Physical stats */}
-                {profile && (
-                    <View style={s.statsRow}>
-                        {[
-                            { label: 'Peso', value: profile.weight_kg ? `${profile.weight_kg}kg` : '—' },
-                            { label: 'Altura', value: profile.height_cm ? `${profile.height_cm}cm` : '—' },
-                            { label: 'Edad', value: profile.age ? `${profile.age}a` : '—' },
-                        ].map((st) => (
-                            <View key={st.label} style={s.statCard}>
-                                <Text style={s.statValue}>{st.value}</Text>
-                                <Text style={s.statLabel}>{st.label}</Text>
-                            </View>
-                        ))}
-                    </View>
-                )}
-
-                {/* Goals */}
-                {userGoals.length > 0 && (
-                    <View style={s.section}>
-                        <Text style={s.sectionTitle}>Mis objetivos</Text>
-                        <View style={s.goalsRow}>
-                            {userGoals.map((g) => (
-                                <View key={g.id} style={s.goalChip}>
-                                    <Text>{g.emoji} {g.label}</Text>
-                                </View>
-                            ))}
-                        </View>
-                    </View>
-                )}
-
-                {/* Trainer note */}
-                {profile?.notes_from_trainer && (
-                    <View style={[s.section, s.noteCard]}>
-                        <Text style={s.noteTitle}>📝 Nota de tu entrenador</Text>
-                        <Text style={s.noteText}>{profile.notes_from_trainer}</Text>
-                    </View>
-                )}
-
-                {/* Settings */}
-                <View style={s.section}>
-                    <Text style={s.sectionTitle}>Configuración</Text>
-                    <TouchableOpacity style={s.menuRow} onPress={() => navigation.navigate('EditProfile')}>
-                        <Ionicons name="person-outline" size={20} color={Colors.textSecondary} />
-                        <Text style={s.menuText}>Editar perfil</Text>
-                        <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
-                    </TouchableOpacity>
-                    <View style={s.menuRow}>
-                        <Ionicons name="notifications-outline" size={20} color={Colors.textSecondary} />
-                        <Text style={s.menuText}>Notificaciones</Text>
-                        <Switch value={notifications} onValueChange={setNotifications} trackColor={{ true: Colors.primary }} />
-                    </View>
-                    <TouchableOpacity style={s.menuRow} onPress={() => navigation.navigate('Settings')}>
-                        <Ionicons name="settings-outline" size={20} color={Colors.textSecondary} />
-                        <Text style={s.menuText}>Ajustes generales</Text>
-                        <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
-                    </TouchableOpacity>
+                {/* ── TAB BAR ── */}
+                <View style={s.tabBar}>
+                    {TABS.map((t) => (
+                        <TouchableOpacity key={t.key} style={s.tabItem} onPress={() => setTab(t.key)}>
+                            <Ionicons name={t.icon as any} size={20} color={tab === t.key ? primary : Colors.textSecondary} />
+                            <Text style={[s.tabLabel, tab === t.key && { color: primary }]}>{t.label}</Text>
+                            {tab === t.key && <View style={[s.tabIndicator, { backgroundColor: primary }]} />}
+                        </TouchableOpacity>
+                    ))}
                 </View>
 
-                <Button title="Cerrar sesión" variant="outline" onPress={handleLogout} fullWidth style={{ marginHorizontal: Spacing.base, marginBottom: Spacing['2xl'] }} />
+                {/* ── TAB: POSTS GRID ── */}
+                {tab === 'posts' && (
+                    <View>
+                        {myPosts.length === 0 ? (
+                            <View style={s.emptyState}>
+                                <Ionicons name="image-outline" size={48} color={Colors.textSecondary} />
+                                <Text style={s.emptyText}>Sin publicaciones aún</Text>
+                                <Text style={s.emptySubText}>Comparte tu progreso en Comunidad</Text>
+                            </View>
+                        ) : (
+                            <View style={s.grid}>
+                                {myPosts.map((p) => (
+                                    <TouchableOpacity key={p.id} style={s.gridCell} onPress={() => setSelectedPost(p)} activeOpacity={0.85}>
+                                        {p.image_url
+                                            ? <Image source={{ uri: p.image_url }} style={s.gridImg} />
+                                            : <LinearGradient colors={[primary + '55', primary + '22']} style={s.gridPlaceholder}>
+                                                <Ionicons name="fitness-outline" size={22} color={primary} />
+                                            </LinearGradient>
+                                        }
+                                        <View style={s.gridOverlay}>
+                                            <Ionicons name="heart" size={12} color="#fff" />
+                                            <Text style={s.gridLikes}>{p.likes_count ?? 0}</Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        )}
+                    </View>
+                )}
+
+                {/* ── TAB: ENTRENOS ── */}
+                {tab === 'entrenos' && (
+                    <View style={{ paddingHorizontal: Spacing.base, paddingTop: Spacing.lg }}>
+                        {/* Physical stats header + edit */}
+                        <View style={s.tabSectionHeader}>
+                            <View style={s.sectionHeader}>
+                                <Ionicons name="body-outline" size={18} color={primary} />
+                                <Text style={s.sectionTitle}>Datos físicos</Text>
+                            </View>
+                            {editingStats
+                                ? <View style={{ flexDirection: 'row', gap: 8 }}>
+                                    <TouchableOpacity onPress={() => setEditingStats(false)} style={[s.editBtn, { borderColor: Colors.border }]}>
+                                        <Text style={[s.editBtnText, { color: Colors.textSecondary }]}>Cancelar</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={saveStats} disabled={savingStats} style={[s.editBtn, { borderColor: primary + '55', backgroundColor: primary + '15' }]}>
+                                        {savingStats
+                                            ? <ActivityIndicator size="small" color={primary} />
+                                            : <><Ionicons name="checkmark" size={14} color={primary} /><Text style={[s.editBtnText, { color: primary }]}>Guardar</Text></>
+                                        }
+                                    </TouchableOpacity>
+                                  </View>
+                                : <TouchableOpacity
+                                    onPress={() => {
+                                        setDraftWeight(String(profile?.weight_kg ?? ''));
+                                        setDraftHeight(String(profile?.height_cm ?? ''));
+                                        setDraftAge(String(profile?.age ?? ''));
+                                        setEditingStats(true);
+                                    }}
+                                    style={[s.editBtn, { borderColor: primary + '55', backgroundColor: primary + '15' }]}
+                                  >
+                                    <Ionicons name="pencil" size={14} color={primary} />
+                                    <Text style={[s.editBtnText, { color: primary }]}>Editar</Text>
+                                  </TouchableOpacity>
+                            }
+                        </View>
+                        {/* Stats row */}
+                        {editingStats
+                            ? <View style={s.statsRow}>
+                                {[
+                                    { label: 'Peso (kg)', value: draftWeight, set: setDraftWeight, kb: 'decimal-pad' as const },
+                                    { label: 'Altura (cm)', value: draftHeight, set: setDraftHeight, kb: 'number-pad' as const },
+                                    { label: 'Edad', value: draftAge, set: setDraftAge, kb: 'number-pad' as const },
+                                ].map((f) => (
+                                    <View key={f.label} style={[s.statCard, { borderColor: primary + '55', borderWidth: 1.5 }]}>
+                                        <Text style={[s.statLabel, { marginBottom: 4 }]}>{f.label}</Text>
+                                        <TextInput
+                                            style={[s.statValue, { color: primary, borderBottomWidth: 1, borderBottomColor: primary + '66', minWidth: 48, textAlign: 'center', paddingBottom: 2 }]}
+                                            value={f.value}
+                                            onChangeText={f.set}
+                                            keyboardType={f.kb}
+                                            maxLength={6}
+                                            placeholder="—"
+                                            placeholderTextColor={Colors.textSecondary}
+                                        />
+                                    </View>
+                                ))}
+                              </View>
+                            : <View style={s.statsRow}>
+                                {[
+                                    { label: 'Peso', value: profile?.weight_kg ? `${profile.weight_kg}kg` : '—', icon: 'scale-outline' },
+                                    { label: 'Altura', value: profile?.height_cm ? `${profile.height_cm}cm` : '—', icon: 'body-outline' },
+                                    { label: 'Edad', value: profile?.age ? `${profile.age}a` : '—', icon: 'calendar-outline' },
+                                ].map((st) => (
+                                    <View key={st.label} style={[s.statCard, { borderColor: primary + '33' }]}>
+                                        <Ionicons name={st.icon as any} size={16} color={primary} style={{ marginBottom: 4 }} />
+                                        <Text style={[s.statValue, { color: primary }]}>{st.value}</Text>
+                                        <Text style={s.statLabel}>{st.label}</Text>
+                                    </View>
+                                ))}
+                              </View>
+                        }
+
+                        {/* Session summary */}
+                        <View style={[s.section, { borderColor: primary + '33' }]}>
+                            <View style={s.sectionHeader}>
+                                <Ionicons name="trending-up-outline" size={18} color={primary} />
+                                <Text style={s.sectionTitle}>Resumen de entrenamientos</Text>
+                            </View>
+                            <View style={s.statsRow}>
+                                {[
+                                    { label: 'Sesiones', value: String(sessions?.length ?? 0) },
+                                    { label: 'Min totales', value: String(totalMinutes) },
+                                    { label: 'Prom/sesión', value: `${avgMinutes}m` },
+                                ].map((st) => (
+                                    <View key={st.label} style={[s.statCard, { borderColor: primary + '22' }]}>
+                                        <Text style={[s.statValue, { color: primary }]}>{st.value}</Text>
+                                        <Text style={s.statLabel}>{st.label}</Text>
+                                    </View>
+                                ))}
+                            </View>
+                        </View>
+
+                        {/* Activity level */}
+                        {activityLevel && (
+                            <View style={[s.section, { borderColor: primary + '33' }]}>
+                                <View style={s.sectionHeader}>
+                                    <Ionicons name="flash-outline" size={18} color={primary} />
+                                    <Text style={s.sectionTitle}>Nivel de actividad</Text>
+                                </View>
+                                <Text style={s.infoText}>{activityLevel.label}</Text>
+                            </View>
+                        )}
+
+                        {/* Goals */}
+                        {userGoals.length > 0 && (
+                            <View style={[s.section, { borderColor: primary + '33' }]}>
+                                <View style={s.sectionHeader}>
+                                    <Ionicons name="flag-outline" size={18} color={primary} />
+                                    <Text style={s.sectionTitle}>Mis objetivos</Text>
+                                </View>
+                                <View style={s.goalsRow}>
+                                    {userGoals.map((g) => (
+                                        <View key={g.id} style={[s.goalChip, { borderColor: primary + '44', backgroundColor: primary + '22' }]}>
+                                            <Text style={[s.goalChipText, { color: primary }]}>{g.emoji} {g.label}</Text>
+                                        </View>
+                                    ))}
+                                </View>
+                            </View>
+                        )}
+
+                        {/* Recent sessions */}
+                        {(sessions?.length ?? 0) > 0 && (
+                            <View style={[s.section, { borderColor: primary + '33' }]}>
+                                <View style={s.sectionHeader}>
+                                    <Ionicons name="time-outline" size={18} color={primary} />
+                                    <Text style={s.sectionTitle}>Sesiones recientes</Text>
+                                </View>
+                                {sessions!.slice(0, 5).map((sess, i) => (
+                                    <View key={i} style={s.sessionRow}>
+                                        <View style={[s.sessionDot, { backgroundColor: primary }]} />
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={s.sessionName}>{sess.routine?.name ?? 'Entrenamiento'}</Text>
+                                            <Text style={s.sessionSub}>{sess.duration_minutes ?? 0} min · {new Date(sess.completed_at ?? '').toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}</Text>
+                                        </View>
+                                        <View style={[s.sessionBadge, { backgroundColor: primary + '22' }]}>
+                                            <Text style={[s.sessionBadgeText, { color: primary }]}>✓</Text>
+                                        </View>
+                                    </View>
+                                ))}
+                            </View>
+                        )}
+
+                        {/* Trainer note */}
+                        {profile?.notes_from_trainer && (
+                            <View style={[s.section, { borderColor: '#FFD70044' }]}>
+                                <View style={s.sectionHeader}>
+                                    <Ionicons name="document-text-outline" size={18} color="#FFD700" />
+                                    <Text style={s.sectionTitle}>Nota de tu entrenador</Text>
+                                </View>
+                                <Text style={s.infoText}>{profile.notes_from_trainer}</Text>
+                            </View>
+                        )}
+                    </View>
+                )}
+
+                {/* ── TAB: AJUSTES ── */}
+                {tab === 'ajustes' && (
+                    <View style={{ paddingHorizontal: Spacing.base, paddingTop: Spacing.lg }}>
+                        {/* Privacy */}
+                        <View style={[s.section, { borderColor: primary + '33' }]}>
+                            <View style={s.sectionHeader}>
+                                <Ionicons name="shield-outline" size={18} color={primary} />
+                                <Text style={s.sectionTitle}>Privacidad</Text>
+                            </View>
+                            <View style={s.menuRow}>
+                                <Ionicons name={isPublic ? 'globe-outline' : 'lock-closed-outline'} size={20} color={Colors.textSecondary} />
+                                <View style={{ flex: 1 }}>
+                                    <Text style={s.menuText}>Perfil público</Text>
+                                    <Text style={s.menuSub}>{isPublic ? 'Todos pueden ver tu perfil' : 'Solo tus seguidores'}</Text>
+                                </View>
+                                <Switch
+                                    value={isPublic}
+                                    onValueChange={togglePrivacy}
+                                    disabled={savingPrivacy}
+                                    trackColor={{ true: primary }}
+                                />
+                            </View>
+                        </View>
+
+                        {/* Notifications */}
+                        <View style={[s.section, { borderColor: primary + '33' }]}>
+                            <View style={s.sectionHeader}>
+                                <Ionicons name="notifications-outline" size={18} color={primary} />
+                                <Text style={s.sectionTitle}>Notificaciones</Text>
+                            </View>
+                            <View style={s.menuRow}>
+                                <Ionicons name="notifications-outline" size={20} color={Colors.textSecondary} />
+                                <Text style={[s.menuText, { flex: 1 }]}>Notificaciones push</Text>
+                                <Switch value={notifications} onValueChange={setNotifications} trackColor={{ true: primary }} />
+                            </View>
+                        </View>
+
+                        {/* Account */}
+                        <View style={[s.section, { borderColor: primary + '33' }]}>
+                            <View style={s.sectionHeader}>
+                                <Ionicons name="person-circle-outline" size={18} color={primary} />
+                                <Text style={s.sectionTitle}>Cuenta</Text>
+                            </View>
+                            <TouchableOpacity style={s.menuRow} onPress={() => navigation.navigate('EditProfile')}>
+                                <Ionicons name="person-outline" size={20} color={Colors.textSecondary} />
+                                <Text style={[s.menuText, { flex: 1 }]}>Editar perfil</Text>
+                                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+                            </TouchableOpacity>
+                            <TouchableOpacity style={[s.menuRow, { borderBottomWidth: 0 }]} onPress={() => navigation.navigate('Settings')}>
+                                <Ionicons name="settings-outline" size={20} color={Colors.textSecondary} />
+                                <Text style={[s.menuText, { flex: 1 }]}>Ajustes generales</Text>
+                                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* Logout */}
+                        <TouchableOpacity style={s.logoutBtn} onPress={handleLogout}>
+                            <Ionicons name="log-out-outline" size={18} color="#EF5350" />
+                            <Text style={s.logoutText}>Cerrar sesión</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
+
+                <View style={{ height: 40 }} />
             </ScrollView>
+            <PostViewModal
+                post={selectedPost}
+                visible={selectedPost !== null}
+                onClose={() => setSelectedPost(null)}
+                primary={primary}
+            />
         </LinearGradient>
     );
 };
 
 const s = StyleSheet.create({
     scroll: { paddingBottom: Spacing['3xl'] },
-    headerBg: { alignItems: 'center', paddingVertical: Spacing['2xl'], paddingTop: 60 },
-    avatarWrap: { position: 'relative', marginBottom: Spacing.base },
-    avatar: { width: 96, height: 96, borderRadius: 48, borderWidth: 3, borderColor: Colors.primary },
-    avatarPlaceholder: { width: 96, height: 96, borderRadius: 48, alignItems: 'center', justifyContent: 'center' },
-    avatarInitial: { fontSize: FontSizes['4xl'], fontWeight: '900', color: '#fff' },
-    cameraBtn: { position: 'absolute', bottom: 0, right: 0, width: 28, height: 28, borderRadius: 14, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
-    name: { fontSize: FontSizes['2xl'], fontWeight: '800', color: Colors.textPrimary, marginBottom: 4 },
-    email: { fontSize: FontSizes.sm, color: Colors.textSecondary, marginBottom: Spacing.sm },
-    roleBadge: { backgroundColor: Colors.primary + '33', borderRadius: BorderRadius.full, paddingHorizontal: Spacing.base, paddingVertical: 4, borderWidth: 1, borderColor: Colors.primary },
-    roleText: { color: Colors.primary, fontWeight: '700', fontSize: FontSizes.sm },
-    statsRow: { flexDirection: 'row', margin: Spacing.base, gap: Spacing.sm },
-    statCard: { flex: 1, backgroundColor: Colors.surface, borderRadius: BorderRadius.md, padding: Spacing.md, alignItems: 'center', borderWidth: 1, borderColor: Colors.border },
-    statValue: { fontSize: FontSizes.lg, fontWeight: '800', color: Colors.primary },
-    statLabel: { fontSize: FontSizes.xs, color: Colors.textSecondary },
-    section: { marginHorizontal: Spacing.base, marginBottom: Spacing.lg },
-    sectionTitle: { fontSize: FontSizes.md, fontWeight: '700', color: Colors.textPrimary, marginBottom: Spacing.md },
+    // Header
+    headerBg: { alignItems: 'center', paddingTop: 60, paddingBottom: Spacing['2xl'], paddingHorizontal: Spacing.base },
+    avatarWrap: { position: 'relative', marginBottom: Spacing.md },
+    avatar: { width: 90, height: 90, borderRadius: 45, borderWidth: 3 },
+    avatarPlaceholder: { width: 90, height: 90, borderRadius: 45, alignItems: 'center', justifyContent: 'center' },
+    avatarInitial: { fontSize: 36, fontWeight: '800', color: '#fff' },
+    cameraBtn: { position: 'absolute', bottom: 0, right: 0, borderRadius: 12, padding: 5 },
+    socialRow: { flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.md, gap: Spacing.sm },
+    socialStat: { alignItems: 'center', paddingHorizontal: Spacing.lg },
+    socialNum: { fontSize: FontSizes.xl, fontWeight: '800' },
+    socialLabel: { fontSize: FontSizes.xs, color: Colors.textSecondary, marginTop: 2 },
+    socialDivider: { width: 1, height: 30, backgroundColor: Colors.border },
+    name: { fontSize: FontSizes['2xl'], fontWeight: '800', color: Colors.textPrimary },
+    email: { fontSize: FontSizes.sm, color: Colors.textSecondary, marginTop: 4 },
+    badgeRow: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.sm },
+    badge: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: BorderRadius.full, paddingHorizontal: Spacing.md, paddingVertical: 5, borderWidth: 1 },
+    badgeText: { fontWeight: '700', fontSize: FontSizes.xs },
+    // Tab bar
+    tabBar: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: Colors.border, backgroundColor: Colors.surface },
+    tabItem: { flex: 1, alignItems: 'center', paddingVertical: Spacing.md, position: 'relative', gap: 3 },
+    tabLabel: { fontSize: 10, color: Colors.textSecondary, fontWeight: '600' },
+    tabIndicator: { position: 'absolute', bottom: 0, left: '15%', right: '15%', height: 2, borderRadius: 1 },
+    // Grid
+    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 2, padding: 2 },
+    gridCell: { width: GRID_SIZE, height: GRID_SIZE, position: 'relative', overflow: 'hidden' },
+    gridImg: { width: '100%', height: '100%' },
+    gridPlaceholder: { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' },
+    gridOverlay: { position: 'absolute', bottom: 4, right: 4, flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: '#00000066', borderRadius: 8, paddingHorizontal: 5, paddingVertical: 2 },
+    gridLikes: { color: '#fff', fontSize: 10, fontWeight: '700' },
+    // Empty
+    emptyState: { alignItems: 'center', paddingVertical: 60, paddingHorizontal: 32 },
+    emptyText: { color: Colors.textPrimary, fontSize: FontSizes.lg, fontWeight: '700', marginTop: Spacing.md },
+    emptySubText: { color: Colors.textSecondary, fontSize: FontSizes.sm, textAlign: 'center', marginTop: 6 },
+    // Stats / Sections
+    statsRow: { flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.md },
+    statCard: { flex: 1, backgroundColor: Colors.surface, borderRadius: BorderRadius.md, padding: Spacing.md, alignItems: 'center', borderWidth: 1 },
+    statValue: { fontSize: FontSizes.xl, fontWeight: '800' },
+    statLabel: { fontSize: FontSizes.xs, color: Colors.textSecondary, marginTop: 2 },
+    section: { backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, marginBottom: Spacing.md, padding: Spacing.base, borderWidth: 1 },
+    sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: Spacing.sm },
+    sectionTitle: { fontSize: FontSizes.base, fontWeight: '700', color: Colors.textPrimary },
+    infoText: { color: Colors.textSecondary, fontSize: FontSizes.base, lineHeight: 22 },
     goalsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
-    goalChip: { backgroundColor: Colors.surface, borderRadius: BorderRadius.full, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderWidth: 1, borderColor: Colors.border },
-    noteCard: { backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, padding: Spacing.base, borderLeftWidth: 3, borderLeftColor: Colors.accentYoga, borderWidth: 1, borderColor: Colors.border },
-    noteTitle: { fontWeight: '700', color: Colors.textPrimary, marginBottom: Spacing.sm, fontSize: FontSizes.base },
-    noteText: { color: Colors.textSecondary, lineHeight: 20 },
-    menuRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, backgroundColor: Colors.surface, borderRadius: BorderRadius.md, padding: Spacing.base, marginBottom: Spacing.sm, borderWidth: 1, borderColor: Colors.border },
-    menuText: { flex: 1, color: Colors.textPrimary, fontSize: FontSizes.base },
+    goalChip: { borderRadius: BorderRadius.full, paddingHorizontal: Spacing.md, paddingVertical: 6, borderWidth: 1 },
+    goalChipText: { fontSize: FontSizes.sm, fontWeight: '600' },
+    // Tab section header
+    tabSectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.sm },
+    editBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderRadius: BorderRadius.full, paddingHorizontal: Spacing.md, paddingVertical: 5 },
+    editBtnText: { fontSize: FontSizes.xs, fontWeight: '700' },
+    // Sessions
+    sessionRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.sm, borderBottomWidth: 1, borderBottomColor: Colors.border },
+    sessionDot: { width: 8, height: 8, borderRadius: 4 },
+    sessionName: { color: Colors.textPrimary, fontWeight: '600', fontSize: FontSizes.sm },
+    sessionSub: { color: Colors.textSecondary, fontSize: FontSizes.xs, marginTop: 2 },
+    sessionBadge: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
+    sessionBadgeText: { fontWeight: '800', fontSize: 12 },
+    // Menu
+    menuRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: Spacing.md, gap: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.border },
+    menuText: { color: Colors.textPrimary, fontSize: FontSizes.base },
+    menuSub: { color: Colors.textSecondary, fontSize: FontSizes.xs, marginTop: 2 },
+    // Logout
+    logoutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 32, marginTop: 8, paddingVertical: 14, backgroundColor: '#EF535015', borderRadius: 14, borderWidth: 1, borderColor: '#EF535044' },
+    logoutText: { color: '#EF5350', fontWeight: '700', fontSize: FontSizes.base },
 });

@@ -8,7 +8,7 @@ import {
 
 const api = axios.create({
     baseURL: API_BASE_URL,
-    timeout: 15000,
+    timeout: 5000,
     headers: { 'Content-Type': 'application/json' },
 });
 
@@ -18,6 +18,18 @@ api.interceptors.request.use(async (config) => {
     if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
 });
+
+// Silence network errors when backend is offline — they are expected in dev
+api.interceptors.response.use(
+    (res) => res,
+    (error) => {
+        if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+            // Backend not running — fail silently so Expo console stays clean
+            return Promise.reject(error);
+        }
+        return Promise.reject(error);
+    }
+);
 
 // ─── Auth ─────────────────────────────────────
 export const authApi = {

@@ -11,16 +11,19 @@ interface InputProps extends TextInputProps {
 }
 
 export const Input: React.FC<InputProps> = ({
-    label, error, containerStyle, leftIcon, rightIcon, style, ...props
+    label, error, containerStyle, leftIcon, rightIcon, style, multiline, numberOfLines, ...props
 }) => {
     return (
         <View style={[styles.container, containerStyle]}>
             {label && <Text style={styles.label}>{label}</Text>}
-            <View style={[styles.inputWrapper, error ? styles.errorBorder : null]}>
-                {leftIcon && <View style={styles.iconLeft}>{leftIcon}</View>}
+            <View style={[styles.inputWrapper, error ? styles.errorBorder : null, multiline && styles.multilineWrapper]}>
+                {leftIcon && <View style={[styles.iconLeft, multiline && { alignSelf: 'flex-start', paddingTop: Spacing.md }]}>{leftIcon}</View>}
                 <TextInput
-                    style={[styles.input, leftIcon ? styles.inputWithLeft : null, rightIcon ? styles.inputWithRight : null, style]}
+                    style={[styles.input, leftIcon ? styles.inputWithLeft : null, rightIcon ? styles.inputWithRight : null, multiline && styles.multilineInput, style]}
                     placeholderTextColor={Colors.textMuted}
+                    multiline={multiline}
+                    numberOfLines={numberOfLines}
+                    textAlignVertical={multiline ? 'top' : 'center'}
                     {...props}
                 />
                 {rightIcon && <View style={styles.iconRight}>{rightIcon}</View>}
@@ -57,6 +60,8 @@ const styles = StyleSheet.create({
         paddingVertical: Spacing.md,
         height: 52,
     },
+    multilineWrapper: { alignItems: 'flex-start' },
+    multilineInput: { height: undefined, minHeight: 90, paddingTop: Spacing.md },
     inputWithLeft: { paddingLeft: 0 },
     inputWithRight: { paddingRight: 0 },
     iconLeft: { paddingLeft: Spacing.base },

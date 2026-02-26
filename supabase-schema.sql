@@ -256,3 +256,48 @@ CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON workout_sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_routines_user_id ON user_routines(user_id);
 CREATE INDEX IF NOT EXISTS idx_routines_category ON routines(category);
 CREATE INDEX IF NOT EXISTS idx_routines_is_public ON routines(is_public);
+
+-- ─── SOCIAL / FEED ───────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS posts (
+  id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  content      TEXT,
+  image_url    TEXT,
+  likes_count  INT DEFAULT 0,
+  created_at   TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "posts_select"  ON posts FOR SELECT USING (true);
+CREATE POLICY "posts_insert"  ON posts FOR INSERT WITH CHECK (true);
+CREATE POLICY "posts_update"  ON posts FOR UPDATE USING (true);
+CREATE POLICY "posts_delete"  ON posts FOR DELETE USING (true);
+
+CREATE TABLE IF NOT EXISTS post_likes (
+  post_id    UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (post_id, user_id)
+);
+ALTER TABLE post_likes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "likes_select" ON post_likes FOR SELECT USING (true);
+CREATE POLICY "likes_insert" ON post_likes FOR INSERT WITH CHECK (true);
+CREATE POLICY "likes_delete" ON post_likes FOR DELETE USING (true);
+
+CREATE TABLE IF NOT EXISTS user_follows (
+  follower_id  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  following_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at   TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (follower_id, following_id)
+);
+ALTER TABLE user_follows ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "follows_select" ON user_follows FOR SELECT USING (true);
+CREATE POLICY "follows_insert" ON user_follows FOR INSERT WITH CHECK (true);
+CREATE POLICY "follows_delete" ON user_follows FOR DELETE USING (true);
+
+ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT true;
+
+CREATE INDEX IF NOT EXISTS idx_posts_user_id   ON posts(user_id);
+CREATE INDEX IF NOT EXISTS idx_posts_created   ON posts(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_post_likes_post ON post_likes(post_id);
+
