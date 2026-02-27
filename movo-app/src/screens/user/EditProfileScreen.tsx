@@ -53,6 +53,8 @@ export const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation })
             if (!asset.base64) { Alert.alert('Error', 'No se pudo leer la imagen.'); return; }
             const avatarUrl = `data:image/jpeg;base64,${asset.base64}`;
             setAvatarUri(avatarUrl);
+            // Refresh session before calling updateUser
+            await supabase.auth.refreshSession();
             const { error } = await supabase.auth.updateUser({ data: { avatar_url: avatarUrl } });
             if (error) Alert.alert('Error', 'No se pudo guardar la foto.');
             else setUser({ ...user, avatar_url: avatarUrl });
@@ -66,6 +68,14 @@ export const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation })
         if (!user) return;
         setSaving(true);
         try {
+            // 0. Ensure token is fresh before calling auth endpoints
+            const { data: refreshData, error: refreshErr } = await supabase.auth.refreshSession();
+            if (refreshErr || !refreshData.session) {
+                Alert.alert('Sesión expirada', 'Vuelve a iniciar sesión para guardar cambios.');
+                setSaving(false);
+                return;
+            }
+
             // 1. Update full_name in Supabase Auth metadata
             const { error: authErr } = await supabase.auth.updateUser({
                 data: { full_name: data.full_name },

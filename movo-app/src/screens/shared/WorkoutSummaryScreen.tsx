@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useFeedStore } from '../../store/feedStore';
+import { useRoutineStore } from '../../store/routineStore';
 import { useThemeStore } from '../../store/themeStore';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../utils/constants';
 
@@ -52,6 +53,7 @@ export const WorkoutSummaryScreen: React.FC<{ navigation: any; route: any }> = (
     }: WorkoutSummaryParams = route.params;
 
     const { createWorkoutPost } = useFeedStore();
+    const { recordLocalWorkout } = useRoutineStore();
     const { primary, gradient } = useThemeStore();
     const [effortScore, setEffortScore] = useState(7);
     const [sharing, setSharing] = useState(false);
@@ -103,6 +105,8 @@ export const WorkoutSummaryScreen: React.FC<{ navigation: any; route: any }> = (
 
     const handleShare = async () => {
         setSharing(true);
+        // Update home stats immediately
+        recordLocalWorkout(elapsedSeconds);
         try {
             await createWorkoutPost({
                 routine_name: routineName,
@@ -121,6 +125,11 @@ export const WorkoutSummaryScreen: React.FC<{ navigation: any; route: any }> = (
         } finally {
             setSharing(false);
         }
+    };
+
+    const handleFinishWithoutShare = () => {
+        recordLocalWorkout(elapsedSeconds);
+        navigation.navigate('MainTabs');
     };
 
     return (
@@ -275,7 +284,7 @@ export const WorkoutSummaryScreen: React.FC<{ navigation: any; route: any }> = (
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    onPress={() => navigation.navigate('MainTabs')}
+                    onPress={handleFinishWithoutShare}
                     style={ss.skipBtn}
                     activeOpacity={0.7}
                 >

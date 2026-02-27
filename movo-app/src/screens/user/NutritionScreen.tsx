@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '../../store/authStore';
 import { useThemeStore } from '../../store/themeStore';
 import { supabase } from '../../services/supabase';
@@ -379,11 +380,15 @@ export const NutritionScreen: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
 
+    const planKey = user?.id ? `movo_diet_plan_${user.id}` : null;
+
     const profileComplete =
         !!(profile?.weight_kg && profile?.height_cm && profile?.age && profile?.goals?.length);
 
-    const generate = useCallback(async () => {
+    const generate = useCallback(async (force = false) => {
         if (!profileComplete || !profile) return;
+        // If we already have a plan in state and not forced, skip
+        if (plan && !force) return;
         setLoading(true);
         try {
             const result = await generateDietPlan(
@@ -395,24 +400,42 @@ export const NutritionScreen: React.FC = () => {
                 profile.activity_level ?? 'beginner',
             );
             setPlan(result);
+            // Persist
+            if (planKey) await AsyncStorage.setItem(planKey, JSON.stringify(result));
         } catch (e: any) {
             Alert.alert('Error al generar', e?.message ?? 'Inténtalo de nuevo');
         } finally {
             setLoading(false);
         }
-    }, [profile, profileComplete]);
+    }, [profile, profileComplete, planKey, plan]);
 
+    // On mount: try to load persisted plan, only generate if none exists
     useEffect(() => {
-        if (profileComplete && !plan) generate();
-    }, [profileComplete]);
+        if (!profileComplete) return;
+        if (plan) return; // already have plan in memory
+        (async () => {
+            if (planKey) {
+                try {
+                    const saved = await AsyncStorage.getItem(planKey);
+                    if (saved) { setPlan(JSON.parse(saved)); return; }
+                } catch { /* ignore */ }
+            }
+            // No saved plan → generate for the first time
+            generate();
+        })();
+    }, [profileComplete, planKey, plan, generate]);
 
-    const onRefresh = async () => { setRefreshing(true); await generate(); setRefreshing(false); };
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await generate(true); // force regenerate
+        setRefreshing(false);
+    };
 
     // ── Profile not complete → show wizard
     if (!profileComplete) {
         return (
             <LinearGradient colors={['#0A0A0A', '#0D0A18']} style={{ flex: 1 }}>
-                <SetupWizard primary={primary} onComplete={() => generate()} />
+                <SetupWizard primary={primary} onComplete={() => generate(true)} />
             </LinearGradient>
         );
     }
@@ -445,7 +468,7 @@ export const NutritionScreen: React.FC = () => {
                         <Text style={s.sub}>Plan personalizado para ti</Text>
                     </View>
                     <TouchableOpacity
-                        onPress={generate}
+                        onPress={() => generate(true)}
                         disabled={loading}
                         style={[s.regenBtn, { borderColor: primary + '55', backgroundColor: primary + '15' }]}
                     >
@@ -511,7 +534,7 @@ export const NutritionScreen: React.FC = () => {
                         </View>
 
                         <TouchableOpacity
-                            onPress={generate}
+                            onPress={() => generate(true)}
                             disabled={loading}
                             style={[s.regenBig, { backgroundColor: primary }]}
                         >

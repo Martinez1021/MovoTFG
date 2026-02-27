@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import {
     View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity,
     Image, TextInput, Modal, KeyboardAvoidingView, Platform,
-    ActivityIndicator, Alert, Animated,
+    ActivityIndicator, Alert, Animated, ScrollView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -116,8 +116,179 @@ const wc = StyleSheet.create({
     moreEx: { fontSize: FontSizes.xs, color: Colors.textSecondary, paddingHorizontal: Spacing.sm, paddingVertical: 6, borderTopWidth: 1, borderTopColor: Colors.border + '55', fontStyle: 'italic' },
 });
 
+// ── Muscle photo map ─────────────────────────────────────
+const MUSCLE_IMG: Record<string, string> = {
+    'Cuádriceps, Glúteos':      'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=400&q=70',
+    'Cuádriceps':               'https://images.unsplash.com/photo-1574680178181-b4b675eac1b4?w=400&q=70',
+    'Pecho, Tríceps':           'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=70',
+    'Pecho':                    'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=70',
+    'Isquiotibiales, Espalda baja': 'https://images.unsplash.com/photo-1517963879433-6ad2b056d712?w=400&q=70',
+    'Dorsales, Bíceps':         'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=400&q=70',
+    'Dorsales':                 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=400&q=70',
+    'Hombros, Tríceps':         'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=70',
+    'Hombros':                  'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=70',
+    'Full body':                'https://images.unsplash.com/photo-1601422407692-ec4eeec1d9b3?w=400&q=70',
+    'Cardio':                   'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=400&q=70',
+    'Glúteos':                  'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=400&q=70',
+    'Bíceps':                   'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=400&q=70',
+    'Core':                     'https://images.unsplash.com/photo-1566241440091-ec10de8db2e1?w=400&q=70',
+    'Espalda baja':             'https://images.unsplash.com/photo-1570691079236-4bca6c45d440?w=400&q=70',
+};
+const FALLBACK_IMG = 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=400&q=70';
+const getMuscleImg = (muscle: string) =>
+    MUSCLE_IMG[muscle] ??
+    Object.entries(MUSCLE_IMG).find(([k]) => muscle?.toLowerCase().includes(k.toLowerCase()))?.[1] ??
+    FALLBACK_IMG;
+
+// ── Workout detail modal ─────────────────────────────────
+const WorkoutDetailModal: React.FC<{
+    post: Post | null;
+    visible: boolean;
+    onClose: () => void;
+    primary: string;
+}> = ({ post, visible, onClose, primary }) => {
+    if (!post?.workout_data) return null;
+    const data = post.workout_data;
+    const durationMin = Math.round(data.duration_seconds / 60);
+    const color = effortColor(data.effort_score);
+    const effortLabels = ['', 'Suave 😌', 'Suave 😌', 'Moderado 💪', 'Moderado 💪',
+        'Normal 🏃', 'Normal 🏃', 'Intenso ⚡', 'Intenso ⚡', 'Máximo 🔥', 'Máximo 🔥'];
+
+    return (
+        <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+            <View style={wd.container}>
+                {/* Handle */}
+                <View style={wd.handle} />
+
+                {/* Header */}
+                <View style={wd.header}>
+                    <View style={{ flex: 1 }}>
+                        <Text style={wd.routineTitle} numberOfLines={1}>{data.routine_name}</Text>
+                        <View style={wd.metaRow}>
+                            {post.user_avatar
+                                ? <Image source={{ uri: post.user_avatar }} style={wd.userAva} />
+                                : <LinearGradient colors={[primary, primary + 'AA']} style={wd.userAvaFallback}>
+                                    <Text style={wd.userAvaLetter}>{post.user_name[0]?.toUpperCase()}</Text>
+                                  </LinearGradient>
+                            }
+                            <Text style={wd.userName}>{post.user_name}</Text>
+                            <View style={[wd.durBadge, { borderColor: primary + '55' }]}>
+                                <Ionicons name="time-outline" size={11} color={Colors.textSecondary} />
+                                <Text style={wd.durText}>{durationMin}min</Text>
+                            </View>
+                        </View>
+                    </View>
+                    <TouchableOpacity onPress={onClose} style={wd.closeBtn}>
+                        <Ionicons name="close" size={22} color={Colors.textSecondary} />
+                    </TouchableOpacity>
+                </View>
+
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60 }}>
+                    {/* Post photo */}
+                    {post.image_url && (
+                        <Image source={{ uri: post.image_url }} style={wd.postPhoto} resizeMode="cover" />
+                    )}
+
+                    {/* Stats strip */}
+                    <View style={wd.statsStrip}>
+                        {[
+                            { icon: 'layers-outline',  val: String(data.total_sets),   lbl: 'Series' },
+                            { icon: 'repeat-outline',  val: String(data.total_reps),   lbl: 'Reps' },
+                            { icon: 'barbell-outline', val: `${data.total_weight}kg`,  lbl: 'Movido' },
+                            { icon: 'flash-outline',   val: `${data.effort_score}/10`, lbl: 'Esfuerzo' },
+                        ].map((s) => (
+                            <View key={s.lbl} style={wd.statCell}>
+                                <Ionicons name={s.icon as any} size={16} color={primary} />
+                                <Text style={[wd.statVal, s.lbl === 'Esfuerzo' && { color }]}>{s.val}</Text>
+                                <Text style={wd.statLbl}>{s.lbl}</Text>
+                            </View>
+                        ))}
+                    </View>
+
+                    {/* Effort bar */}
+                    <View style={wd.effortSect}>
+                        <View style={wd.effortBarRow}>
+                            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                                <View
+                                    key={n}
+                                    style={[
+                                        wd.seg,
+                                        n <= data.effort_score && { backgroundColor: color },
+                                    ]}
+                                />
+                            ))}
+                        </View>
+                        <Text style={[wd.effortLabelText, { color }]}>{effortLabels[data.effort_score]}</Text>
+                    </View>
+
+                    {/* Exercises */}
+                    <Text style={wd.sectionTitle}>Ejercicios</Text>
+                    {data.exercises.map((ex, i) => {
+                        const img = getMuscleImg(ex.muscle_group ?? '');
+                        return (
+                            <View key={i} style={wd.exCard}>
+                                <Image source={{ uri: img }} style={wd.exImg} resizeMode="cover" />
+                                <View style={wd.exInfo}>
+                                    <Text style={wd.exName} numberOfLines={2}>{ex.name}</Text>
+                                    {ex.muscle_group ? (
+                                        <Text style={wd.exMuscle} numberOfLines={1}>{ex.muscle_group}</Text>
+                                    ) : null}
+                                    <View style={wd.setsWrap}>
+                                        {ex.sets.map((st, si) => (
+                                            <View key={si} style={[wd.setChip, { borderColor: primary + '55', backgroundColor: primary + '14' }]}>
+                                                <Text style={[wd.setChipNum, { color: primary }]}>S{si + 1}</Text>
+                                                <Text style={wd.setChipVal}>
+                                                    {st.reps} reps{st.weight > 0 ? ` × ${st.weight}kg` : ''}
+                                                </Text>
+                                            </View>
+                                        ))}
+                                    </View>
+                                </View>
+                            </View>
+                        );
+                    })}
+                </ScrollView>
+            </View>
+        </Modal>
+    );
+};
+
+const wd = StyleSheet.create({
+    container: { flex: 1, backgroundColor: '#111' },
+    handle: { width: 40, height: 4, backgroundColor: Colors.border, borderRadius: 2, alignSelf: 'center', marginTop: 10, marginBottom: 4 },
+    header: { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: Spacing.base, paddingVertical: Spacing.md, gap: Spacing.sm },
+    routineTitle: { fontSize: FontSizes.xl, fontWeight: '900', color: Colors.textPrimary, marginBottom: 6 },
+    metaRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    userAva: { width: 22, height: 22, borderRadius: 11 },
+    userAvaFallback: { width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+    userAvaLetter: { color: '#fff', fontWeight: '800', fontSize: 10 },
+    userName: { fontSize: FontSizes.sm, color: Colors.textSecondary, fontWeight: '600' },
+    durBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, borderWidth: 1, borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2 },
+    durText: { fontSize: FontSizes.xs, color: Colors.textSecondary, fontWeight: '600' },
+    closeBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.surface, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
+    postPhoto: { width: '100%', height: 260, marginBottom: Spacing.md },
+    statsStrip: { flexDirection: 'row', marginHorizontal: Spacing.base, borderRadius: BorderRadius.md, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, paddingVertical: Spacing.md, marginBottom: Spacing.md },
+    statCell: { flex: 1, alignItems: 'center', gap: 3 },
+    statVal: { fontSize: FontSizes.md, fontWeight: '900', color: Colors.textPrimary },
+    statLbl: { fontSize: FontSizes.xs, color: Colors.textSecondary },
+    effortSect: { marginHorizontal: Spacing.base, marginBottom: Spacing.md },
+    effortBarRow: { flexDirection: 'row', gap: 4, marginBottom: 6 },
+    seg: { flex: 1, height: 10, borderRadius: 4, backgroundColor: Colors.border },
+    effortLabelText: { fontSize: FontSizes.sm, fontWeight: '700', textAlign: 'center' },
+    sectionTitle: { fontSize: FontSizes.base, fontWeight: '800', color: Colors.textPrimary, marginHorizontal: Spacing.base, marginBottom: Spacing.sm, marginTop: Spacing.sm },
+    exCard: { flexDirection: 'row', marginHorizontal: Spacing.base, marginBottom: Spacing.sm, backgroundColor: Colors.surface, borderRadius: BorderRadius.md, borderWidth: 1, borderColor: Colors.border, overflow: 'hidden' },
+    exImg: { width: 80, height: 80 },
+    exInfo: { flex: 1, padding: Spacing.sm, gap: 4 },
+    exName: { fontSize: FontSizes.sm, fontWeight: '800', color: Colors.textPrimary, lineHeight: 18 },
+    exMuscle: { fontSize: FontSizes.xs, color: Colors.textSecondary, fontStyle: 'italic' },
+    setsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 2 },
+    setChip: { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
+    setChipNum: { fontSize: 10, fontWeight: '800' },
+    setChipVal: { fontSize: 10, color: Colors.textPrimary, fontWeight: '600' },
+});
+
 // ── Post card ────────────────────────────────────────────
-const PostCard: React.FC<{ post: Post; primary: string; onLike: () => void; onOpenComments: () => void }> = ({ post, primary, onLike, onOpenComments }) => (
+const PostCard: React.FC<{ post: Post; primary: string; onLike: () => void; onOpenComments: () => void; onOpenWorkout: () => void }> = ({ post, primary, onLike, onOpenComments, onOpenWorkout }) => (
     <View style={pc.card}>
         {/* User header */}
         <View style={pc.header}>
@@ -147,14 +318,16 @@ const PostCard: React.FC<{ post: Post; primary: string; onLike: () => void; onOp
             : null
         }
 
-        {/* Workout summary card */}
+        {/* Workout summary card — tappable to open workout detail */}
         {post.workout_data && (
-            <WorkoutCard data={post.workout_data} primary={primary} />
+            <TouchableOpacity onPress={onOpenWorkout} activeOpacity={0.88}>
+                <WorkoutCard data={post.workout_data} primary={primary} />
+            </TouchableOpacity>
         )}
 
-        {/* Image — tappable para abrir comentarios */}
+        {/* Image — tappable to open workout detail (if workout) or comments */}
         {post.image_url
-            ? <TouchableOpacity onPress={onOpenComments} activeOpacity={0.9}>
+            ? <TouchableOpacity onPress={post.workout_data ? onOpenWorkout : onOpenComments} activeOpacity={0.9}>
                 <Image source={{ uri: post.image_url }} style={pc.postImage} resizeMode="cover" />
               </TouchableOpacity>
             : null
@@ -485,6 +658,7 @@ export const FeedScreen: React.FC = () => {
     const [refreshing, setRefreshing] = useState(false);
     const [showCreate, setShowCreate] = useState(false);
     const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+    const [workoutDetailPost, setWorkoutDetailPost] = useState<Post | null>(null);
     const [searchVisible, setSearchVisible] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const searchAnim = useRef(new Animated.Value(0)).current;
@@ -572,6 +746,7 @@ export const FeedScreen: React.FC = () => {
                                 primary={primary}
                                 onLike={() => toggleLike(item.id)}
                                 onOpenComments={() => setSelectedPost(item)}
+                                onOpenWorkout={() => setWorkoutDetailPost(item)}
                             />
                         )}
                         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primary} />}
@@ -604,6 +779,12 @@ export const FeedScreen: React.FC = () => {
                 post={selectedPost}
                 visible={selectedPost !== null}
                 onClose={() => setSelectedPost(null)}
+                primary={primary}
+            />
+            <WorkoutDetailModal
+                post={workoutDetailPost}
+                visible={workoutDetailPost !== null}
+                onClose={() => setWorkoutDetailPost(null)}
                 primary={primary}
             />
         </LinearGradient>

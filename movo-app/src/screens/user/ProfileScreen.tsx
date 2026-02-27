@@ -15,6 +15,179 @@ const GRID_SIZE = Math.floor((W - 8) / 3);
 
 type Tab = 'posts' | 'entrenos' | 'ajustes';
 
+// ── Helpers ─────────────────────────────────────────────────────
+const effortColor = (n: number) => {
+    if (n <= 3) return '#4CAF50';
+    if (n <= 6) return '#FF9800';
+    if (n <= 8) return '#FF5722';
+    return '#F44336';
+};
+const MUSCLE_IMG_P: Record<string, string> = {
+    'Cuádriceps, Glúteos':      'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=400&q=70',
+    'Cuádriceps':               'https://images.unsplash.com/photo-1574680178181-b4b675eac1b4?w=400&q=70',
+    'Pecho, Tríceps':           'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=70',
+    'Pecho':                    'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=70',
+    'Isquiotibiales, Espalda baja': 'https://images.unsplash.com/photo-1517963879433-6ad2b056d712?w=400&q=70',
+    'Dorsales, Bíceps':         'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=400&q=70',
+    'Dorsales':                 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=400&q=70',
+    'Hombros, Tríceps':         'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=70',
+    'Hombros':                  'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=70',
+    'Full body':                'https://images.unsplash.com/photo-1601422407692-ec4eeec1d9b3?w=400&q=70',
+    'Cardio':                   'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=400&q=70',
+    'Glúteos':                  'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=400&q=70',
+    'Bíceps':                   'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=400&q=70',
+    'Core':                     'https://images.unsplash.com/photo-1566241440091-ec10de8db2e1?w=400&q=70',
+    'Espalda baja':             'https://images.unsplash.com/photo-1570691079236-4bca6c45d440?w=400&q=70',
+};
+const FALLBACK_IMG_P = 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=400&q=70';
+const getMuscleImgP = (muscle: string) =>
+    MUSCLE_IMG_P[muscle] ??
+    Object.entries(MUSCLE_IMG_P).find(([k]) => muscle?.toLowerCase().includes(k.toLowerCase()))?.[1] ??
+    FALLBACK_IMG_P;
+
+// ── Workout Detail Modal ─────────────────────────────────────────
+const WorkoutDetailModalP: React.FC<{
+    post: any | null;
+    visible: boolean;
+    onClose: () => void;
+    primary: string;
+}> = ({ post, visible, onClose, primary }) => {
+    if (!post?.workout_data) return null;
+    const data: WorkoutData = post.workout_data;
+    const durationMin = Math.round(data.duration_seconds / 60);
+    const color = effortColor(data.effort_score);
+    const effortLabels = ['', 'Suave 😌', 'Suave 😌', 'Moderado 💪', 'Moderado 💪',
+        'Normal 🏃', 'Normal 🏃', 'Intenso ⚡', 'Intenso ⚡', 'Máximo 🔥', 'Máximo 🔥'];
+    const tAgoW = (iso: string) => {
+        const d = (Date.now() - new Date(iso).getTime()) / 1000;
+        if (d < 60) return 'ahora';
+        if (d < 3600) return `${Math.floor(d / 60)}m`;
+        if (d < 86400) return `${Math.floor(d / 3600)}h`;
+        return `${Math.floor(d / 86400)}d`;
+    };
+    return (
+        <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+            <View style={wdp.container}>
+                <View style={wdp.handle} />
+                <View style={wdp.header}>
+                    <View style={{ flex: 1 }}>
+                        <Text style={wdp.routineTitle} numberOfLines={1}>{data.routine_name}</Text>
+                        <View style={wdp.metaRow}>
+                            {post?.user_avatar
+                                ? <Image source={{ uri: post.user_avatar }} style={wdp.userAva} />
+                                : <LinearGradient colors={[primary, primary + 'AA']} style={wdp.userAvaFallback}>
+                                    <Text style={wdp.userAvaLetter}>{post?.user_name?.[0]?.toUpperCase()}</Text>
+                                  </LinearGradient>
+                            }
+                            <Text style={wdp.userName}>{post?.user_name}</Text>
+                            {post?.created_at && <Text style={wdp.userTime}>{tAgoW(post.created_at)}</Text>}
+                            <View style={[wdp.durBadge, { borderColor: primary + '55' }]}>
+                                <Ionicons name="time-outline" size={11} color={Colors.textSecondary} />
+                                <Text style={wdp.durText}>{durationMin}min</Text>
+                            </View>
+                        </View>
+                    </View>
+                    <TouchableOpacity onPress={onClose} style={wdp.closeBtn}>
+                        <Ionicons name="close" size={22} color={Colors.textSecondary} />
+                    </TouchableOpacity>
+                </View>
+
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60 }}>
+                    {post.image_url && (
+                        <Image source={{ uri: post.image_url }} style={wdp.postPhoto} resizeMode="cover" />
+                    )}
+
+                    {/* Stats strip */}
+                    <View style={wdp.statsStrip}>
+                        {[
+                            { icon: 'layers-outline',  val: String(data.total_sets),   lbl: 'Series' },
+                            { icon: 'repeat-outline',  val: String(data.total_reps),   lbl: 'Reps' },
+                            { icon: 'barbell-outline', val: `${data.total_weight}kg`,  lbl: 'Movido' },
+                            { icon: 'flash-outline',   val: `${data.effort_score}/10`, lbl: 'Esfuerzo' },
+                        ].map((st) => (
+                            <View key={st.lbl} style={wdp.statCell}>
+                                <Ionicons name={st.icon as any} size={16} color={primary} />
+                                <Text style={[wdp.statVal, st.lbl === 'Esfuerzo' && { color }]}>{st.val}</Text>
+                                <Text style={wdp.statLbl}>{st.lbl}</Text>
+                            </View>
+                        ))}
+                    </View>
+
+                    {/* Effort bar */}
+                    <View style={wdp.effortSect}>
+                        <View style={wdp.effortBarRow}>
+                            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                                <View key={n} style={[wdp.seg, n <= data.effort_score && { backgroundColor: color }]} />
+                            ))}
+                        </View>
+                        <Text style={[wdp.effortLabelText, { color }]}>{effortLabels[data.effort_score]}</Text>
+                    </View>
+
+                    {/* Exercises */}
+                    <Text style={wdp.sectionTitle}>Ejercicios</Text>
+                    {data.exercises.map((ex, i) => {
+                        const img = getMuscleImgP(ex.muscle_group ?? '');
+                        return (
+                            <View key={i} style={wdp.exCard}>
+                                <Image source={{ uri: img }} style={wdp.exImg} resizeMode="cover" />
+                                <View style={wdp.exInfo}>
+                                    <Text style={wdp.exName} numberOfLines={2}>{ex.name}</Text>
+                                    {ex.muscle_group ? <Text style={wdp.exMuscle} numberOfLines={1}>{ex.muscle_group}</Text> : null}
+                                    <View style={wdp.setsWrap}>
+                                        {ex.sets.map((st, si) => (
+                                            <View key={si} style={[wdp.setChip, { borderColor: primary + '55', backgroundColor: primary + '14' }]}>
+                                                <Text style={[wdp.setChipNum, { color: primary }]}>S{si + 1}</Text>
+                                                <Text style={wdp.setChipVal}>
+                                                    {st.reps} reps{st.weight > 0 ? ` × ${st.weight}kg` : ''}
+                                                </Text>
+                                            </View>
+                                        ))}
+                                    </View>
+                                </View>
+                            </View>
+                        );
+                    })}
+                </ScrollView>
+            </View>
+        </Modal>
+    );
+};
+
+const wdp = StyleSheet.create({
+    container: { flex: 1, backgroundColor: '#111' },
+    handle: { width: 40, height: 4, backgroundColor: Colors.border, borderRadius: 2, alignSelf: 'center', marginTop: 10, marginBottom: 4 },
+    header: { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: Spacing.base, paddingVertical: Spacing.md, gap: Spacing.sm },
+    routineTitle: { fontSize: FontSizes.xl, fontWeight: '900', color: Colors.textPrimary, marginBottom: 6 },
+    metaRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+    userAva: { width: 22, height: 22, borderRadius: 11 },
+    userAvaFallback: { width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+    userAvaLetter: { color: '#fff', fontWeight: '800', fontSize: 10 },
+    userName: { fontSize: FontSizes.sm, color: Colors.textSecondary, fontWeight: '600' },
+    userTime: { fontSize: FontSizes.xs, color: Colors.textSecondary },
+    durBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, borderWidth: 1, borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2 },
+    durText: { fontSize: FontSizes.xs, color: Colors.textSecondary, fontWeight: '600' },
+    closeBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.surface, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
+    postPhoto: { width: '100%', height: 260, marginBottom: Spacing.md },
+    statsStrip: { flexDirection: 'row', marginHorizontal: Spacing.base, borderRadius: BorderRadius.md, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, paddingVertical: Spacing.md, marginBottom: Spacing.md },
+    statCell: { flex: 1, alignItems: 'center', gap: 3 },
+    statVal: { fontSize: FontSizes.md, fontWeight: '900', color: Colors.textPrimary },
+    statLbl: { fontSize: FontSizes.xs, color: Colors.textSecondary },
+    effortSect: { marginHorizontal: Spacing.base, marginBottom: Spacing.md },
+    effortBarRow: { flexDirection: 'row', gap: 4, marginBottom: 6 },
+    seg: { flex: 1, height: 10, borderRadius: 4, backgroundColor: Colors.border },
+    effortLabelText: { fontSize: FontSizes.sm, fontWeight: '700', textAlign: 'center' },
+    sectionTitle: { fontSize: FontSizes.base, fontWeight: '800', color: Colors.textPrimary, marginHorizontal: Spacing.base, marginBottom: Spacing.sm, marginTop: Spacing.sm },
+    exCard: { flexDirection: 'row', marginHorizontal: Spacing.base, marginBottom: Spacing.sm, backgroundColor: Colors.surface, borderRadius: BorderRadius.md, borderWidth: 1, borderColor: Colors.border, overflow: 'hidden' },
+    exImg: { width: 80, height: 80 },
+    exInfo: { flex: 1, padding: Spacing.sm, gap: 4 },
+    exName: { fontSize: FontSizes.sm, fontWeight: '800', color: Colors.textPrimary, lineHeight: 18 },
+    exMuscle: { fontSize: FontSizes.xs, color: Colors.textSecondary, fontStyle: 'italic' },
+    setsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 2 },
+    setChip: { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
+    setChipNum: { fontSize: 10, fontWeight: '800' },
+    setChipVal: { fontSize: 10, color: Colors.textPrimary, fontWeight: '600' },
+});
+
 // ── Post View Modal ──────────────────────────────────────
 const PostViewModal: React.FC<{
     post: any | null;
@@ -192,6 +365,7 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
     const [notifications, setNotifications] = useState(true);
     const [savingPrivacy, setSavingPrivacy] = useState(false);
     const [selectedPost, setSelectedPost] = useState<any | null>(null);
+    const [workoutDetailPost, setWorkoutDetailPost] = useState<any | null>(null);
     // Inline stats editing
     const [editingStats, setEditingStats] = useState(false);
     const [draftWeight, setDraftWeight] = useState('');
@@ -294,6 +468,7 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
             const asset = res.assets[0];
             if (!asset.base64) { Alert.alert('Error', 'No se pudo leer la imagen.'); return; }
             const avatarUrl = `data:image/jpeg;base64,${asset.base64}`;
+            await supabase.auth.refreshSession();
             const { error } = await supabase.auth.updateUser({ data: { avatar_url: avatarUrl } });
             if (error) { Alert.alert('Error al guardar', error.message); return; }
             setUser({ ...user, avatar_url: avatarUrl });
@@ -390,7 +565,7 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                         ) : (
                             <View style={s.grid}>
                                 {myPosts.map((p) => (
-                                    <TouchableOpacity key={p.id} style={s.gridCell} onPress={() => setSelectedPost(p)} activeOpacity={0.85}>
+                                    <TouchableOpacity key={p.id} style={s.gridCell} onPress={() => (p as any).workout_data ? setWorkoutDetailPost(p) : setSelectedPost(p)} activeOpacity={0.85}>
                                         {p.image_url
                                             ? <Image source={{ uri: p.image_url }} style={s.gridImg} />
                                             : <LinearGradient colors={[primary + '55', primary + '22']} style={s.gridPlaceholder}>
@@ -425,7 +600,7 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                                     return (
                                         <TouchableOpacity
                                             key={p.id}
-                                            onPress={() => setSelectedPost(p)}
+                                            onPress={() => setWorkoutDetailPost(p)}
                                             activeOpacity={0.75}
                                             style={[s.sessionRow, i === myWorkoutPosts.slice(0, 5).length - 1 && { borderBottomWidth: 0 }]}
                                         >
@@ -671,6 +846,12 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                 post={selectedPost}
                 visible={selectedPost !== null}
                 onClose={() => setSelectedPost(null)}
+                primary={primary}
+            />
+            <WorkoutDetailModalP
+                post={workoutDetailPost}
+                visible={workoutDetailPost !== null}
+                onClose={() => setWorkoutDetailPost(null)}
                 primary={primary}
             />
         </LinearGradient>
