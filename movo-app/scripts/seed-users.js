@@ -19,7 +19,7 @@ const { createClient } = require('@supabase/supabase-js');
 
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://uyxysrodgxxduzyekgjo.supabase.co';
-const SERVICE_ROLE_KEY = 'TU_SERVICE_ROLE_KEY_AQUI'; // ← pega aquí tu service_role key
+const SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5eHlzcm9kZ3h4ZHV6eWVrZ2pvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjAwMzUwMiwiZXhwIjoyMDg3NTc5NTAyfQ.OlobzLVA1liEG05a3tvKzFqpkofbn5pcpKFtNXGJAek'; // ← pega aquí tu service_role key
 
 // ─────────────────────────────────────────────────────────────────────────────
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
@@ -208,6 +208,35 @@ const POSTS_PER_USER = [
     ],
 ];
 
+// ─── FAKE COMMENTS pool ───────────────────────────────────────────────────────
+const COMMENT_POOL = [
+    '¡Brutal! Sigue así 💪',
+    'Eso es esfuerzo real 🔥',
+    'Inspirador, gracias por compartir 🙏',
+    'Yo también quiero llegar a ese nivel',
+    '¿Cuánto tiempo llevas entrenando así?',
+    'Me motivas un montón 🙌',
+    'La constancia tiene su recompensa 🏆',
+    'Qué buena sesión, envidia sana 😄',
+    '¡Eso es lo que se llama dedicación!',
+    '¡Grande! ¿Cuál es tu truco?',
+    'Me has animado a entrenar hoy',
+    'Top, así da gusto 🎯',
+    'Semana a semana 💪💪',
+    'Eres una máquina 🔥',
+    '¡Lo flipas! Sigue currando',
+    'Qué envidia más sana, chapó 👏',
+    'El progreso está ahí aunque no siempre lo veamos',
+    'Yo fui ayer y casi no puedo andar hoy jajaja',
+    '¡Hay que verlo para creerlo! Increíble',
+    'Hay que aprender de ti 🧠',
+    'Qué crack, de verdad 🤩',
+    'Yo llevo semanas sin ir y esto me ha dado el empujón',
+    'Con esa actitud no se puede fallar 💯',
+    'Mañana mismo me pongo las pilas 🏃',
+    'Siempre tan constante, respeto total',
+];
+
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 async function main() {
     console.log('🚀 MOVO Seed Script iniciado...\n');
@@ -295,17 +324,44 @@ async function main() {
             const hoursAgo = Math.floor(Math.random() * 24);
             const created_at = new Date(Date.now() - daysAgo * 86400000 - hoursAgo * 3600000).toISOString();
 
-            const { error } = await supabase.from('feed_posts').insert({
+            const { data: postRow, error } = await supabase.from('feed_posts').insert({
                 supabase_uid: u.supabaseId,
                 user_name: u.full_name,
                 user_avatar: u.avatar_url,
                 content: post.content,
                 workout_data: post.workout_data,
                 likes_count: Math.floor(Math.random() * 40),
-                comments_count: Math.floor(Math.random() * 10),
+                comments_count: 0,
                 created_at,
-            });
-            if (error) console.warn(`  ⚠️  Post error: ${error.message}`);
+            }).select('id').single();
+            if (error) { console.warn(`  ⚠️  Post error: ${error.message}`); continue; }
+
+            // Insert 1-4 fake comments from other already-created users
+            const numComments = Math.floor(Math.random() * 4) + 1;
+            const commentRows = [];
+            const otherUsers = createdUsers.filter((cu) => cu.supabaseId !== u.supabaseId);
+            for (let c = 0; c < numComments && otherUsers.length > 0; c++) {
+                const commenter = otherUsers[Math.floor(Math.random() * otherUsers.length)];
+                const commentText = COMMENT_POOL[Math.floor(Math.random() * COMMENT_POOL.length)];
+                const commentDaysAgo = Math.floor(Math.random() * daysAgo); // must be after the post
+                const commentDate = new Date(Date.now() - commentDaysAgo * 86400000 - Math.floor(Math.random() * 3600000)).toISOString();
+                commentRows.push({
+                    post_id: postRow.id,
+                    supabase_uid: commenter.supabaseId,
+                    user_name: commenter.full_name,
+                    user_avatar: commenter.avatar_url,
+                    content: commentText,
+                    created_at: commentDate,
+                });
+            }
+            if (commentRows.length > 0) {
+                const { error: cErr } = await supabase.from('feed_comments').insert(commentRows);
+                if (cErr) console.warn(`  ⚠️  Comments error: ${cErr.message}`);
+                else {
+                    // Update comments_count on the post
+                    await supabase.from('feed_posts').update({ comments_count: commentRows.length }).eq('id', postRow.id);
+                }
+            }
         }
         console.log(`  📝 ${userPosts.length} posts para ${u.full_name}`);
     }
@@ -336,6 +392,89 @@ async function main() {
         const { error } = await supabase.from('user_follows').upsert(followPairs, { onConflict: 'follower_id,following_id', ignoreDuplicates: true });
         if (error) console.warn(`  ⚠️  Follows error: ${error.message}`);
         else console.log(`  ✅ ${followPairs.length} relaciones de seguimiento creadas`);
+    }
+
+    // ─── Workout Sessions ────────────────────────────────────────────
+    console.log('\n🏋️  Generando sesiones de entrenamiento...\n');
+
+    const ROUTINE_IDS = {
+        gym:    ['11111111-0000-0000-0000-000000000001', '11111111-0000-0000-0000-000000000002', '11111111-0000-0000-0000-000000000003'],
+        yoga:   ['22222222-0000-0000-0000-000000000001', '22222222-0000-0000-0000-000000000002', '22222222-0000-0000-0000-000000000003'],
+        pilates:['33333333-0000-0000-0000-000000000001', '33333333-0000-0000-0000-000000000002', '33333333-0000-0000-0000-000000000003'],
+    };
+
+    // How many sessions each user gets (mirrors their activity level)
+    const SESSION_COUNTS = {
+        beginner:     [10, 16],
+        intermediate: [25, 38],
+        advanced:     [45, 62],
+    };
+
+    function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    function pick(arr) { return arr[randInt(0, arr.length - 1)]; }
+
+    function buildRoutinePool(preferredTypes) {
+        const pool = [];
+        for (const t of preferredTypes) {
+            if (ROUTINE_IDS[t]) pool.push(...ROUTINE_IDS[t]);
+        }
+        return pool.length ? pool : ROUTINE_IDS.gym;
+    }
+
+    function generateSessions(userId, profile) {
+        const [lo, hi] = SESSION_COUNTS[profile.activity_level] ?? SESSION_COUNTS.intermediate;
+        const count = randInt(lo, hi);
+        const routinePool = buildRoutinePool(profile.preferred_types);
+        const isAdvanced = profile.activity_level === 'advanced';
+        const isYogaPilates = profile.preferred_types.every(t => t !== 'gym');
+
+        const sessions = [];
+        // Spread sessions over the last 90 days (skew recent)
+        const usedDays = new Set();
+        for (let s = 0; s < count; s++) {
+            // Pick a unique day within the last 90 days
+            let daysAgo;
+            let attempts = 0;
+            do {
+                daysAgo = randInt(0, 89);
+                attempts++;
+            } while (usedDays.has(daysAgo) && attempts < 200);
+            usedDays.add(daysAgo);
+
+            const startHour = randInt(6, 20);
+            const started_at = new Date(Date.now() - daysAgo * 86400000 - (24 - startHour) * 3600000);
+
+            const durationMin = isYogaPilates ? randInt(30, 60) : (isAdvanced ? randInt(55, 90) : randInt(35, 65));
+            const caloriesPer = isAdvanced ? randInt(350, 620) : (isYogaPilates ? randInt(180, 320) : randInt(250, 420));
+            const completed_at = new Date(started_at.getTime() + durationMin * 60000);
+            const rating = randInt(3, 5);
+            const routine_id = pick(routinePool);
+
+            sessions.push({
+                user_id: userId,
+                routine_id,
+                started_at: started_at.toISOString(),
+                completed_at: completed_at.toISOString(),
+                duration_minutes: durationMin,
+                calories_burned: caloriesPer,
+                rating,
+            });
+        }
+        return sessions;
+    }
+
+    for (const u of createdUsers) {
+        const sessions = generateSessions(u.userId, u.profile);
+        // Insert in batches of 20 to avoid payload limits
+        const BATCH = 20;
+        let inserted = 0;
+        for (let i = 0; i < sessions.length; i += BATCH) {
+            const chunk = sessions.slice(i, i + BATCH);
+            const { error } = await supabase.from('workout_sessions').insert(chunk);
+            if (error) { console.warn(`  ⚠️  Sessions chunk error (${u.full_name}): ${error.message}`); break; }
+            inserted += chunk.length;
+        }
+        console.log(`  💪 ${inserted} sesiones → ${u.full_name}`);
     }
 
     console.log('\n═══════════════════════════════════════════════');
