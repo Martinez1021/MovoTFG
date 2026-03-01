@@ -110,10 +110,70 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
     },
 
     fetchStats: async () => {
-        // Always load local dates first so weeklyCount is available even offline
         const uid = await getCurrentUid();
         const localDates = uid ? await loadStoredDates(uid) : [];
         const localWeekly = buildWeeklyCount(localDates);
+
+        // ── 1. Query workout_sessions from Supabase directly ──────────────────
+        if (uid) {
+            try {
+                // Get the user's public users.id from their supabase_id
+                const { data: userData } = await supabase
+                    .from('users')
+                    .select('id')
+                    .eq('supabase_id', uid)
+                    .maybeSingle();
+
+                if (userData) {
+                    const { data: sessions } = await supabase
+                        .from('workout_sessions')
+                        .select('started_at, duration_minutes, completed_at')
+                        .eq('user_id', userData.id)
+                        .not('completed_at', 'is', null);
+
+                    if (sessions && sessions.length > 0) {
+                        const totalSessions = sessions.length;
+                        const totalMinutes = sessions.reduce((acc, s) => acc + (s.duration_minutes ?? 0), 0);
+
+                        // Build weeklyCount from session dates
+                        const sessionDates = sessions.map((s) =>
+                            new Date(s.started_at).toISOString().split('T')[0]
+                        );
+                        // Merge with local AsyncStorage dates (for today's fresh workouts)
+                        const allDates = Array.from(new Set([...sessionDates, ...localDates]));
+                        const weeklyCount = buildWeeklyCount(allDates);
+
+                        // Compute streak: how many consecutive days back from today have sessions
+                        const dateSet = new Set(allDates);
+                        let streak = 0;
+                        const check = new Date();
+                        // If today has no session yet, start from yesterday for streak
+                        const todayStr2 = check.toISOString().split('T')[0];
+                        if (!dateSet.has(todayStr2)) check.setDate(check.getDate() - 1);
+                        while (true) {
+                            const ds = check.toISOString().split('T')[0];
+                            if (!dateSet.has(ds)) break;
+                            streak++;
+                            check.setDate(check.getDate() - 1);
+                            if (streak > 365) break;
+                        }
+
+                        // Merge weeklyCount with local today tick
+                        const todayI = (new Date().getDay() + 6) % 7;
+                        if (localWeekly[todayI] > 0 && weeklyCount[todayI] === 0) {
+                            weeklyCount[todayI] = localWeekly[todayI];
+                        }
+
+                        set({ stats: { totalSessions, totalMinutes, streak, weeklyCount } });
+                        return; // done — no need to hit backend
+                    }
+                }
+            } catch (e) {
+                // Supabase error — fall through to backend / local
+            }
+        }
+
+        // ── 2. Fallback: local dates only ─────────────────────────────────────
         set((state) => ({
             stats: {
                 totalSessions: state.stats?.totalSessions ?? localDates.length,
@@ -122,9 +182,10 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
                 weeklyCount: localWeekly,
             },
         }));
+
+        // ── 3. Try backend as bonus (optional) ────────────────────────────────
         try {
             const { data } = await sessionApi.getStats();
-            // Merge: prefer backend totals but use local weeklyCount for today's tick
             const merged = [...data.weeklyCount];
             const todayI = (new Date().getDay() + 6) % 7;
             if (localWeekly[todayI] > 0 && merged[todayI] === 0) merged[todayI] = localWeekly[todayI];
@@ -133,6 +194,44 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
     },
 
     fetchSessions: async () => {
+        // Try Supabase directly first
+        try {
+            const uid = await getCurrentUid();
+            if (uid) {
+                const { data: userData } = await supabase
+                    .from('users')
+                    .select('id')
+                    .eq('supabase_id', uid)
+                    .maybeSingle();
+                if (userData) {
+                    const { data: rows } = await supabase
+                        .from('workout_sessions')
+                        .select('*, routines(title, category)')
+                        .eq('user_id', userData.id)
+                        .order('started_at', { ascending: false })
+                        .limit(50);
+                    if (rows) {
+                        // Map to WorkoutSession shape
+                        const mapped = rows.map((r: any) => ({
+                            id: r.id,
+                            userId: r.user_id,
+                            routineId: r.routine_id,
+                            routineName: r.routines?.title ?? '',
+                            routineCategory: r.routines?.category ?? '',
+                            startedAt: r.started_at,
+                            completedAt: r.completed_at,
+                            durationMinutes: r.duration_minutes,
+                            caloriesBurned: r.calories_burned,
+                            rating: r.rating,
+                            notes: r.notes,
+                        }));
+                        set({ sessions: mapped });
+                        return;
+                    }
+                }
+            }
+        } catch { /* fall through */ }
+        // Fallback: backend
         try {
             const { data } = await sessionApi.getMy();
             set({ sessions: data });
