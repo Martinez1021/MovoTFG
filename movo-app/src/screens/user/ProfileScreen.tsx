@@ -366,6 +366,9 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
     const [savingPrivacy, setSavingPrivacy] = useState(false);
     const [selectedPost, setSelectedPost] = useState<any | null>(null);
     const [workoutDetailPost, setWorkoutDetailPost] = useState<any | null>(null);
+    // Follow requests
+    const [followRequests, setFollowRequests] = useState<{ id: string; requester_id: string; full_name: string; avatar_url?: string }[]>([]);
+    const [processingReq, setProcessingReq] = useState<Record<string, boolean>>({});
     // Inline stats editing
     const [editingStats, setEditingStats] = useState(false);
     const [draftWeight, setDraftWeight] = useState('');
@@ -396,8 +399,55 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
             .maybeSingle();
         setFollowers(fwrs ?? 0);
         setFollowing(fwing ?? 0);
-        if (up?.is_public !== undefined) setIsPublic(up.is_public);
+        const pub = up?.is_public !== false;
+        if (up?.is_public !== undefined) setIsPublic(pub);
+
+        // Follow requests (only for private account)
+        if (!pub) {
+            const { data: reqs } = await supabase
+                .from('follow_requests')
+                .select('id, requester_id')
+                .eq('target_id', user.id)
+                .eq('status', 'pending')
+                .limit(50);
+            if (reqs?.length) {
+                const requesterIds = reqs.map((r: any) => r.requester_id);
+                const { data: reqUsers } = await supabase
+                    .from('users')
+                    .select('id, full_name, avatar_url')
+                    .in('id', requesterIds);
+                const userMap = Object.fromEntries((reqUsers ?? []).map((u: any) => [u.id, u]));
+                setFollowRequests(reqs.map((r: any) => ({
+                    id: r.id,
+                    requester_id: r.requester_id,
+                    full_name: userMap[r.requester_id]?.full_name ?? 'Usuario',
+                    avatar_url: userMap[r.requester_id]?.avatar_url,
+                })));
+            } else {
+                setFollowRequests([]);
+            }
+        }
     }, [user?.id]);
+
+    const handleFollowRequest = async (reqId: string, requesterId: string, accept: boolean) => {
+        setProcessingReq((prev) => ({ ...prev, [reqId]: true }));
+        try {
+            if (accept) {
+                // Accept: insert follow + update request status
+                await supabase.from('user_follows').insert({ follower_id: requesterId, following_id: user!.id });
+                await supabase.from('follow_requests').update({ status: 'accepted' }).eq('id', reqId);
+                setFollowers((f) => f + 1);
+            } else {
+                // Reject
+                await supabase.from('follow_requests').update({ status: 'rejected' }).eq('id', reqId);
+            }
+            setFollowRequests((prev) => prev.filter((r) => r.id !== reqId));
+        } catch (e: any) {
+            Alert.alert('Error', e?.message ?? 'No se pudo procesar la solicitud');
+        } finally {
+            setProcessingReq((prev) => ({ ...prev, [reqId]: false }));
+        }
+    };
 
     useEffect(() => {
         fetchPosts();
@@ -780,6 +830,49 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                 {/* ── TAB: AJUSTES ── */}
                 {tab === 'ajustes' && (
                     <View style={{ paddingHorizontal: Spacing.base, paddingTop: Spacing.lg }}>
+                        {/* Follow requests (private accounts) */}
+                        {!isPublic && followRequests.length > 0 && (
+                            <View style={[s.section, { borderColor: '#FF980044' }]}>
+                                <View style={s.sectionHeader}>
+                                    <Ionicons name="person-add-outline" size={18} color="#FF9800" />
+                                    <Text style={s.sectionTitle}>Solicitudes de seguimiento</Text>
+                                    <View style={{ backgroundColor: '#FF9800', borderRadius: 10, paddingHorizontal: 7, paddingVertical: 2, marginLeft: 'auto' }}>
+                                        <Text style={{ color: '#fff', fontSize: 11, fontWeight: '800' }}>{followRequests.length}</Text>
+                                    </View>
+                                </View>
+                                {followRequests.map((req) => (
+                                    <View key={req.id} style={[s.menuRow, { alignItems: 'center', paddingVertical: 10 }]}>
+                                        {req.avatar_url
+                                            ? <Image source={{ uri: req.avatar_url }} style={{ width: 38, height: 38, borderRadius: 19 }} />
+                                            : <LinearGradient colors={[primary, primary + '88']} style={{ width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' }}>
+                                                <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>{req.full_name[0]}</Text>
+                                              </LinearGradient>
+                                        }
+                                        <Text style={[s.menuText, { flex: 1 }]}>{req.full_name}</Text>
+                                        <View style={{ flexDirection: 'row', gap: 8 }}>
+                                            <TouchableOpacity
+                                                style={{ backgroundColor: primary, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}
+                                                onPress={() => handleFollowRequest(req.id, req.requester_id, true)}
+                                                disabled={processingReq[req.id]}
+                                            >
+                                                {processingReq[req.id]
+                                                    ? <ActivityIndicator size="small" color="#fff" />
+                                                    : <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>Aceptar</Text>
+                                                }
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                style={{ backgroundColor: Colors.surface, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: Colors.border }}
+                                                onPress={() => handleFollowRequest(req.id, req.requester_id, false)}
+                                                disabled={processingReq[req.id]}
+                                            >
+                                                <Text style={{ color: Colors.textSecondary, fontSize: 12, fontWeight: '700' }}>Rechazar</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                ))}
+                            </View>
+                        )}
+
                         {/* Privacy */}
                         <View style={[s.section, { borderColor: primary + '33' }]}>
                             <View style={s.sectionHeader}>

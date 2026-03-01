@@ -34,6 +34,7 @@ import { TrainerProfileScreen } from '../screens/trainer/TrainerProfileScreen';
 import { RoutineDetailScreen } from '../screens/shared/RoutineDetailScreen';
 import { ActiveWorkoutScreen } from '../screens/shared/ActiveWorkoutScreen';
 import { WorkoutSummaryScreen } from '../screens/shared/WorkoutSummaryScreen';
+import { UserProfileScreen } from '../screens/user/UserProfileScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -103,6 +104,7 @@ export const AppNavigator: React.FC = () => {
                         <Stack.Screen name="ClientDetail" component={ClientDetailScreen} />
                         <Stack.Screen name="EditProfile" component={EditProfileScreen} />
                         <Stack.Screen name="Settings" component={SettingsScreen} />
+                        <Stack.Screen name="UserProfile" component={UserProfileScreen} />
                     </>
                 )}
             </Stack.Navigator>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
     View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity,
     Image, TextInput, Modal, KeyboardAvoidingView, Platform,
@@ -7,10 +7,24 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { useNavigation } from '@react-navigation/native';
 import { useFeedStore, Post, Comment, WorkoutData } from '../../store/feedStore';
 import { useAuthStore } from '../../store/authStore';
 import { useThemeStore } from '../../store/themeStore';
+import { supabase } from '../../services/supabase';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../utils/constants';
+
+// ── User search result type ──────────────────────────────
+interface UserResult {
+    id: string;
+    supabase_id: string;
+    full_name: string;
+    email: string;
+    avatar_url?: string;
+    is_public: boolean;
+    follower_count: number;
+    follow_state: 'none' | 'following' | 'pending';
+}
 
 // ── Time ago helper ──────────────────────────────────────
 const timeAgo = (iso: string) => {
@@ -288,10 +302,15 @@ const wd = StyleSheet.create({
 });
 
 // ── Post card ────────────────────────────────────────────
-const PostCard: React.FC<{ post: Post; primary: string; onLike: () => void; onOpenComments: () => void; onOpenWorkout: () => void }> = ({ post, primary, onLike, onOpenComments, onOpenWorkout }) => (
+const PostCard: React.FC<{ post: Post; primary: string; onLike: () => void; onOpenComments: () => void; onOpenWorkout: () => void }> = ({ post, primary, onLike, onOpenComments, onOpenWorkout }) => {
+    const navigation = useNavigation<any>();
+    const goToProfile = () => {
+        if (post.supabase_uid) navigation.navigate('UserProfile', { supabaseUid: post.supabase_uid });
+    };
+    return (
     <View style={pc.card}>
-        {/* User header */}
-        <View style={pc.header}>
+        {/* User header — tappable to view profile */}
+        <TouchableOpacity style={pc.header} onPress={goToProfile} activeOpacity={0.75}>
             {post.user_avatar
                 ? <Image source={{ uri: post.user_avatar }} style={pc.avatar} />
                 : <LinearGradient colors={[primary, primary + 'AA']} style={pc.avatarFallback}>
@@ -308,7 +327,7 @@ const PostCard: React.FC<{ post: Post; primary: string; onLike: () => void; onOp
                     <Text style={[pc.workoutBadgeText, { color: primary }]}>Entreno</Text>
                 </View>
             )}
-        </View>
+        </TouchableOpacity>
 
         {/* Content — tappable para abrir comentarios */}
         {post.content
@@ -351,7 +370,8 @@ const PostCard: React.FC<{ post: Post; primary: string; onLike: () => void; onOp
             </TouchableOpacity>
         </View>
     </View>
-);
+    );
+};
 
 const pc = StyleSheet.create({
     card: { backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, marginHorizontal: Spacing.base, marginBottom: Spacing.md, borderWidth: 1, borderColor: Colors.border, overflow: 'hidden' },
@@ -654,13 +674,19 @@ const cm = StyleSheet.create({
 // ── Main screen ──────────────────────────────────────────
 export const FeedScreen: React.FC = () => {
     const { posts, isLoading, fetchPosts, toggleLike } = useFeedStore();
+    const { user: me } = useAuthStore();
     const { primary } = useThemeStore();
+    const navigation = useNavigation<any>();
     const [refreshing, setRefreshing] = useState(false);
     const [showCreate, setShowCreate] = useState(false);
     const [selectedPost, setSelectedPost] = useState<Post | null>(null);
     const [workoutDetailPost, setWorkoutDetailPost] = useState<Post | null>(null);
     const [searchVisible, setSearchVisible] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [searchTab, setSearchTab] = useState<'posts' | 'personas'>('posts');
+    const [userResults, setUserResults] = useState<UserResult[]>([]);
+    const [searchingUsers, setSearchingUsers] = useState(false);
+    const [followLoading, setFollowLoading] = useState<Record<string, boolean>>({});
     const searchAnim = useRef(new Animated.Value(0)).current;
     const searchInputRef = useRef<TextInput>(null);
 
@@ -669,16 +695,107 @@ export const FeedScreen: React.FC = () => {
 
     const toggleSearch = () => {
         if (searchVisible) {
-            // close
             Animated.timing(searchAnim, { toValue: 0, duration: 200, useNativeDriver: false }).start(() => {
                 setSearchVisible(false);
                 setSearchQuery('');
+                setUserResults([]);
+                setSearchTab('posts');
             });
         } else {
             setSearchVisible(true);
             Animated.timing(searchAnim, { toValue: 1, duration: 220, useNativeDriver: false }).start(() => {
                 searchInputRef.current?.focus();
             });
+        }
+    };
+
+    // ── People search ────────────────────────────────────────────────────────
+    const searchUsers = useCallback(async (q: string) => {
+        if (!q.trim() || q.trim().length < 2) { setUserResults([]); return; }
+        setSearchingUsers(true);
+        try {
+            const { data: users } = await supabase
+                .from('users')
+                .select('id, supabase_id, full_name, email, avatar_url')
+                .ilike('full_name', `%${q.trim()}%`)
+                .neq('id', me?.id ?? '')
+                .limit(20);
+
+            if (!users?.length) { setUserResults([]); return; }
+
+            // Batch privacy + follower counts
+            const ids = users.map((u) => u.id);
+            const [{ data: profiles }, { data: myFollows }, { data: pendingReqs }] = await Promise.all([
+                supabase.from('user_profiles').select('user_id, is_public').in('user_id', ids),
+                me?.id
+                    ? supabase.from('user_follows').select('following_id').eq('follower_id', me.id).in('following_id', ids)
+                    : Promise.resolve({ data: [] }),
+                me?.id
+                    ? supabase.from('follow_requests').select('target_id').eq('requester_id', me.id).eq('status', 'pending').in('target_id', ids)
+                    : Promise.resolve({ data: [] }),
+            ]);
+
+            const profileMap = Object.fromEntries((profiles ?? []).map((p) => [p.user_id, p]));
+            const followingSet = new Set((myFollows ?? []).map((f: any) => f.following_id));
+            const pendingSet = new Set((pendingReqs ?? []).map((r: any) => r.target_id));
+
+            // Follower counts
+            const countResults = await Promise.all(
+                ids.map((id) =>
+                    supabase.from('user_follows').select('*', { count: 'exact', head: true }).eq('following_id', id)
+                )
+            );
+
+            const results: UserResult[] = users.map((u, i) => ({
+                ...u,
+                is_public: profileMap[u.id]?.is_public !== false,
+                follower_count: countResults[i].count ?? 0,
+                follow_state: followingSet.has(u.id) ? 'following' : pendingSet.has(u.id) ? 'pending' : 'none',
+            }));
+
+            setUserResults(results);
+        } catch (e) {
+            console.warn('User search error', e);
+        } finally {
+            setSearchingUsers(false);
+        }
+    }, [me?.id]);
+
+    // Debounce people search
+    useEffect(() => {
+        if (searchTab !== 'personas') return;
+        const t = setTimeout(() => searchUsers(searchQuery), 400);
+        return () => clearTimeout(t);
+    }, [searchQuery, searchTab, searchUsers]);
+
+    // ── Follow a user from search results ───────────────────────────────────
+    const handleFollowFromSearch = async (u: UserResult) => {
+        if (!me?.id || followLoading[u.id]) return;
+        setFollowLoading((prev) => ({ ...prev, [u.id]: true }));
+        try {
+            const update = (state: UserResult['follow_state']) =>
+                setUserResults((prev) => prev.map((x) => x.id === u.id ? { ...x, follow_state: state } : x));
+
+            if (u.follow_state === 'following') {
+                await supabase.from('user_follows').delete().eq('follower_id', me.id).eq('following_id', u.id);
+                update('none');
+                setUserResults((prev) => prev.map((x) => x.id === u.id ? { ...x, follower_count: x.follower_count - 1 } : x));
+            } else if (u.follow_state === 'pending') {
+                await supabase.from('follow_requests').delete().eq('requester_id', me.id).eq('target_id', u.id);
+                update('none');
+            } else if (u.is_public) {
+                await supabase.from('user_follows').insert({ follower_id: me.id, following_id: u.id });
+                update('following');
+                setUserResults((prev) => prev.map((x) => x.id === u.id ? { ...x, follower_count: x.follower_count + 1 } : x));
+            } else {
+                await supabase.from('follow_requests').insert({ requester_id: me.id, target_id: u.id, status: 'pending' });
+                update('pending');
+                Alert.alert('Solicitud enviada', `${u.full_name} recibirá tu solicitud.`);
+            }
+        } catch (e: any) {
+            Alert.alert('Error', e?.message ?? 'Algo salió mal');
+        } finally {
+            setFollowLoading((prev) => ({ ...prev, [u.id]: false }));
         }
     };
 
@@ -727,14 +844,89 @@ export const FeedScreen: React.FC = () => {
                         </TouchableOpacity>
                     )}
                 </View>
-                {searchQuery.trim().length > 0 && (
-                    <Text style={[s.searchResults, { color: primary }]}>
-                        {filteredPosts.length} resultado{filteredPosts.length !== 1 ? 's' : ''}
-                    </Text>
-                )}
             </Animated.View>
 
-            {isLoading && posts.length === 0
+            {/* Search mode tabs */}
+            {searchVisible && searchQuery.trim().length > 0 && (
+                <View style={s.searchTabs}>
+                    {(['posts', 'personas'] as const).map((tab) => (
+                        <TouchableOpacity
+                            key={tab}
+                            style={[s.searchTabBtn, searchTab === tab && { borderBottomColor: primary, borderBottomWidth: 2 }]}
+                            onPress={() => {
+                                setSearchTab(tab);
+                                if (tab === 'personas') searchUsers(searchQuery);
+                            }}
+                        >
+                            <Text style={[s.searchTabLabel, { color: searchTab === tab ? primary : Colors.textSecondary }]}>
+                                {tab === 'posts' ? '📝 Contenido' : '👤 Personas'}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+            )}
+
+            {/* People results */}
+            {searchVisible && searchQuery.trim().length > 0 && searchTab === 'personas' && (
+                <View style={{ flex: 1 }}>
+                    {searchingUsers ? (
+                        <ActivityIndicator color={primary} size="large" style={{ marginTop: 40 }} />
+                    ) : userResults.length === 0 ? (
+                        <View style={s.empty}>
+                            <Ionicons name="person-outline" size={48} color={Colors.textSecondary} />
+                            <Text style={s.emptyTitle}>Sin resultados</Text>
+                            <Text style={s.emptySub}>No hay personas con ese nombre</Text>
+                        </View>
+                    ) : (
+                        <FlatList
+                            data={userResults}
+                            keyExtractor={(item) => item.id}
+                            contentContainerStyle={{ paddingTop: 8, paddingBottom: 100 }}
+                            renderItem={({ item: u }) => {
+                                const isFollowing = u.follow_state === 'following';
+                                const isPending = u.follow_state === 'pending';
+                                const btnLabel = isFollowing ? 'Siguiendo' : isPending ? 'Solicitado' : u.is_public ? 'Seguir' : 'Solicitar';
+                                const btnBg = isFollowing || isPending ? 'transparent' : primary;
+                                const btnBorder = isFollowing || isPending ? Colors.border : primary;
+                                const btnColor = isFollowing || isPending ? Colors.textSecondary : '#fff';
+                                return (
+                                    <TouchableOpacity
+                                        style={s.userRow}
+                                        onPress={() => navigation.navigate('UserProfile', { userId: u.id })}
+                                        activeOpacity={0.8}
+                                    >
+                                        {u.avatar_url
+                                            ? <Image source={{ uri: u.avatar_url }} style={[s.userAvatar, { borderColor: primary + '66' }]} />
+                                            : <LinearGradient colors={[primary, primary + '88']} style={s.userAvatarGrad}>
+                                                <Text style={s.userAvatarLetter}>{u.full_name?.[0] ?? '?'}</Text>
+                                            </LinearGradient>
+                                        }
+                                        <View style={{ flex: 1 }}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                                                <Text style={s.userName}>{u.full_name}</Text>
+                                                {!u.is_public && <Ionicons name="lock-closed" size={11} color="#FF9800" />}
+                                            </View>
+                                            <Text style={s.userMeta}>{u.follower_count} seguidores</Text>
+                                        </View>
+                                        <TouchableOpacity
+                                            style={[s.followBtn, { backgroundColor: btnBg, borderColor: btnBorder }]}
+                                            onPress={() => handleFollowFromSearch(u)}
+                                            disabled={!!followLoading[u.id]}
+                                        >
+                                            {followLoading[u.id]
+                                                ? <ActivityIndicator size="small" color={btnColor} />
+                                                : <Text style={[s.followBtnText, { color: btnColor }]}>{btnLabel}</Text>
+                                            }
+                                        </TouchableOpacity>
+                                    </TouchableOpacity>
+                                );
+                            }}
+                        />
+                    )}
+                </View>
+            )}
+
+            {(!searchVisible || searchTab === 'posts') && (isLoading && posts.length === 0
                 ? <View style={s.center}><ActivityIndicator color={primary} size="large" /></View>
                 : (
                     <FlatList
@@ -772,8 +964,7 @@ export const FeedScreen: React.FC = () => {
                         }
                     />
                 )
-            }
-
+            )}
             <CreatePostModal visible={showCreate} onClose={() => setShowCreate(false)} primary={primary} />
             <CommentsModal
                 post={selectedPost}
@@ -802,6 +993,19 @@ const s = StyleSheet.create({
     searchInner: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, backgroundColor: Colors.surface, borderRadius: BorderRadius.full, borderWidth: 1, paddingHorizontal: Spacing.md, height: 40 },
     searchInput: { flex: 1, color: Colors.textPrimary, fontSize: FontSizes.sm, paddingVertical: 0 },
     searchResults: { fontSize: FontSizes.xs, fontWeight: '600', marginTop: 4, marginLeft: Spacing.md },
+    // Search tabs
+    searchTabs: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: Colors.border, marginTop: 8 },
+    searchTabBtn: { flex: 1, alignItems: 'center', paddingVertical: 10, borderBottomWidth: 2, borderBottomColor: 'transparent' },
+    searchTabLabel: { fontSize: FontSizes.sm, fontWeight: '700' },
+    // User search results
+    userRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingHorizontal: Spacing.base, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: Colors.border + '55' },
+    userAvatar: { width: 48, height: 48, borderRadius: 24, borderWidth: 2 },
+    userAvatarGrad: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
+    userAvatarLetter: { color: '#fff', fontWeight: '900', fontSize: 18 },
+    userName: { fontSize: FontSizes.base, fontWeight: '700', color: Colors.textPrimary },
+    userMeta: { fontSize: FontSizes.xs, color: Colors.textSecondary, marginTop: 2 },
+    followBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: BorderRadius.full, borderWidth: 1 },
+    followBtnText: { fontSize: FontSizes.sm, fontWeight: '700' },
     center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
     empty: { alignItems: 'center', gap: Spacing.md, paddingTop: 80, paddingHorizontal: 40 },
     emptyTitle: { fontSize: FontSizes.lg, fontWeight: '800', color: Colors.textPrimary, textAlign: 'center' },
