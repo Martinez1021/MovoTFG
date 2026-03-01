@@ -2,8 +2,16 @@ import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { routineApi, exerciseApi, sessionApi } from '../services/api';
 import { Routine, UserRoutine, WorkoutSession } from '../types';
+import { supabase } from '../services/supabase';
 
-const WORKOUT_DATES_KEY = 'movo_workout_dates'; // string[] of 'YYYY-MM-DD'
+// Key is per-user: 'movo_workout_dates_<supabase_uid>'
+const workoutDatesKey = (uid: string) => `movo_workout_dates_${uid}`;
+
+// Helper to get the current authenticated user's UID
+async function getCurrentUid(): Promise<string | null> {
+    const { data } = await supabase.auth.getSession();
+    return data.session?.user?.id ?? null;
+}
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -38,19 +46,19 @@ function buildWeeklyCount(dates: string[]): number[] {
     return counts;
 }
 
-async function loadStoredDates(): Promise<string[]> {
+async function loadStoredDates(uid: string): Promise<string[]> {
     try {
-        const raw = await AsyncStorage.getItem(WORKOUT_DATES_KEY);
+        const raw = await AsyncStorage.getItem(workoutDatesKey(uid));
         return raw ? (JSON.parse(raw) as string[]) : [];
     } catch { return []; }
 }
 
-async function saveDate(dateStr: string): Promise<void> {
+async function saveDate(dateStr: string, uid: string): Promise<void> {
     try {
-        const existing = await loadStoredDates();
+        const existing = await loadStoredDates(uid);
         // keep last 365 days, de-duplicate
         const updated = Array.from(new Set([...existing, dateStr])).slice(-365);
-        await AsyncStorage.setItem(WORKOUT_DATES_KEY, JSON.stringify(updated));
+        await AsyncStorage.setItem(workoutDatesKey(uid), JSON.stringify(updated));
     } catch { /* ignore */ }
 }
 
@@ -103,7 +111,8 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
 
     fetchStats: async () => {
         // Always load local dates first so weeklyCount is available even offline
-        const localDates = await loadStoredDates();
+        const uid = await getCurrentUid();
+        const localDates = uid ? await loadStoredDates(uid) : [];
         const localWeekly = buildWeeklyCount(localDates);
         set((state) => ({
             stats: {
@@ -146,8 +155,10 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
         const durationMin = Math.round(durationSeconds / 60);
         const today = todayStr();
 
-        // Persist the date immediately
-        saveDate(today);
+        // Persist the date per-user
+        getCurrentUid().then((uid) => {
+            if (uid) saveDate(today, uid);
+        });
 
         set((state) => {
             const prev = state.stats ?? {

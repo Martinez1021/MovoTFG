@@ -167,5 +167,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     logout: async () => {
         await supabase.auth.signOut();
         set({ user: null, profile: null, isAuthenticated: false });
+        // Reset per-user in-memory stats so next login loads fresh data
+        const { useRoutineStore } = await import('./routineStore');
+        useRoutineStore.setState({ stats: null, sessions: [], assignedRoutines: [] });
     },
 }));
