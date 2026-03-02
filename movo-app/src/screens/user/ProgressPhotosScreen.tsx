@@ -74,7 +74,7 @@ export const ProgressPhotosScreen: React.FC<{ navigation: any }> = ({ navigation
         } else {
             const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
             if (status !== 'granted') { Alert.alert('Permiso denegado', 'Necesitamos acceso a tus fotos.'); return; }
-            const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [3, 4], quality: 0.75 });
+            const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaType.Images, allowsEditing: true, aspect: [3, 4], quality: 0.75 });
             if (!result.canceled && result.assets[0]) setPreview(result.assets[0].uri);
         }
     };

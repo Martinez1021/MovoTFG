@@ -20,7 +20,7 @@ export const TrainerProfileScreen: React.FC<{ navigation: any }> = ({ navigation
 
     const pickAvatar = async () => {
         const res = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            mediaTypes: ImagePicker.MediaType.Images,
             allowsEditing: true,
             aspect: [1, 1],
             quality: 0.7,
