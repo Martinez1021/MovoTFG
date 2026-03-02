@@ -38,9 +38,6 @@ import { UserProfileScreen } from '../screens/user/UserProfileScreen';
 import { DirectMessagesScreen } from '../screens/user/DirectMessagesScreen';
 import { ChatScreen } from '../screens/user/ChatScreen';
 import { FollowListScreen } from '../screens/user/FollowListScreen';
-import { BodyWeightScreen } from '../screens/user/BodyWeightScreen';
-import { PRsScreen } from '../screens/user/PRsScreen';
-import { ProgressPhotosScreen } from '../screens/user/ProgressPhotosScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -114,9 +111,6 @@ export const AppNavigator: React.FC = () => {
                         <Stack.Screen name="DirectMessages" component={DirectMessagesScreen} />
                         <Stack.Screen name="Chat" component={ChatScreen} />
                         <Stack.Screen name="FollowList" component={FollowListScreen} />
-                        <Stack.Screen name="BodyWeight" component={BodyWeightScreen} />
-                        <Stack.Screen name="PRs" component={PRsScreen} />
-                        <Stack.Screen name="ProgressPhotos" component={ProgressPhotosScreen} />
                     </>
                 )}
             </Stack.Navigator>

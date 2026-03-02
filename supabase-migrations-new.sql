@@ -130,3 +130,59 @@ DROP POLICY IF EXISTS "pp_delete" ON progress_photos;
 CREATE POLICY "pp_select" ON progress_photos FOR SELECT USING (user_id IN (SELECT id FROM users WHERE supabase_id = auth.uid()::text));
 CREATE POLICY "pp_insert" ON progress_photos FOR INSERT WITH CHECK (user_id IN (SELECT id FROM users WHERE supabase_id = auth.uid()::text));
 CREATE POLICY "pp_delete" ON progress_photos FOR DELETE USING (user_id IN (SELECT id FROM users WHERE supabase_id = auth.uid()::text));
+
+-- ─── SEED: DEMO WORKOUT SESSIONS FOR ALL USERS ────────────────
+-- Ejecuta esto en Supabase SQL Editor para generar sesiones de demo.
+-- Genera ~30 sesiones por usuario repartidas en los últimos 60 días.
+DO $$
+DECLARE
+  u           RECORD;
+  rid         UUID;
+  routine_ids UUID[];
+  day_offset  INT;
+  dur         INT;
+  started     TIMESTAMPTZ;
+  notes_pool  TEXT[] := ARRAY[
+    'Gran sesión de hoy',
+    'Me sentí muy fuerte',
+    'Un poco cansado pero bien',
+    'Nuevo récord personal',
+    'Entrenamiento sólido',
+    'Buena sesión, a por más',
+    NULL, NULL, NULL
+  ];
+BEGIN
+  -- Collect all available routine IDs
+  SELECT ARRAY(SELECT id FROM routines) INTO routine_ids;
+
+  FOR u IN SELECT id FROM users LOOP
+    FOR i IN 1..30 LOOP
+      -- Random day within last 60 days
+      day_offset := (random() * 59)::INT;
+      started    := (NOW() - (day_offset || ' days')::INTERVAL)
+                    - ((random() * 16 + 6) || ' hours')::INTERVAL;
+      dur        := 30 + (random() * 65)::INT;  -- 30–95 min
+
+      -- Pick a random routine (NULL if none exist)
+      IF array_length(routine_ids, 1) IS NOT NULL THEN
+        rid := routine_ids[1 + (random() * (array_length(routine_ids, 1) - 1))::INT];
+      ELSE
+        rid := NULL;
+      END IF;
+
+      INSERT INTO workout_sessions (
+        user_id, routine_id, started_at, ended_at,
+        duration_minutes, rating, notes
+      ) VALUES (
+        u.id,
+        rid,
+        started,
+        started + (dur || ' minutes')::INTERVAL,
+        dur,
+        3 + (random() * 2)::INT,
+        notes_pool[1 + (random() * (array_length(notes_pool, 1) - 1))::INT]
+      );
+    END LOOP;
+  END LOOP;
+END;
+$$;

@@ -203,24 +203,6 @@ export const ProgressScreen: React.FC<{ navigation?: any }> = ({ navigation }) =
                 </TouchableOpacity>
             </View>
 
-            {/* Quick access row */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingHorizontal: Spacing.base, marginBottom: Spacing.base }} contentContainerStyle={{ gap: 10 }}>
-                {[
-                    { emoji: '⚖️', label: 'Peso', screen: 'BodyWeight' },
-                    { emoji: '🏆', label: 'Récords', screen: 'PRs' },
-                    { emoji: '📸', label: 'Fotos', screen: 'ProgressPhotos' },
-                ].map((item) => (
-                    <TouchableOpacity
-                        key={item.screen}
-                        onPress={() => navigation?.navigate(item.screen)}
-                        style={[s.quickCard, { borderColor: primary + '55' }]}
-                    >
-                        <Text style={{ fontSize: 22 }}>{item.emoji}</Text>
-                        <Text style={[s.quickLabel, { color: primary }]}>{item.label}</Text>
-                    </TouchableOpacity>
-                ))}
-            </ScrollView>
-
             {/* Tab pills */}
             <View style={s.tabs}>
                 {SLIDES.map((label, i) => (
@@ -307,6 +289,4 @@ const s = StyleSheet.create({
     tabText: { fontSize: FontSizes.sm, color: Colors.textSecondary },
     dots: { flexDirection: 'row', justifyContent: 'center', gap: Spacing.sm, paddingBottom: 30, paddingTop: Spacing.sm },
     dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.border },
-    quickCard: { width: 90, backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, borderWidth: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 14, gap: 6 },
-    quickLabel: { fontSize: FontSizes.xs, fontWeight: '700' },
 });
