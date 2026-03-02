@@ -57,7 +57,13 @@ export const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation })
             await supabase.auth.refreshSession();
             const { error } = await supabase.auth.updateUser({ data: { avatar_url: avatarUrl } });
             if (error) Alert.alert('Error', 'No se pudo guardar la foto.');
-            else setUser({ ...user, avatar_url: avatarUrl });
+            else {
+                setUser({ ...user, avatar_url: avatarUrl });
+                // Propagate to users table and all cached posts/comments
+                await supabase.from('users').update({ avatar_url: avatarUrl }).eq('supabase_id', user.id);
+                await supabase.from('feed_posts').update({ user_avatar: avatarUrl }).eq('supabase_uid', user.id);
+                await supabase.from('feed_comments').update({ user_avatar: avatarUrl }).eq('supabase_uid', user.id);
+            }
         }
     };
 

@@ -611,9 +611,12 @@ const CreatePostModal: React.FC<{ visible: boolean; onClose: () => void; primary
 
                     {/* User */}
                     <View style={cm.userRow}>
-                        <LinearGradient colors={[primary, primary + 'AA']} style={cm.avatar}>
-                            <Text style={cm.avatarLetter}>{user?.full_name?.[0]?.toUpperCase() ?? 'M'}</Text>
-                        </LinearGradient>
+                        {user?.avatar_url
+                            ? <Image source={{ uri: user.avatar_url }} style={cm.avatar} />
+                            : <LinearGradient colors={[primary, primary + 'AA']} style={cm.avatar}>
+                                <Text style={cm.avatarLetter}>{user?.full_name?.[0]?.toUpperCase() ?? 'M'}</Text>
+                              </LinearGradient>
+                        }
                         <Text style={cm.userName}>{user?.full_name}</Text>
                     </View>
 

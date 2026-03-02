@@ -565,9 +565,10 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
             await supabase.auth.refreshSession();
             const { error } = await supabase.auth.updateUser({ data: { avatar_url: avatarUrl } });
             if (error) { Alert.alert('Error al guardar', error.message); return; }
-            // Propagate to users table and feed_posts
+            // Propagate to users table, feed_posts, and feed_comments
             await supabase.from('users').update({ avatar_url: avatarUrl }).eq('supabase_id', user.id);
             await supabase.from('feed_posts').update({ user_avatar: avatarUrl }).eq('supabase_uid', user.id);
+            await supabase.from('feed_comments').update({ user_avatar: avatarUrl }).eq('supabase_uid', user.id);
             setUser({ ...user, avatar_url: avatarUrl });
             Alert.alert('✅ Foto actualizada');
         } catch (e: any) {

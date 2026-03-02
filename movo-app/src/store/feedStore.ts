@@ -93,11 +93,22 @@ export const useFeedStore = create<FeedState>((set, get) => ({
                 myLikes = (likesData ?? []).map((l: any) => l.post_id);
             }
 
+            // Hydrate with live avatars from users table (overrides stale snapshots)
+            const uids = [...new Set((data ?? []).map((p: any) => p.supabase_uid).filter(Boolean))];
+            let avatarMap: Record<string, string | null> = {};
+            if (uids.length > 0) {
+                const { data: usersData } = await supabase
+                    .from('users')
+                    .select('supabase_id, avatar_url')
+                    .in('supabase_id', uids);
+                (usersData ?? []).forEach((u: any) => { avatarMap[u.supabase_id] = u.avatar_url ?? null; });
+            }
+
             const posts: Post[] = (data ?? []).map((p: any) => ({
                 id: p.id,
                 supabase_uid: p.supabase_uid,
                 user_name: p.user_name ?? 'Usuario',
-                user_avatar: p.user_avatar,
+                user_avatar: avatarMap[p.supabase_uid] ?? p.user_avatar,
                 content: p.content ?? '',
                 image_url: p.image_url,
                 workout_data: p.workout_data ?? undefined,
@@ -215,8 +226,24 @@ export const useFeedStore = create<FeedState>((set, get) => ({
                 .eq('post_id', postId)
                 .order('created_at', { ascending: true });
             if (error) { console.warn('[FeedStore] fetchComments:', error.message); return; }
+
+            // Hydrate with live avatars from users table
+            const commentUids = [...new Set((data ?? []).map((c: any) => c.supabase_uid).filter(Boolean))];
+            let commentAvatarMap: Record<string, string | null> = {};
+            if (commentUids.length > 0) {
+                const { data: usersData } = await supabase
+                    .from('users')
+                    .select('supabase_id, avatar_url')
+                    .in('supabase_id', commentUids);
+                (usersData ?? []).forEach((u: any) => { commentAvatarMap[u.supabase_id] = u.avatar_url ?? null; });
+            }
+            const hydratedComments = (data ?? []).map((c: any) => ({
+                ...c,
+                user_avatar: commentAvatarMap[c.supabase_uid] ?? c.user_avatar,
+            }));
+
             const all = get().comments;
-            set({ comments: { ...all, [postId]: data ?? [] } });
+            set({ comments: { ...all, [postId]: hydratedComments } });
         } catch (e: any) {
             console.warn('[FeedStore] fetchComments unexpected:', e?.message);
         } finally {
