@@ -258,7 +258,7 @@ async function main() {
         if (authErr) {
             if (authErr.message.includes('already been registered') || authErr.message.includes('already exists')) {
                 console.log(`  ⚠️  Ya existe en Auth. Buscando en users...`);
-                // Try to find existing
+                // Try to find existing public user row
                 const { data: existing } = await supabase
                     .from('users')
                     .select('id, supabase_id')
@@ -266,9 +266,28 @@ async function main() {
                     .maybeSingle();
                 if (existing) {
                     createdUsers.push({ ...u, userId: existing.id, supabaseId: existing.supabase_id });
+                    console.log(`  ✅ Recuperado: ${u.full_name}`);
                     continue;
                 }
-                console.log(`  ❌ No encontrado en users tampoco. Saltando.`);
+                // Not in public users — fetch Auth user to get their UUID and create the row
+                console.log(`  🔧 No está en users. Recuperando de Auth...`);
+                const { data: { users: authUsers } } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+                const authUser = authUsers.find((au) => au.email === u.email);
+                if (!authUser) {
+                    console.log(`  ❌ No encontrado en Auth tampoco. Saltando.`);
+                    continue;
+                }
+                const supabaseId = authUser.id;
+                const { data: publicUser, error: puErr } = await supabase
+                    .from('users')
+                    .insert({ email: u.email, full_name: u.full_name, avatar_url: u.avatar_url, role: u.role, supabase_id: supabaseId })
+                    .select('id').single();
+                if (puErr) { console.error(`  ❌ Error creando users row: ${puErr.message}`); continue; }
+                const userId = publicUser.id;
+                const { error: upErr } = await supabase.from('user_profiles').insert({ user_id: userId, ...u.profile, is_public: u.is_public });
+                if (upErr) console.warn(`  ⚠️  user_profiles: ${upErr.message}`);
+                createdUsers.push({ ...u, userId, supabaseId });
+                console.log(`  ✅ Creado (recuperando Auth): ${u.full_name}`);
                 continue;
             }
             console.error(`  ❌ Error Auth: ${authErr.message}`);

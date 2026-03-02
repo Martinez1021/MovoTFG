@@ -216,6 +216,7 @@ export const UserProfileScreen: React.FC<{ route: any; navigation: any }> = ({ r
 
     const [profileUser, setProfileUser] = useState<UserData | null>(null);
     const [userId, setUserId] = useState<string | null>(userIdParam ?? null);
+    const [meInternalId, setMeInternalId] = useState<string | null>(null);
     const [isPublic, setIsPublic] = useState(true);
     const [followers, setFollowers] = useState(0);
     const [following, setFollowing] = useState(0);
@@ -237,6 +238,14 @@ export const UserProfileScreen: React.FC<{ route: any; navigation: any }> = ({ r
                 setUserId(resolvedId);
             }
             if (!resolvedId) return;
+
+            // Resolve current user's internal ID
+            let myId: string | null = null;
+            if (me?.id) {
+                const { data: myRow } = await supabase.from('users').select('id').eq('supabase_id', me.id).maybeSingle();
+                myId = myRow?.id ?? null;
+                setMeInternalId(myId);
+            }
 
             // Load user data
             const { data: u } = await supabase
@@ -265,11 +274,11 @@ export const UserProfileScreen: React.FC<{ route: any; navigation: any }> = ({ r
             setFollowing(fwing ?? 0);
 
             // My follow state
-            if (me?.id) {
+            if (myId) {
                 const { data: follows } = await supabase
                     .from('user_follows')
                     .select('follower_id')
-                    .eq('follower_id', me.id)
+                    .eq('follower_id', myId)
                     .eq('following_id', resolvedId)
                     .maybeSingle();
                 if (follows) {
@@ -279,7 +288,7 @@ export const UserProfileScreen: React.FC<{ route: any; navigation: any }> = ({ r
                     const { data: req } = await supabase
                         .from('follow_requests')
                         .select('id')
-                        .eq('requester_id', me.id)
+                        .eq('requester_id', myId)
                         .eq('target_id', resolvedId)
                         .eq('status', 'pending')
                         .maybeSingle();
@@ -306,22 +315,22 @@ export const UserProfileScreen: React.FC<{ route: any; navigation: any }> = ({ r
     useEffect(() => { loadProfile(); }, [loadProfile]);
 
     const handleFollow = async () => {
-        if (!me?.id || followLoading || !userId) return;
+        if (!meInternalId || followLoading || !userId) return;
         setFollowLoading(true);
         try {
             if (followState === 'following') {
                 // Unfollow
-                await supabase.from('user_follows').delete().eq('follower_id', me.id).eq('following_id', userId);
+                await supabase.from('user_follows').delete().eq('follower_id', meInternalId).eq('following_id', userId);
                 setFollowers((f) => Math.max(0, f - 1));
                 setFollowState('none');
             } else if (followState === 'pending') {
                 // Cancel request
-                await supabase.from('follow_requests').delete().eq('requester_id', me.id).eq('target_id', userId);
+                await supabase.from('follow_requests').delete().eq('requester_id', meInternalId).eq('target_id', userId);
                 setFollowState('none');
             } else {
                 if (isPublic) {
                     // Direct follow
-                    await supabase.from('user_follows').insert({ follower_id: me.id, following_id: userId });
+                    await supabase.from('user_follows').insert({ follower_id: meInternalId, following_id: userId });
                     setFollowers((f) => f + 1);
                     setFollowState('following');
                     // Load posts now
@@ -336,7 +345,7 @@ export const UserProfileScreen: React.FC<{ route: any; navigation: any }> = ({ r
                     }
                 } else {
                     // Send follow request
-                    await supabase.from('follow_requests').insert({ requester_id: me.id, target_id: userId, status: 'pending' });
+                    await supabase.from('follow_requests').insert({ requester_id: meInternalId, target_id: userId, status: 'pending' });
                     setFollowState('pending');
                     Alert.alert('Solicitud enviada', `Se le ha notificado a ${profileUser?.full_name}. Cuando acepte podrás ver su contenido.`);
                 }
@@ -424,21 +433,36 @@ export const UserProfileScreen: React.FC<{ route: any; navigation: any }> = ({ r
                         </View>
                     </View>
 
-                    {/* Follow button (not shown for own profile) */}
+{/* Follow + Message buttons (not shown for own profile) */}
                     {!isMe && (
-                        <TouchableOpacity
-                            style={[s.followBtn, { backgroundColor: followBtnBg, borderColor: followBtnBorder }]}
-                            onPress={handleFollow}
-                            disabled={followLoading}
-                        >
-                            {followLoading
-                                ? <ActivityIndicator size="small" color={followBtnTextColor} />
-                                : <>
-                                    <Ionicons name={followBtnIcon} size={16} color={followBtnTextColor} />
-                                    <Text style={[s.followBtnText, { color: followBtnTextColor }]}>{followBtnLabel}</Text>
-                                </>
-                            }
-                        </TouchableOpacity>
+                        <View style={{ flexDirection: 'row', gap: 10, marginBottom: Spacing.md }}>
+                            <TouchableOpacity
+                                style={[s.followBtn, { backgroundColor: followBtnBg, borderColor: followBtnBorder }]}
+                                onPress={handleFollow}
+                                disabled={followLoading}
+                            >
+                                {followLoading
+                                    ? <ActivityIndicator size="small" color={followBtnTextColor} />
+                                    : <>
+                                        <Ionicons name={followBtnIcon} size={16} color={followBtnTextColor} />
+                                        <Text style={[s.followBtnText, { color: followBtnTextColor }]}>{followBtnLabel}</Text>
+                                      </>
+                                }
+                            </TouchableOpacity>
+                            {followState === 'following' && (
+                                <TouchableOpacity
+                                    style={[s.followBtn, { backgroundColor: Colors.surface, borderColor: primary + '55' }]}
+                                    onPress={() => navigation.navigate('Chat', {
+                                        otherUid: profileUser.supabase_id,
+                                        otherName: profileUser.full_name,
+                                        otherAvatar: profileUser.avatar_url,
+                                    })}
+                                >
+                                    <Ionicons name="chatbubble-outline" size={16} color={primary} />
+                                    <Text style={[s.followBtnText, { color: primary }]}>Mensaje</Text>
+                                </TouchableOpacity>
+                            )}
+                        </View>
                     )}
 
                     {/* Privacy badge */}

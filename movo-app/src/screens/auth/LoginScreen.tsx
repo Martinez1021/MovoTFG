@@ -10,6 +10,7 @@ import { useAuthStore } from '../../store/authStore';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../utils/constants';
+import { MovoLogo } from '../../components/ui/MovoLogo';
 
 interface LoginForm {
     email: string;
@@ -38,10 +39,7 @@ export const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
                     {/* Logo */}
                     <View style={styles.logoWrap}>
-                        <LinearGradient colors={Colors.gradientPrimary} style={styles.logoBox}>
-                            <Text style={styles.logoLetter}>M</Text>
-                        </LinearGradient>
-                        <Text style={styles.brand}>MOVO</Text>
+                        <MovoLogo size={80} />
                     </View>
 
                     <Text style={styles.heading}>Bienvenido de vuelta</Text>
@@ -130,8 +128,6 @@ const styles = StyleSheet.create({
     kav: { flex: 1 },
     scroll: { flexGrow: 1, justifyContent: 'center', padding: Spacing['2xl'] },
     logoWrap: { alignItems: 'center', marginBottom: Spacing['2xl'] },
-    logoBox: { width: 64, height: 64, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
-    logoLetter: { fontSize: 36, fontWeight: '900', color: '#fff' },
     brand: { fontSize: 24, fontWeight: '900', color: Colors.textPrimary, letterSpacing: 6 },
     heading: { fontSize: FontSizes['3xl'], fontWeight: '800', color: Colors.textPrimary, textAlign: 'center', marginBottom: 6 },
     sub: { fontSize: FontSizes.base, color: Colors.textSecondary, textAlign: 'center', marginBottom: Spacing['2xl'] },

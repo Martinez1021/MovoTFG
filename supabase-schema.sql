@@ -355,4 +355,45 @@ CREATE POLICY "feed_comments_insert" ON feed_comments FOR INSERT WITH CHECK (tru
 -- If feed_posts already exists but is missing workout_data:
 ALTER TABLE feed_posts ADD COLUMN IF NOT EXISTS workout_data JSONB;
 
+-- ─── FOLLOW REQUESTS ─────────────────────────────────────────────────────────
+-- requester_id / target_id = users.id (internal UUID from users table)
+CREATE TABLE IF NOT EXISTS follow_requests (
+  id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  requester_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  target_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  status       TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'rejected')),
+  created_at   TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(requester_id, target_id)
+);
+ALTER TABLE follow_requests ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "follow_req_select" ON follow_requests FOR SELECT USING (true);
+CREATE POLICY "follow_req_insert" ON follow_requests FOR INSERT WITH CHECK (true);
+CREATE POLICY "follow_req_update" ON follow_requests FOR UPDATE USING (true);
+CREATE POLICY "follow_req_delete" ON follow_requests FOR DELETE USING (true);
+
+-- ─── DIRECT MESSAGES ─────────────────────────────────────────────────────────
+-- sender_uid / receiver_uid = supabase auth UID (TEXT), matches auth.uid()
+CREATE TABLE IF NOT EXISTS direct_messages (
+  id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  sender_uid   TEXT NOT NULL,
+  receiver_uid TEXT NOT NULL,
+  content      TEXT NOT NULL,
+  is_read      BOOLEAN DEFAULT FALSE,
+  created_at   TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE direct_messages ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "dm_select" ON direct_messages FOR SELECT USING (
+  sender_uid = auth.uid()::text OR receiver_uid = auth.uid()::text
+);
+CREATE POLICY "dm_insert" ON direct_messages FOR INSERT WITH CHECK (
+  sender_uid = auth.uid()::text
+);
+CREATE POLICY "dm_update" ON direct_messages FOR UPDATE USING (
+  receiver_uid = auth.uid()::text
+);
+
+CREATE INDEX IF NOT EXISTS idx_dm_sender   ON direct_messages(sender_uid, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_dm_receiver ON direct_messages(receiver_uid, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_dm_pair     ON direct_messages(sender_uid, receiver_uid, created_at DESC);
+
 

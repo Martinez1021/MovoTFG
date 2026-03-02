@@ -366,6 +366,12 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
     const [savingPrivacy, setSavingPrivacy] = useState(false);
     const [selectedPost, setSelectedPost] = useState<any | null>(null);
     const [workoutDetailPost, setWorkoutDetailPost] = useState<any | null>(null);
+    // Internal users.id (differs from auth UUID)
+    const [myInternalId, setMyInternalId] = useState<string | null>(null);
+    // Name editing
+    const [editingName, setEditingName] = useState(false);
+    const [draftName, setDraftName] = useState('');
+    const [savingName, setSavingName] = useState(false);
     // Follow requests
     const [followRequests, setFollowRequests] = useState<{ id: string; requester_id: string; full_name: string; avatar_url?: string }[]>([]);
     const [processingReq, setProcessingReq] = useState<Record<string, boolean>>({});
@@ -381,21 +387,32 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
 
     const loadSocialData = useCallback(async () => {
         if (!user?.id) return;
+
+        // Resolve internal users.id (different from supabase auth UUID)
+        const { data: myRow } = await supabase
+            .from('users')
+            .select('id')
+            .eq('supabase_id', user.id)
+            .maybeSingle();
+        const internalId = myRow?.id ?? null;
+        setMyInternalId(internalId);
+        if (!internalId) return;
+
         // follower count
         const { count: fwrs } = await supabase
             .from('user_follows')
             .select('*', { count: 'exact', head: true })
-            .eq('following_id', user.id);
+            .eq('following_id', internalId);
         // following count
         const { count: fwing } = await supabase
             .from('user_follows')
             .select('*', { count: 'exact', head: true })
-            .eq('follower_id', user.id);
-        // privacy setting
+            .eq('follower_id', internalId);
+        // privacy setting (user_profiles references users.id)
         const { data: up } = await supabase
             .from('user_profiles')
             .select('is_public')
-            .eq('user_id', user.id)
+            .eq('user_id', internalId)
             .maybeSingle();
         setFollowers(fwrs ?? 0);
         setFollowing(fwing ?? 0);
@@ -407,14 +424,14 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
             const { data: reqs } = await supabase
                 .from('follow_requests')
                 .select('id, requester_id')
-                .eq('target_id', user.id)
+                .eq('target_id', internalId)
                 .eq('status', 'pending')
                 .limit(50);
             if (reqs?.length) {
                 const requesterIds = reqs.map((r: any) => r.requester_id);
                 const { data: reqUsers } = await supabase
                     .from('users')
-                    .select('id, full_name, avatar_url')
+                    .select('id, supabase_id, full_name, avatar_url')
                     .in('id', requesterIds);
                 const userMap = Object.fromEntries((reqUsers ?? []).map((u: any) => [u.id, u]));
                 setFollowRequests(reqs.map((r: any) => ({
@@ -430,11 +447,19 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
     }, [user?.id]);
 
     const handleFollowRequest = async (reqId: string, requesterId: string, accept: boolean) => {
+        if (!myInternalId) {
+            Alert.alert('Error', 'No se pudo identificar tu cuenta. Recarga la pantalla.');
+            return;
+        }
         setProcessingReq((prev) => ({ ...prev, [reqId]: true }));
         try {
             if (accept) {
-                // Accept: insert follow + update request status
-                await supabase.from('user_follows').insert({ follower_id: requesterId, following_id: user!.id });
+                // Accept: insert follow using internal UUIDs + update request status
+                const { error } = await supabase.from('user_follows').insert({
+                    follower_id: requesterId,  // already internal UUID from users table
+                    following_id: myInternalId,
+                });
+                if (error) throw error;
                 await supabase.from('follow_requests').update({ status: 'accepted' }).eq('id', reqId);
                 setFollowers((f) => f + 1);
             } else {
@@ -449,6 +474,27 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
         }
     };
 
+    const saveName = async () => {
+        if (!draftName.trim() || !user) return;
+        setSavingName(true);
+        try {
+            const newName = draftName.trim();
+            // Update auth metadata
+            await supabase.auth.updateUser({ data: { full_name: newName } });
+            // Update users table
+            await supabase.from('users').update({ full_name: newName }).eq('supabase_id', user.id);
+            // Update feed_posts so old posts show new name
+            await supabase.from('feed_posts').update({ user_name: newName }).eq('supabase_uid', user.id);
+            setUser({ ...user, full_name: newName });
+            setEditingName(false);
+            Alert.alert('✅ Nombre actualizado');
+        } catch (e: any) {
+            Alert.alert('Error', e?.message ?? 'No se pudo guardar');
+        } finally {
+            setSavingName(false);
+        }
+    };
+
     useEffect(() => {
         fetchPosts();
         fetchSessions?.();
@@ -457,12 +503,12 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
 
     const togglePrivacy = async (val: boolean) => {
         setIsPublic(val);
-        if (!user?.id) return;
+        if (!myInternalId) return;
         setSavingPrivacy(true);
         await supabase
             .from('user_profiles')
             .update({ is_public: val })
-            .eq('user_id', user.id);
+            .eq('user_id', myInternalId);
         setSavingPrivacy(false);
     };
 
@@ -521,6 +567,9 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
             await supabase.auth.refreshSession();
             const { error } = await supabase.auth.updateUser({ data: { avatar_url: avatarUrl } });
             if (error) { Alert.alert('Error al guardar', error.message); return; }
+            // Propagate to users table and feed_posts
+            await supabase.from('users').update({ avatar_url: avatarUrl }).eq('supabase_id', user.id);
+            await supabase.from('feed_posts').update({ user_avatar: avatarUrl }).eq('supabase_uid', user.id);
             setUser({ ...user, avatar_url: avatarUrl });
             Alert.alert('✅ Foto actualizada');
         } catch (e: any) {
@@ -578,7 +627,37 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                         </View>
                     </View>
 
-                    <Text style={s.name}>{user?.full_name}</Text>
+                    {/* Editable name */}
+                    {editingName ? (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                            <TextInput
+                                style={[s.name, { borderBottomWidth: 1, borderBottomColor: primary, minWidth: 140, textAlign: 'center', paddingBottom: 2 }]}
+                                value={draftName}
+                                onChangeText={setDraftName}
+                                autoFocus
+                                maxLength={50}
+                                returnKeyType="done"
+                                onSubmitEditing={saveName}
+                            />
+                            <TouchableOpacity onPress={saveName} disabled={savingName || !draftName.trim()}>
+                                {savingName
+                                    ? <ActivityIndicator size="small" color={primary} />
+                                    : <Ionicons name="checkmark-circle" size={22} color={primary} />
+                                }
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => setEditingName(false)}>
+                                <Ionicons name="close-circle" size={22} color={Colors.textSecondary} />
+                            </TouchableOpacity>
+                        </View>
+                    ) : (
+                        <TouchableOpacity
+                            style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}
+                            onPress={() => { setDraftName(user?.full_name ?? ''); setEditingName(true); }}
+                        >
+                            <Text style={s.name}>{user?.full_name}</Text>
+                            <Ionicons name="pencil" size={14} color={Colors.textSecondary} />
+                        </TouchableOpacity>
+                    )}
                     <Text style={s.email}>{user?.email}</Text>
 
                     <View style={s.badgeRow}>
@@ -905,6 +984,19 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                                 <Text style={[s.menuText, { flex: 1 }]}>Notificaciones push</Text>
                                 <Switch value={notifications} onValueChange={setNotifications} trackColor={{ true: primary }} />
                             </View>
+                        </View>
+
+                        {/* Mensajes */}
+                        <View style={[s.section, { borderColor: primary + '33' }]}>
+                            <View style={s.sectionHeader}>
+                                <Ionicons name="chatbubbles-outline" size={18} color={primary} />
+                                <Text style={s.sectionTitle}>Mensajes</Text>
+                            </View>
+                            <TouchableOpacity style={[s.menuRow, { borderBottomWidth: 0 }]} onPress={() => navigation.navigate('DirectMessages')}>
+                                <Ionicons name="mail-outline" size={20} color={Colors.textSecondary} />
+                                <Text style={[s.menuText, { flex: 1 }]}>Mis conversaciones</Text>
+                                <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+                            </TouchableOpacity>
                         </View>
 
                         {/* Account */}
