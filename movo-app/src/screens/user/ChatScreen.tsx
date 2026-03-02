@@ -96,15 +96,20 @@ export const ChatScreen: React.FC<{ route: any; navigation: any }> = ({ route, n
         setMessages((prev) => [...prev, optimistic]);
         setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 60);
         try {
-            const { data } = await supabase
+            const { data, error } = await supabase
                 .from('direct_messages')
                 .insert({ sender_uid: user.id, receiver_uid: otherUid, content })
                 .select('id, sender_uid, content, is_read, created_at')
                 .single();
-            if (data) {
+            if (error) {
+                console.error('[chat] insert error:', error.message, error.code);
+                // Remove optimistic and restore text so the user can retry
+                setMessages((prev) => prev.filter((m) => m.id !== optimistic.id));
+                setText(content);
+            } else if (data) {
                 setMessages((prev) => prev.map((m) => m.id === optimistic.id ? data : m));
             }
-        } catch {
+        } catch (e) {
             setMessages((prev) => prev.filter((m) => m.id !== optimistic.id));
             setText(content);
         } finally {

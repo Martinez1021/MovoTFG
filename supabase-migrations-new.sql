@@ -57,3 +57,78 @@ CREATE INDEX IF NOT EXISTS idx_dm_receiver ON direct_messages(receiver_uid, crea
 
 -- ─── COLUMNA is_public en user_profiles (si no existe) ───────
 ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT true;
+
+-- ─── FIX: política INSERT en workout_sessions ────────────────
+-- La política original "sessions_own" solo cubre SELECT/UPDATE/DELETE (USING).
+-- Sin política de INSERT, Supabase bloquea la inserción de sesiones.
+DROP POLICY IF EXISTS "sessions_own_insert" ON workout_sessions;
+CREATE POLICY "sessions_own_insert" ON workout_sessions
+  FOR INSERT WITH CHECK (
+    user_id IN (SELECT id FROM users WHERE supabase_id = auth.uid()::text)
+  );
+
+-- También arregla la política general para que cubra SELECT/UPDATE/DELETE explícitamente
+DROP POLICY IF EXISTS "sessions_own" ON workout_sessions;
+CREATE POLICY "sessions_own" ON workout_sessions
+  FOR SELECT USING (
+    user_id IN (SELECT id FROM users WHERE supabase_id = auth.uid()::text)
+  );
+CREATE POLICY "sessions_own_update" ON workout_sessions
+  FOR UPDATE USING (
+    user_id IN (SELECT id FROM users WHERE supabase_id = auth.uid()::text)
+  );
+CREATE POLICY "sessions_own_delete" ON workout_sessions
+  FOR DELETE USING (
+    user_id IN (SELECT id FROM users WHERE supabase_id = auth.uid()::text)
+  );
+
+-- ─── BODY WEIGHT ──────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS body_weight (
+  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  weight_kg   NUMERIC(5,2) NOT NULL,
+  notes       TEXT,
+  recorded_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE body_weight ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "bw_select" ON body_weight;
+DROP POLICY IF EXISTS "bw_insert" ON body_weight;
+DROP POLICY IF EXISTS "bw_delete" ON body_weight;
+CREATE POLICY "bw_select" ON body_weight FOR SELECT USING (user_id IN (SELECT id FROM users WHERE supabase_id = auth.uid()::text));
+CREATE POLICY "bw_insert" ON body_weight FOR INSERT WITH CHECK (user_id IN (SELECT id FROM users WHERE supabase_id = auth.uid()::text));
+CREATE POLICY "bw_delete" ON body_weight FOR DELETE USING (user_id IN (SELECT id FROM users WHERE supabase_id = auth.uid()::text));
+
+-- ─── PERSONAL RECORDS ─────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS personal_records (
+  id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  exercise_name TEXT NOT NULL,
+  weight_kg     NUMERIC(6,2) NOT NULL,
+  reps          INT NOT NULL,
+  notes         TEXT,
+  recorded_at   TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE personal_records ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "pr_select" ON personal_records;
+DROP POLICY IF EXISTS "pr_insert" ON personal_records;
+DROP POLICY IF EXISTS "pr_delete" ON personal_records;
+CREATE POLICY "pr_select" ON personal_records FOR SELECT USING (user_id IN (SELECT id FROM users WHERE supabase_id = auth.uid()::text));
+CREATE POLICY "pr_insert" ON personal_records FOR INSERT WITH CHECK (user_id IN (SELECT id FROM users WHERE supabase_id = auth.uid()::text));
+CREATE POLICY "pr_delete" ON personal_records FOR DELETE USING (user_id IN (SELECT id FROM users WHERE supabase_id = auth.uid()::text));
+
+-- ─── PROGRESS PHOTOS ──────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS progress_photos (
+  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  photo_url   TEXT NOT NULL,
+  notes       TEXT,
+  weight_kg   NUMERIC(5,2),
+  recorded_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE progress_photos ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "pp_select" ON progress_photos;
+DROP POLICY IF EXISTS "pp_insert" ON progress_photos;
+DROP POLICY IF EXISTS "pp_delete" ON progress_photos;
+CREATE POLICY "pp_select" ON progress_photos FOR SELECT USING (user_id IN (SELECT id FROM users WHERE supabase_id = auth.uid()::text));
+CREATE POLICY "pp_insert" ON progress_photos FOR INSERT WITH CHECK (user_id IN (SELECT id FROM users WHERE supabase_id = auth.uid()::text));
+CREATE POLICY "pp_delete" ON progress_photos FOR DELETE USING (user_id IN (SELECT id FROM users WHERE supabase_id = auth.uid()::text));

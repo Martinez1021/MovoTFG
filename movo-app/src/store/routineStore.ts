@@ -215,17 +215,23 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
                     if (rows) {
                         // Map to WorkoutSession shape
                         const mapped = rows.map((r: any) => ({
+                            // snake_case (required by WorkoutSession type)
                             id: r.id,
-                            userId: r.user_id,
-                            routineId: r.routine_id,
+                            user_id: r.user_id,
+                            routine_id: r.routine_id,
+                            started_at: r.started_at,
+                            completed_at: r.completed_at,
+                            duration_minutes: r.duration_minutes,
+                            calories_burned: r.calories_burned,
+                            notes: r.notes,
+                            rating: r.rating,
+                            // camelCase aliases used by UI components
                             routineName: r.routines?.title ?? '',
                             routineCategory: r.routines?.category ?? '',
                             startedAt: r.started_at,
                             completedAt: r.completed_at,
                             durationMinutes: r.duration_minutes,
                             caloriesBurned: r.calories_burned,
-                            rating: r.rating,
-                            notes: r.notes,
                         }));
                         set({ sessions: mapped });
                         return;
@@ -261,19 +267,24 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
         const internalId = uRow.id;
 
         // Check if user already has sessions
-        const { count } = await supabase
+        const { count, error: countErr } = await supabase
             .from('workout_sessions')
             .select('*', { count: 'exact', head: true })
             .eq('user_id', internalId);
-        if ((count ?? 0) > 0) return { inserted: 0, error: 'Ya tienes sesiones registradas' };
+        if (countErr) console.warn('[seed] count error:', countErr.message);
+        if ((count ?? 0) > 0) return { inserted: 0, error: `Ya tienes ${count} sesiones registradas. Bórralas primero si quieres datos nuevos.` };
 
-        // Grab a few public routines
-        const { data: routines } = await supabase
+        // Grab a few public routines (try is_public first, fallback to any routines)
+        let { data: routines } = await supabase
             .from('routines')
             .select('id, category')
             .eq('is_public', true)
             .limit(9);
-        if (!routines?.length) return { inserted: 0, error: 'No hay rutinas públicas' };
+        if (!routines?.length) {
+            const { data: anyRoutines } = await supabase.from('routines').select('id, category').limit(9);
+            routines = anyRoutines;
+        }
+        if (!routines?.length) return { inserted: 0, error: 'No hay rutinas en la base de datos. Crea al menos una rutina primero.' };
 
         // Build 35 sessions spread over the last 60 days
         const now = Date.now();
@@ -303,7 +314,10 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
         }
 
         const { error } = await supabase.from('workout_sessions').insert(rows);
-        if (error) return { inserted: 0, error: error.message };
+        if (error) {
+            console.error('[seed] insert error:', error);
+            return { inserted: 0, error: `Error al insertar: ${error.message} (code: ${error.code})` };
+        }
 
         // Re-fetch
         await get().fetchStats();
