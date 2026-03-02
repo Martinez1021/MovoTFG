@@ -703,31 +703,30 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                             </View>
                         ) : (
                             <View style={s.grid}>
-                                {myPosts.map((p) => (
-                                    <TouchableOpacity key={p.id} style={s.gridCell} onPress={() => (p as any).workout_data ? setWorkoutDetailPost(p) : setSelectedPost(p)} activeOpacity={0.85}>
-                                        {p.image_url
-                                            ? <Image source={{ uri: p.image_url }} style={s.gridImg} />
-                                            : (() => {
-                                                const wd = (p as any).workout_data as WorkoutData | undefined;
-                                                const dmin = wd ? Math.round(wd.duration_seconds / 60) : null;
-                                                const bgUri = getMuscleImgP((wd as any)?.muscle_group ?? '') ?? FALLBACK_IMG_P;
-                                                return (
-                                                    <>
-                                                        <Image source={{ uri: bgUri }} style={s.gridImg} blurRadius={3} />
-                                                        <LinearGradient colors={['rgba(0,0,0,0.05)', 'rgba(0,0,0,0.82)']} style={s.gridVideoOverlay}>
-                                                            <Text style={s.gridVideoBrand}>MOVO</Text>
-                                                            {wd && <Text style={s.gridVideoName} numberOfLines={2}>{wd.routine_name}</Text>}
-                                                            {dmin && <Text style={s.gridVideoMeta}>⏱ {dmin} min</Text>}
-                                                        </LinearGradient>
-                                                    </>
-                                                );
-                                            })()}
-                                        <View style={s.gridOverlay}>
-                                            <Ionicons name="heart" size={12} color="#fff" />
-                                            <Text style={s.gridLikes}>{p.likes_count ?? 0}</Text>
-                                        </View>
-                                    </TouchableOpacity>
-                                ))}
+                                {myPosts.map((p) => {
+                                    const wd = (p as any).workout_data as WorkoutData | undefined;
+                                    const dmin = wd ? Math.round(wd.duration_seconds / 60) : null;
+                                    const bgUri = getMuscleImgP((wd as any)?.muscle_group ?? '') ?? FALLBACK_IMG_P;
+                                    return (
+                                        <TouchableOpacity key={p.id} style={s.gridCell} onPress={() => (p as any).workout_data ? setWorkoutDetailPost(p) : setSelectedPost(p)} activeOpacity={0.85}>
+                                            {p.image_url
+                                                ? <Image source={{ uri: p.image_url }} style={s.gridImg} />
+                                                : <>
+                                                    <Image source={{ uri: bgUri }} style={s.gridImg} blurRadius={3} />
+                                                    <LinearGradient colors={['rgba(0,0,0,0.05)', 'rgba(0,0,0,0.82)']} style={s.gridVideoOverlay}>
+                                                        <Text style={s.gridVideoBrand}>MOVO</Text>
+                                                        {wd && <Text style={s.gridVideoName} numberOfLines={2}>{wd.routine_name}</Text>}
+                                                        {dmin && <Text style={s.gridVideoMeta}>⏱ {dmin} min</Text>}
+                                                    </LinearGradient>
+                                                  </>
+                                            }
+                                            <View style={s.gridOverlay}>
+                                                <Ionicons name="heart" size={12} color="#fff" />
+                                                <Text style={s.gridLikes}>{p.likes_count ?? 0}</Text>
+                                            </View>
+                                        </TouchableOpacity>
+                                    );
+                                })}
                             </View>
                         )}
                     </View>
@@ -932,10 +931,6 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                                         </View>
                                     );
                                 })}
-                            </View>
-                        )}
-                                    </View>
-                                ))}
                             </View>
                         )}
 
