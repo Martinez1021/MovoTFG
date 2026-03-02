@@ -422,15 +422,27 @@ export const UserProfileScreen: React.FC<{ route: any; navigation: any }> = ({ r
                             <Text style={s.socialLabel}>Posts</Text>
                         </View>
                         <View style={s.socialDivider} />
-                        <View style={s.socialStat}>
+                        <TouchableOpacity
+                            style={s.socialStat}
+                            onPress={() => userId && navigation.navigate('FollowList', {
+                                type: 'followers', userId, title: `${followers} Seguidores`,
+                            })}
+                            disabled={!userId || followers === 0}
+                        >
                             <Text style={[s.socialNum, { color: primary }]}>{followers}</Text>
                             <Text style={s.socialLabel}>Seguidores</Text>
-                        </View>
+                        </TouchableOpacity>
                         <View style={s.socialDivider} />
-                        <View style={s.socialStat}>
+                        <TouchableOpacity
+                            style={s.socialStat}
+                            onPress={() => userId && navigation.navigate('FollowList', {
+                                type: 'following', userId, title: `${following} Siguiendo`,
+                            })}
+                            disabled={!userId || following === 0}
+                        >
                             <Text style={[s.socialNum, { color: primary }]}>{following}</Text>
                             <Text style={s.socialLabel}>Siguiendo</Text>
-                        </View>
+                        </TouchableOpacity>
                     </View>
 
 {/* Follow + Message buttons (not shown for own profile) */}

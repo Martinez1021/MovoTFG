@@ -1,7 +1,7 @@
 ﻿import React, { useEffect, useRef, useState } from 'react';
 import {
-    View, Text, StyleSheet, ScrollView, RefreshControl,
-    Dimensions, Animated, TouchableOpacity,
+    View, Text, StyleSheet, ScrollView,
+    Dimensions, TouchableOpacity, Alert, ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -56,7 +56,10 @@ const SlideWeek: React.FC<{ data: number[]; primary: string }> = ({ data, primar
 };
 
 // ── Slide 2: Estadísticas de tiempo ─────────────────────
-const SlideStats: React.FC<{ stats: any; primary: string }> = ({ stats, primary }) => {
+const SlideStats: React.FC<{
+    stats: any; primary: string;
+    onSeed?: () => void; seeding?: boolean;
+}> = ({ stats, primary, onSeed, seeding }) => {
     const totalSessions = stats?.totalSessions ?? 0;
     const totalMinutes = stats?.totalMinutes ?? 0;
     const streak = stats?.streak ?? 0;
@@ -86,9 +89,24 @@ const SlideStats: React.FC<{ stats: any; primary: string }> = ({ stats, primary 
                 <View style={sl.emptyBox}>
                     <Text style={{ fontSize: 32 }}>🎯</Text>
                     <Text style={sl.emptyText}>Aún sin datos de actividad</Text>
-                    <Text style={sl.emptySub}>Completa tu primera sesión para ver tus estadísticas.</Text>
+                    <Text style={sl.emptySub}>Completa entrenamientos para ver tus estadísticas.</Text>
+                    {onSeed && (
+                        <TouchableOpacity
+                            onPress={onSeed}
+                            disabled={seeding}
+                            style={[sl.seedBtn, { backgroundColor: primary + '22', borderColor: primary + '55' }]}
+                        >
+                            {seeding
+                                ? <ActivityIndicator size="small" color={primary} />
+                                : <><Text style={{ fontSize: 16 }}>🗄️</Text><Text style={[sl.seedBtnText, { color: primary }]}>Cargar datos de ejemplo</Text></>
+                            }
+                        </TouchableOpacity>
+                    )}
                 </View>
             )}
+        </View>
+    );
+};            )}
         </View>
     );
 };
@@ -131,15 +149,38 @@ const SlideHistory: React.FC<{ sessions: any[]; primary: string }> = ({ sessions
 const SLIDES = ['Semana', 'Actividad', 'Historial'];
 
 export const ProgressScreen: React.FC<{ navigation?: any }> = ({ navigation }) => {
-    const { stats, sessions, fetchStats, fetchSessions, isLoading } = useRoutineStore();
+    const { stats, sessions, fetchStats, fetchSessions, isLoading, seedDemoSessions } = useRoutineStore();
     const { primary } = useThemeStore();
     const [refreshing, setRefreshing] = useState(false);
+    const [seeding, setSeeding] = useState(false);
     const [page, setPage] = useState(0);
     const scrollRef = useRef<ScrollView>(null);
 
     const load = async () => { await Promise.all([fetchStats(), fetchSessions()]); };
     useEffect(() => { load(); }, []);
     const onRefresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
+
+    const handleSeed = async () => {
+        Alert.alert(
+            'Cargar datos de ejemplo',
+            'Se crearán 35 sesiones de entrenamiento de los últimos 60 días para ver cómo queda el progreso.',
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                    text: 'Cargar', onPress: async () => {
+                        setSeeding(true);
+                        const result = await seedDemoSessions();
+                        setSeeding(false);
+                        if (result.error) {
+                            Alert.alert('Info', result.error);
+                        } else {
+                            Alert.alert('✅ Listo', `Se insertaron ${result.inserted} sesiones.`);
+                        }
+                    },
+                },
+            ]
+        );
+    };
 
     const goTo = (idx: number) => {
         setPage(idx);
@@ -193,7 +234,7 @@ export const ProgressScreen: React.FC<{ navigation?: any }> = ({ navigation }) =
                 </View>
                 {/* Slide 2 */}
                 <View style={{ width: SCREEN_W }}>
-                    <SlideStats stats={stats} primary={primary} />
+                    <SlideStats stats={stats} primary={primary} onSeed={handleSeed} seeding={seeding} />
                 </View>
                 {/* Slide 3 */}
                 <View style={{ width: SCREEN_W }}>
@@ -237,6 +278,8 @@ const sl = StyleSheet.create({
     sessionIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
     sessionTitle: { fontSize: FontSizes.base, fontWeight: '600', color: Colors.textPrimary },
     sessionMeta: { fontSize: FontSizes.xs, color: Colors.textSecondary, marginTop: 2 },
+    seedBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderRadius: BorderRadius.full, paddingHorizontal: Spacing.lg, paddingVertical: 10, marginTop: 4 },
+    seedBtnText: { fontSize: FontSizes.sm, fontWeight: '700' },
 });
 
 // ── Screen styles ────────────────────────────────────────

@@ -515,10 +515,8 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
     const saveStats = async () => {
         setSavingStats(true);
         try {
-            // Usar el UID real de auth.users para satisfacer el FK
-            const { data: { session } } = await supabase.auth.getSession();
-            const authUid = session?.user?.id;
-            if (!authUid) throw new Error('No hay sesión activa');
+            // Use myInternalId (users.id) — user_profiles FK references users(id)
+            if (!myInternalId) throw new Error('No se pudo identificar tu cuenta. Recarga la pantalla.');
 
             const updates: Record<string, any> = {};
             if (draftWeight !== '') updates.weight_kg = parseFloat(draftWeight);
@@ -527,7 +525,7 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
 
             const { error } = await supabase
                 .from('user_profiles')
-                .upsert({ user_id: authUid, ...updates }, { onConflict: 'user_id' });
+                .upsert({ user_id: myInternalId, ...updates }, { onConflict: 'user_id' });
             if (error) throw error;
 
             if (setProfile) setProfile({ ...(profile as any), ...updates });
@@ -616,15 +614,27 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                             <Text style={s.socialLabel}>Publicaciones</Text>
                         </View>
                         <View style={s.socialDivider} />
-                        <View style={s.socialStat}>
+                        <TouchableOpacity
+                            style={s.socialStat}
+                            onPress={() => myInternalId && navigation.navigate('FollowList', {
+                                type: 'followers', userId: myInternalId, title: `${followers} Seguidores`,
+                            })}
+                            disabled={!myInternalId || followers === 0}
+                        >
                             <Text style={[s.socialNum, { color: primary }]}>{followers}</Text>
                             <Text style={s.socialLabel}>Seguidores</Text>
-                        </View>
+                        </TouchableOpacity>
                         <View style={s.socialDivider} />
-                        <View style={s.socialStat}>
+                        <TouchableOpacity
+                            style={s.socialStat}
+                            onPress={() => myInternalId && navigation.navigate('FollowList', {
+                                type: 'following', userId: myInternalId, title: `${following} Siguiendo`,
+                            })}
+                            disabled={!myInternalId || following === 0}
+                        >
                             <Text style={[s.socialNum, { color: primary }]}>{following}</Text>
                             <Text style={s.socialLabel}>Siguiendo</Text>
-                        </View>
+                        </TouchableOpacity>
                     </View>
 
                     {/* Editable name */}

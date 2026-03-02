@@ -78,6 +78,8 @@ interface RoutineState {
     completeSession: (sessionId: string, data: Partial<WorkoutSession>) => Promise<void>;
     /** Optimistically updates home stats immediately after a workout finishes */
     recordLocalWorkout: (durationSeconds: number) => void;
+    /** Inserts demo workout sessions into Supabase for the current user */
+    seedDemoSessions: () => Promise<{ inserted: number; error?: string }>;
 }
 
 export const useRoutineStore = create<RoutineState>((set, get) => ({
@@ -247,6 +249,66 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
         await sessionApi.complete(sessionId, payload);
         get().fetchStats();
         get().fetchSessions();
+    },
+
+    seedDemoSessions: async () => {
+        const uid = await getCurrentUid();
+        if (!uid) return { inserted: 0, error: 'Sin sesión activa' };
+
+        // Resolve internal user id
+        const { data: uRow } = await supabase.from('users').select('id').eq('supabase_id', uid).maybeSingle();
+        if (!uRow?.id) return { inserted: 0, error: 'Usuario no encontrado en base de datos' };
+        const internalId = uRow.id;
+
+        // Check if user already has sessions
+        const { count } = await supabase
+            .from('workout_sessions')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', internalId);
+        if ((count ?? 0) > 0) return { inserted: 0, error: 'Ya tienes sesiones registradas' };
+
+        // Grab a few public routines
+        const { data: routines } = await supabase
+            .from('routines')
+            .select('id, category')
+            .eq('is_public', true)
+            .limit(9);
+        if (!routines?.length) return { inserted: 0, error: 'No hay rutinas públicas' };
+
+        // Build 35 sessions spread over the last 60 days
+        const now = Date.now();
+        const rows: any[] = [];
+        const patterns = [
+            5, 4, 3, 6, 2, 4, 3, 5, 6, 4, 3, 5, 2, 6, 4,  // 2nd month
+            5, 3, 4, 6, 3, 2, 5, 4, 6, 3, 5, 2, 4, 6, 3, 5, 4, 3, 6, 2,  // this month
+        ];
+        let dayOffset = 59;
+        for (let i = 0; i < 35; i++) {
+            dayOffset -= patterns[i % patterns.length] > 5 ? 1 : (i % 3 === 0 ? 2 : 1);
+            if (dayOffset < 0) break;
+            const routine = routines[i % routines.length];
+            const startedAt = new Date(now - dayOffset * 86400000);
+            startedAt.setHours(7 + (i % 4) * 3, 0, 0, 0);
+            const duration = 30 + (i % 4) * 10;
+            const completedAt = new Date(startedAt.getTime() + duration * 60000);
+            rows.push({
+                user_id: internalId,
+                routine_id: routine.id,
+                started_at: startedAt.toISOString(),
+                completed_at: completedAt.toISOString(),
+                duration_minutes: duration,
+                calories_burned: Math.round(duration * 7.5 + Math.random() * 30),
+                rating: (i % 5) + 1,
+            });
+        }
+
+        const { error } = await supabase.from('workout_sessions').insert(rows);
+        if (error) return { inserted: 0, error: error.message };
+
+        // Re-fetch
+        await get().fetchStats();
+        await get().fetchSessions();
+        return { inserted: rows.length };
     },
 
     recordLocalWorkout: (durationSeconds: number) => {
