@@ -171,7 +171,7 @@ BEGIN
       END IF;
 
       INSERT INTO workout_sessions (
-        user_id, routine_id, started_at, ended_at,
+        user_id, routine_id, started_at, completed_at,
         duration_minutes, rating, notes
       ) VALUES (
         u.id,

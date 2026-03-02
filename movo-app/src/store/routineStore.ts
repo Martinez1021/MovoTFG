@@ -120,18 +120,21 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
         if (uid) {
             try {
                 // Get the user's public users.id from their supabase_id
-                const { data: userData } = await supabase
+                const { data: userData, error: ue } = await supabase
                     .from('users')
                     .select('id')
                     .eq('supabase_id', uid)
                     .maybeSingle();
 
+                console.log('[fetchStats] uid=', uid, 'userData=', userData, 'err=', ue?.message);
+
                 if (userData) {
-                    const { data: sessions } = await supabase
+                    const { data: sessions, error: se } = await supabase
                         .from('workout_sessions')
                         .select('started_at, duration_minutes, completed_at')
-                        .eq('user_id', userData.id)
-                        .not('completed_at', 'is', null);
+                        .eq('user_id', userData.id);
+
+                    console.log('[fetchStats] sessions count=', sessions?.length, 'err=', se?.message);
 
                     if (sessions && sessions.length > 0) {
                         const totalSessions = sessions.length;
