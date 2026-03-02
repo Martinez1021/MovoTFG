@@ -63,8 +63,22 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     const tip = DAILY_TIPS[dayOfYear % DAILY_TIPS.length];
 
     const weekDays = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
-    const weeklyData = stats?.weeklyCount ?? [0, 0, 0, 0, 0, 0, 0];
     const todayIdx = (new Date().getDay() + 6) % 7;
+
+    // Rolling last-7-days: always shows recent activity regardless of day of week
+    const last7Dates = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(); d.setDate(d.getDate() - (6 - i));
+        return d.toISOString().split('T')[0];
+    });
+    const last7Labels = last7Dates.map((d, i) => {
+        if (i === 6) return 'Hoy';
+        return ['D', 'L', 'M', 'X', 'J', 'V', 'S'][new Date(d + 'T12:00:00').getDay()];
+    });
+    const last7Counts = last7Dates.map(dateStr =>
+        (sessions ?? []).filter(s => ((s as any).startedAt ?? (s as any).started_at ?? '').startsWith(dateStr)).length
+    );
+    // weeklyData for the Mon-Sun dot widget on top
+    const weeklyData = stats?.weeklyCount ?? [0, 0, 0, 0, 0, 0, 0];
 
     return (
         <LinearGradient colors={['#0A0A0A', '#0D0A18']} style={{ flex: 1 }}>
@@ -198,17 +212,17 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                     style={{ marginBottom: Spacing.sm }}
                     decelerationRate="fast"
                 >
-                    {/* Card 1: barra semanal */}
+                    {/* Card 1: últimos 7 días */}
                     <View style={[s.progressCard, { width: SCREEN_W - Spacing.base * 2, borderColor: primary + '33' }]}>
-                        <Text style={s.progressCardTitle}>📅 Esta semana</Text>
+                        <Text style={s.progressCardTitle}>📅 Últimos 7 días</Text>
                         <View style={s.barsRow}>
-                            {weekDays.map((day, i) => {
-                                const v = weeklyData[i];
-                                const max = Math.max(...weeklyData, 1);
+                            {last7Labels.map((day, i) => {
+                                const v = last7Counts[i];
+                                const max = Math.max(...last7Counts, 1);
                                 const pct = (v / max) * 100;
-                                const isToday = i === todayIdx;
+                                const isToday = i === 6;
                                 return (
-                                    <View key={day} style={s.barCol}>
+                                    <View key={i} style={s.barCol}>
                                         <View style={s.barTrack}>
                                             {v > 0
                                                 ? <LinearGradient colors={[primary, primary + 'AA']} style={[s.barFill, { height: `${Math.max(pct, 6)}%` as any }]} />

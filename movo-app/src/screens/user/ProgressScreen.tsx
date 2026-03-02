@@ -12,19 +12,29 @@ import { Colors, Spacing, FontSizes, BorderRadius } from '../../utils/constants'
 const { width: SCREEN_W } = Dimensions.get('window');
 
 // ── Slide 1: Actividad semanal ───────────────────────────
-const SlideWeek: React.FC<{ data: number[]; primary: string }> = ({ data, primary }) => {
-    const days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+const SlideWeek: React.FC<{ sessions: any[]; primary: string }> = ({ sessions, primary }) => {
+    const last7Dates = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(); d.setDate(d.getDate() - (6 - i));
+        return d.toISOString().split('T')[0];
+    });
+    const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const labels = last7Dates.map((d, i) => {
+        if (i === 6) return 'Hoy';
+        return dayNames[new Date(d + 'T12:00:00').getDay()];
+    });
+    const data = last7Dates.map(dateStr =>
+        sessions.filter(s => ((s as any).startedAt ?? (s as any).started_at ?? '').startsWith(dateStr)).length
+    );
     const max = Math.max(...data, 1);
     const total = data.reduce((a, b) => a + b, 0);
-    const todayIdx = (new Date().getDay() + 6) % 7;
     return (
         <View style={sl.wrap}>
-            <Text style={sl.title}>📅 Actividad semanal</Text>
-            <Text style={sl.sub}>{total === 0 ? 'Sin entrenamientos esta semana' : `${total} sesión${total > 1 ? 'es' : ''} esta semana`}</Text>
+            <Text style={sl.title}>📅 Últimos 7 días</Text>
+            <Text style={sl.sub}>{total === 0 ? 'Sin entrenamientos esta semana' : `${total} sesión${total > 1 ? 'es' : ''} en los últimos 7 días`}</Text>
             <View style={sl.barsRow}>
                 {data.map((v, i) => {
                     const pct = max > 0 ? (v / max) * 100 : 0;
-                    const isToday = i === todayIdx;
+                    const isToday = i === 6;
                     return (
                         <View key={i} style={sl.barCol}>
                             <Text style={sl.barVal}>{v > 0 ? v : ''}</Text>
@@ -38,7 +48,7 @@ const SlideWeek: React.FC<{ data: number[]; primary: string }> = ({ data, primar
                                     <View style={sl.barEmpty} />
                                 )}
                             </View>
-                            <Text style={[sl.barDay, isToday && { color: primary, fontWeight: '700' }]}>{days[i]}</Text>
+                            <Text style={[sl.barDay, isToday && { color: primary, fontWeight: '700' }]}>{labels[i]}</Text>
                             {isToday && <View style={[sl.todayDot, { backgroundColor: primary }]} />}
                         </View>
                     );
@@ -47,7 +57,7 @@ const SlideWeek: React.FC<{ data: number[]; primary: string }> = ({ data, primar
             {total === 0 && (
                 <View style={sl.emptyBox}>
                     <Text style={{ fontSize: 32 }}>😴</Text>
-                    <Text style={sl.emptyText}>¡Esta semana aún no has entrenado!</Text>
+                    <Text style={sl.emptyText}>¡Sin entrenamientos esta semana!</Text>
                     <Text style={sl.emptySub}>Cada sesión cuenta, aunque sea 20 minutos.</Text>
                 </View>
             )}
@@ -227,7 +237,7 @@ export const ProgressScreen: React.FC<{ navigation?: any }> = ({ navigation }) =
             >
                 {/* Slide 1 */}
                 <View style={{ width: SCREEN_W }}>
-                    <SlideWeek data={weeklyData} primary={primary} />
+                    <SlideWeek sessions={sessions} primary={primary} />
                 </View>
                 {/* Slide 2 */}
                 <View style={{ width: SCREEN_W }}>
