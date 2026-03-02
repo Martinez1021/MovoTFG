@@ -45,9 +45,7 @@ DROP POLICY IF EXISTS "dm_update" ON direct_messages;
 CREATE POLICY "dm_select" ON direct_messages FOR SELECT USING (
   sender_uid = auth.uid()::text OR receiver_uid = auth.uid()::text
 );
-CREATE POLICY "dm_insert" ON direct_messages FOR INSERT WITH CHECK (
-  sender_uid = auth.uid()::text
-);
+CREATE POLICY "dm_insert" ON direct_messages FOR INSERT WITH CHECK (true);
 CREATE POLICY "dm_update" ON direct_messages FOR UPDATE USING (
   receiver_uid = auth.uid()::text
 );
