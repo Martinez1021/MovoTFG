@@ -707,10 +707,21 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                                     <TouchableOpacity key={p.id} style={s.gridCell} onPress={() => (p as any).workout_data ? setWorkoutDetailPost(p) : setSelectedPost(p)} activeOpacity={0.85}>
                                         {p.image_url
                                             ? <Image source={{ uri: p.image_url }} style={s.gridImg} />
-                                            : <LinearGradient colors={[primary + '55', primary + '22']} style={s.gridPlaceholder}>
-                                                <Ionicons name="fitness-outline" size={22} color={primary} />
-                                            </LinearGradient>
-                                        }
+                                            : (() => {
+                                                const wd = (p as any).workout_data as WorkoutData | undefined;
+                                                const dmin = wd ? Math.round(wd.duration_seconds / 60) : null;
+                                                const bgUri = getMuscleImgP((wd as any)?.muscle_group ?? '') ?? FALLBACK_IMG_P;
+                                                return (
+                                                    <>
+                                                        <Image source={{ uri: bgUri }} style={s.gridImg} blurRadius={3} />
+                                                        <LinearGradient colors={['rgba(0,0,0,0.05)', 'rgba(0,0,0,0.82)']} style={s.gridVideoOverlay}>
+                                                            <Text style={s.gridVideoBrand}>MOVO</Text>
+                                                            {wd && <Text style={s.gridVideoName} numberOfLines={2}>{wd.routine_name}</Text>}
+                                                            {dmin && <Text style={s.gridVideoMeta}>⏱ {dmin} min</Text>}
+                                                        </LinearGradient>
+                                                    </>
+                                                );
+                                            })()}
                                         <View style={s.gridOverlay}>
                                             <Ionicons name="heart" size={12} color="#fff" />
                                             <Text style={s.gridLikes}>{p.likes_count ?? 0}</Text>
@@ -888,16 +899,41 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                                     <Ionicons name="time-outline" size={18} color={primary} />
                                     <Text style={s.sectionTitle}>Sesiones recientes</Text>
                                 </View>
-                                {sessions!.slice(0, 5).map((sess, i) => (
-                                    <View key={i} style={s.sessionRow}>
-                                        <View style={[s.sessionDot, { backgroundColor: primary }]} />
-                                        <View style={{ flex: 1 }}>
-                                            <Text style={s.sessionName}>{sess.routineName ?? 'Entrenamiento'}</Text>
-                                            <Text style={s.sessionSub}>{sess.durationMinutes ?? 0} min · {new Date(sess.completedAt ?? '').toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}</Text>
+                                {sessions!.slice(0, 5).map((sess, i) => {
+                                    const catName = (sess as any).routineCategory ?? '';
+                                    const isYoga = catName === 'yoga';
+                                    const isPilates = catName === 'pilates';
+                                    const accent = isYoga ? '#A855F7' : isPilates ? '#06B6D4' : primary;
+                                    const bgImg = isYoga
+                                        ? 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&q=60'
+                                        : isPilates
+                                        ? 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&q=60'
+                                        : FALLBACK_IMG_P;
+                                    const iconN = isYoga ? 'leaf-outline' : isPilates ? 'body-outline' : 'barbell-outline';
+                                    const dateStr = new Date((sess as any).startedAt ?? (sess as any).started_at ?? '').toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
+                                    const dmin = (sess as any).durationMinutes ?? 0;
+                                    const rating = (sess as any).rating;
+                                    return (
+                                        <View key={i} style={[s.sessCard2, i < Math.min(sessions!.length, 5) - 1 && { marginBottom: 10 }]}>
+                                            <Image source={{ uri: bgImg }} style={s.sessCard2Img} blurRadius={5} />
+                                            <LinearGradient colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.82)']} style={s.sessCard2Overlay}>
+                                                <View style={[s.sessCard2Icon, { backgroundColor: accent + '33', borderColor: accent + '55' }]}>
+                                                    <Ionicons name={iconN as any} size={20} color={accent} />
+                                                </View>
+                                                <View style={{ flex: 1 }}>
+                                                    <Text style={s.sessCard2Name} numberOfLines={1}>{(sess as any).routineName ?? 'Entrenamiento'}</Text>
+                                                    <View style={{ flexDirection: 'row', gap: 10, marginTop: 4 }}>
+                                                        <Text style={s.sessCard2Meta}>⏱ {dmin} min</Text>
+                                                        <Text style={s.sessCard2Meta}>📅 {dateStr}</Text>
+                                                    </View>
+                                                </View>
+                                                {rating ? <Text style={{ fontSize: 12 }}>{'⭐'.repeat(rating)}</Text> : null}
+                                            </LinearGradient>
                                         </View>
-                                        <View style={[s.sessionBadge, { backgroundColor: primary + '22' }]}>
-                                            <Text style={[s.sessionBadgeText, { color: primary }]}>✓</Text>
-                                        </View>
+                                    );
+                                })}
+                            </View>
+                        )}
                                     </View>
                                 ))}
                             </View>
@@ -1082,6 +1118,10 @@ const s = StyleSheet.create({
     gridCell: { width: GRID_SIZE, height: GRID_SIZE, position: 'relative', overflow: 'hidden' },
     gridImg: { width: '100%', height: '100%' },
     gridPlaceholder: { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' },
+    gridVideoOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, padding: 8, justifyContent: 'flex-end' },
+    gridVideoBrand: { fontSize: 7, fontWeight: '900', color: 'rgba(255,255,255,0.45)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 },
+    gridVideoName: { fontSize: 10, fontWeight: '700', color: '#fff', lineHeight: 13 },
+    gridVideoMeta: { fontSize: 9, color: 'rgba(255,255,255,0.65)', marginTop: 2, fontWeight: '600' },
     gridOverlay: { position: 'absolute', bottom: 4, right: 4, flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: '#00000066', borderRadius: 8, paddingHorizontal: 5, paddingVertical: 2 },
     gridLikes: { color: '#fff', fontSize: 10, fontWeight: '700' },
     // Empty
@@ -1107,6 +1147,16 @@ const s = StyleSheet.create({
     // Sessions
     sessionRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.sm, borderBottomWidth: 1, borderBottomColor: Colors.border },
     sessionDot: { width: 8, height: 8, borderRadius: 4 },
+    sessCard: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 10, backgroundColor: Colors.surface, borderRadius: BorderRadius.md, borderWidth: 1, borderColor: Colors.border },
+    sessCardGrad: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+    sessCard2: { height: 90, borderRadius: 18, overflow: 'hidden', position: 'relative', backgroundColor: '#111' },
+    sessCard2Img: { position: 'absolute', width: '100%', height: '100%' },
+    sessCard2Overlay: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 12 },
+    sessCard2Icon: { width: 46, height: 46, borderRadius: 14, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
+    sessCard2Name: { fontSize: FontSizes.base, fontWeight: '700', color: '#fff' },
+    sessCard2Meta: { fontSize: FontSizes.xs, color: 'rgba(255,255,255,0.7)', fontWeight: '600' },
+    sessPill: { flexDirection: 'row', alignItems: 'center', gap: 3, borderRadius: 6, borderWidth: 1, paddingHorizontal: 6, paddingVertical: 3 },
+    sessPillTxt: { fontSize: 9, fontWeight: '700' },
     sessionName: { color: Colors.textPrimary, fontWeight: '600', fontSize: FontSizes.sm },
     sessionSub: { color: Colors.textSecondary, fontSize: FontSizes.xs, marginTop: 2 },
     sessionBadge: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
