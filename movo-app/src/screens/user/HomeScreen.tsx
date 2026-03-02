@@ -8,6 +8,7 @@ import { useRoutineStore } from '../../store/routineStore';
 import { useThemeStore } from '../../store/themeStore';
 import { GradientCard } from '../../components/ui/GradientCard';
 import { WorkoutCard } from '../../components/ui/WorkoutCard';
+import { MovoLogoInline } from '../../components/ui/MovoLogo';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../utils/constants';
 
 const SCREEN_W = Dimensions.get('window').width;
@@ -74,8 +75,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 {/* Header */}
                 <View style={s.header}>
                     <View style={s.headerLogo}>
-                        <Ionicons name="flash" size={26} color={primary} />
-                        <Text style={[s.headerBrand, { color: primary }]}>MOVO</Text>
+                        <MovoLogoInline primary={primary} />
                     </View>
                     <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={s.settingsBtn}>
                         <Ionicons name="settings-outline" size={22} color={Colors.textPrimary} />
@@ -255,8 +255,8 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                                         <Ionicons name="barbell-outline" size={14} color={primary} />
                                     </View>
                                     <View style={{ flex: 1 }}>
-                                        <Text style={s.sessName} numberOfLines={1}>{sess.routine?.name ?? 'Entrenamiento'}</Text>
-                                        <Text style={s.sessMeta}>{sess.duration_minutes ?? 0} min · {new Date(sess.started_at ?? '').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}</Text>
+                                        <Text style={s.sessName} numberOfLines={1}>{sess.routineName ?? 'Entrenamiento'}</Text>
+                                        <Text style={s.sessMeta}>{sess.durationMinutes ?? 0} min · {new Date(sess.startedAt ?? '').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}</Text>
                                     </View>
                                 </View>
                             ))

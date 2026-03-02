@@ -532,7 +532,7 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
 
     const userGoals = Goals.filter((g) => (profile?.goals ?? []).includes(g.id));
     const activityLevel = ActivityLevels.find((a) => a.id === profile?.activity_level);
-    const totalMinutes = (sessions ?? []).reduce((acc, s) => acc + (s.duration_minutes ?? 0), 0);
+    const totalMinutes = (sessions ?? []).reduce((acc, s) => acc + (s.durationMinutes ?? 0), 0);
     const avgMinutes = sessions?.length ? Math.round(totalMinutes / sessions.length) : 0;
 
     const TABS: { key: Tab; icon: string; label: string }[] = [
@@ -803,8 +803,8 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                                     <View key={i} style={s.sessionRow}>
                                         <View style={[s.sessionDot, { backgroundColor: primary }]} />
                                         <View style={{ flex: 1 }}>
-                                            <Text style={s.sessionName}>{sess.routine?.name ?? 'Entrenamiento'}</Text>
-                                            <Text style={s.sessionSub}>{sess.duration_minutes ?? 0} min · {new Date(sess.completed_at ?? '').toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}</Text>
+                                            <Text style={s.sessionName}>{sess.routineName ?? 'Entrenamiento'}</Text>
+                                            <Text style={s.sessionSub}>{sess.durationMinutes ?? 0} min · {new Date(sess.completedAt ?? '').toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}</Text>
                                         </View>
                                         <View style={[s.sessionBadge, { backgroundColor: primary + '22' }]}>
                                             <Text style={[s.sessionBadgeText, { color: primary }]}>✓</Text>

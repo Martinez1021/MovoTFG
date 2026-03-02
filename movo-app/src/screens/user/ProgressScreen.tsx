@@ -107,7 +107,7 @@ const SlideHistory: React.FC<{ sessions: any[]; primary: string }> = ({ sessions
                 </View>
             ) : (
                 sessions.slice(0, 20).map((s, i) => {
-                    const date = new Date(s.started_at);
+                    const date = new Date(s.startedAt);
                     const label = date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
                     return (
                         <View key={s.id ?? i} style={sl.sessionRow}>
@@ -115,8 +115,8 @@ const SlideHistory: React.FC<{ sessions: any[]; primary: string }> = ({ sessions
                                 <Ionicons name="barbell-outline" size={18} color={primary} />
                             </View>
                             <View style={{ flex: 1 }}>
-                                <Text style={sl.sessionTitle}>{s.routine?.title ?? 'Sesión de entrenamiento'}</Text>
-                                <Text style={sl.sessionMeta}>{label} · {s.duration_minutes ?? 0} min</Text>
+                                <Text style={sl.sessionTitle}>{s.routineName ?? 'Sesión de entrenamiento'}</Text>
+                                <Text style={sl.sessionMeta}>{label} · {s.durationMinutes ?? 0} min</Text>
                             </View>
                             {s.rating ? <Text style={{ fontSize: 13 }}>{'⭐'.repeat(s.rating)}</Text> : null}
                         </View>
