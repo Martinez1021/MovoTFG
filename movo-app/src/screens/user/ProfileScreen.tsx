@@ -391,13 +391,17 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
     const myWorkoutPosts = myPosts.filter((p) => (p as any).workout_data);
 
     const loadSocialData = useCallback(async () => {
-        if (!user?.id) return;
+        // Always use the Supabase auth UUID to look up internal ID.
+        // user.id can be overwritten with the backend internal UUID after syncUser().
+        const { data: { session } } = await supabase.auth.getSession();
+        const authUid = session?.user?.id;
+        if (!authUid) return;
 
         // Resolve internal users.id (different from supabase auth UUID)
         const { data: myRow } = await supabase
             .from('users')
             .select('id')
-            .eq('supabase_id', user.id)
+            .eq('supabase_id', authUid)
             .maybeSingle();
         const internalId = myRow?.id ?? null;
         setMyInternalId(internalId);
@@ -449,7 +453,7 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                 setFollowRequests([]);
             }
         }
-    }, [user?.id]);
+    }, []);
 
     // ── Trainer request ──────────────────────────────────────────────────────
     useEffect(() => {
@@ -468,31 +472,63 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
     }, [myInternalId]);
 
     const sendTrainerRequest = async () => {
-        if (!trainerCodeInput.trim() || !myInternalId) return;
+        const code = trainerCodeInput.trim().toUpperCase().slice(0, 8);
+        if (code.length < 6) return;
         setSendingTrainerReq(true);
         try {
-            const code = trainerCodeInput.trim().toUpperCase().slice(0, 8);
-            // Trainers use first 8 chars of their UUID as invite code
-            const { data: trainers } = await supabase
+            // Resolve myInternalId on the spot if not yet loaded
+            let clientId = myInternalId;
+            if (!clientId) {
+                // Always use the Supabase auth UUID (user.id may be the backend internal UUID after sync)
+                const { data: { session: mySess } } = await supabase.auth.getSession();
+                const myAuthUid = mySess?.user?.id;
+                if (!myAuthUid) throw new Error('No hay sesión activa. Cierra sesión y vuelve a entrar.');
+                const { data: myRow, error: meErr } = await supabase
+                    .from('users')
+                    .select('id')
+                    .eq('supabase_id', myAuthUid)
+                    .maybeSingle();
+                if (meErr) throw new Error('Error cargando tu cuenta: ' + meErr.message);
+                clientId = myRow?.id ?? null;
+                if (clientId) setMyInternalId(clientId);
+            }
+            if (!clientId) throw new Error('No se encontró tu usuario en la base de datos. Cierra sesión y vuelve a entrar.');
+
+            // Trainer code = first 8 chars of their Supabase auth UUID (supabase_id)
+            const { data: trainers, error: searchError } = await supabase
                 .from('users')
                 .select('id, full_name, avatar_url')
                 .eq('role', 'trainer')
-                .ilike('id', `${code}%`);
+                .ilike('supabase_id', `${code}%`);
+
+            if (searchError) throw new Error('Error buscando entrenador: ' + searchError.message);
             if (!trainers || trainers.length === 0) {
-                Alert.alert('Código inválido', 'No se encontró ningún entrenador con ese código. Pídele que lo comparta desde su perfil.');
+                Alert.alert('Código inválido', 'No se encontró ningún entrenador con ese código.\n\nAsegúrate de que el código es correcto y el entrenador tiene cuenta en MOVO.');
                 return;
             }
             const trainer = trainers[0];
-            // Insert or ignore duplicate
-            const { error } = await supabase.from('trainer_requests').upsert(
-                { client_id: myInternalId, trainer_id: trainer.id, status: 'pending' },
-                { onConflict: 'client_id,trainer_id' }
-            );
-            if (error) throw error;
-            setTrainerReqSent(true);
+
+            // Delete any old rejected request first, then insert fresh
+            await supabase
+                .from('trainer_requests')
+                .delete()
+                .eq('client_id', clientId)
+                .eq('trainer_id', trainer.id)
+                .eq('status', 'rejected');
+
+            const { error: insertError } = await supabase
+                .from('trainer_requests')
+                .insert({ client_id: clientId, trainer_id: trainer.id, status: 'pending' });
+
+            // If duplicate (already pending), ignore the unique conflict
+            if (insertError && !insertError.message.includes('duplicate') && !insertError.message.includes('unique')) {
+                throw new Error('Error al enviar solicitud: ' + insertError.message);
+            }
+
             setTrainerCodeInput('');
-            Alert.alert('✅ Solicitud enviada', `Tu solicitud ha sido enviada a ${trainer.full_name}. Te avisaremos cuando la acepte.`);
+            setTrainerReqSent(true);
         } catch (e: any) {
+            console.error('[TrainerRequest]', e);
             Alert.alert('Error', e?.message ?? 'No se pudo enviar la solicitud');
         } finally {
             setSendingTrainerReq(false);

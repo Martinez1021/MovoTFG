@@ -66,7 +66,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                     fullName: supabaseUser.user_metadata?.full_name ?? '',
                     role: supabaseUser.user_metadata?.role ?? 'user',
                 }).then(({ data }) => {
-                    if (data) set({ user: data });
+                    // Preserve id as Supabase auth UUID — backend returns internal DB UUID which breaks
+                    // supabase_id lookups and trainer codes throughout the app.
+                    if (data) set({ user: { ...data, id: supabaseUser.id } });
                 }).catch(() => { /* backend offline — use Supabase data */ });
             }
         } catch (e) {
@@ -115,7 +117,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 fullName: supabaseUser.user_metadata?.full_name ?? '',
                 role: supabaseUser.user_metadata?.role ?? 'user',
             }).then(({ data: syncRes }) => {
-                if (syncRes) set({ user: syncRes });
+                // Preserve id as Supabase auth UUID — backend internal UUID must not overwrite it.
+                if (syncRes) set({ user: { ...syncRes, id: supabaseUser.id } });
             }).catch(() => { /* backend offline — use Supabase data */ });
         } finally {
             set({ isLoading: false });
@@ -158,7 +161,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                     fullName: data.full_name,
                     role: data.role,
                 }).then(async ({ data: syncRes }) => {
-                    if (syncRes) set({ user: { ...syncRes, avatar_url: avatarUrl ?? syncRes.avatar_url } });
+                    // Preserve id as Supabase auth UUID.
+                    if (syncRes) set({ user: { ...syncRes, id: authData.user!.id, avatar_url: avatarUrl ?? syncRes.avatar_url } });
                     // Upload avatar to users table once the row is synced
                     if (avatarUrl) {
                         await supabase

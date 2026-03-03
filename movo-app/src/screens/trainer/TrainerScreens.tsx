@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTrainerStore, ClientSession } from '../../store/trainerStore';
 import { useAuthStore } from '../../store/authStore';
 import { useThemeStore } from '../../store/themeStore';
+import { supabase } from '../../services/supabase';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../utils/constants';
 import { Button } from '../../components/ui/Button';
 
@@ -70,11 +71,17 @@ export const TrainerDashboardScreen: React.FC<{ navigation: any }> = ({ navigati
     const { clients, pendingRequests, isLoading, fetchClients, fetchPendingRequests, acceptRequest, rejectRequest } = useTrainerStore();
     const { user } = useAuthStore();
     const { primary } = useThemeStore();
-    const trainerCode = user?.id?.slice(0, 8).toUpperCase() ?? '——';
+    const [trainerCode, setTrainerCode] = useState('——');
 
     useEffect(() => {
         fetchClients();
         fetchPendingRequests();
+        // Use Supabase auth UUID for trainer code (user.id may be overwritten with internal DB UUID after backend sync)
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session?.user?.id) {
+                setTrainerCode(session.user.id.slice(0, 8).toUpperCase());
+            }
+        });
     }, []);
 
     const handleAccept = (reqId: string, clientId: string) => {
