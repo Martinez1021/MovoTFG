@@ -185,6 +185,39 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                     })}
                 </View>
 
+                {/* 30-day streak calendar */}
+                <View style={s.calendarCard}>
+                    <View style={s.calendarHeader}>
+                        <Text style={s.sectionTitle}>🔥 Últimos 30 días</Text>
+                        <View style={[s.streakPill, { backgroundColor: primary + '22', borderColor: primary + '55' }]}>
+                            <Text style={[s.streakPillText, { color: primary }]}>Racha: {stats?.streak ?? 0}d 🔥</Text>
+                        </View>
+                    </View>
+                    <View style={s.calendarGrid}>
+                        {Array.from({ length: 30 }, (_, i) => {
+                            const d = new Date(); d.setDate(d.getDate() - (29 - i));
+                            const dateStr = d.toISOString().split('T')[0];
+                            const worked = (sessions ?? []).some(s =>
+                                ((s as any).startedAt ?? (s as any).started_at ?? '').startsWith(dateStr)
+                            );
+                            const isToday = i === 29;
+                            return (
+                                <View key={dateStr} style={[
+                                    s.calDot,
+                                    worked && { backgroundColor: primary },
+                                    isToday && !worked && { borderWidth: 1.5, borderColor: primary },
+                                ]} />
+                            );
+                        })}
+                    </View>
+                    <View style={s.calendarLegend}>
+                        <View style={[s.calDotSmall, { backgroundColor: primary }]} />
+                        <Text style={s.calendarLegendText}>Entrenamiento</Text>
+                        <View style={[s.calDotSmall, { backgroundColor: Colors.border }]} />
+                        <Text style={s.calendarLegendText}>Descanso</Text>
+                    </View>
+                </View>
+
                 {/* Progress slider */}
                 <View style={s.progressHeader}>
                     <Text style={s.sectionTitle}>📈 Mi progreso</Text>
@@ -394,5 +427,15 @@ const s = StyleSheet.create({
     sessMeta: { fontSize: 10, color: Colors.textSecondary, marginTop: 1 },
     progressDots: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginBottom: Spacing.lg },
     progressDot: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: Colors.border },
+    // 30-day calendar
+    calendarCard: { backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, padding: Spacing.base, borderWidth: 1, borderColor: Colors.border, marginBottom: Spacing.lg },
+    calendarHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.md },
+    calendarGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
+    calDot: { width: 22, height: 22, borderRadius: 6, backgroundColor: Colors.border },
+    streakPill: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: BorderRadius.full, paddingHorizontal: 10, paddingVertical: 4 },
+    streakPillText: { fontSize: FontSizes.xs, fontWeight: '800' },
+    calendarLegend: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: Spacing.sm },
+    calDotSmall: { width: 10, height: 10, borderRadius: 3 },
+    calendarLegendText: { fontSize: FontSizes.xs, color: Colors.textSecondary, marginRight: Spacing.sm },
 });
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
     View, Text, StyleSheet, ScrollView, TouchableOpacity,
-    RefreshControl, Image,
+    RefreshControl, Image, Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,6 +11,7 @@ import { useThemeStore } from '../../store/themeStore';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../utils/constants';
 import { Routine } from '../../types';
 import { CATALOGUE, GOAL_TAGS, GOAL_LABEL } from '../../utils/catalogue';
+import { supabase } from '../../services/supabase';
 
 const CAT_LABELS: Record<string, string> = { gym: '🏋️ Gym', yoga: '🧘 Yoga', pilates: '🌀 Pilates' };
 const DIFF_LABELS: Record<string, string> = { beginner: 'Principiante', intermediate: 'Intermedio', advanced: 'Avanzado' };
@@ -28,7 +29,8 @@ const RoutineCard: React.FC<{
     onPress: () => void;
     onToggleSave: () => void;
     onStart: () => void;
-}> = ({ routine, saved, onPress, onToggleSave, onStart }) => {
+    assignMode?: boolean;
+}> = ({ routine, saved, onPress, onToggleSave, onStart, assignMode }) => {
     const grad = CAT_GRAD[routine.category] ?? ['#6C63FF', '#9C6FFF'];
     const hasImage = !!routine.image_url;
     return (
@@ -68,9 +70,9 @@ const RoutineCard: React.FC<{
                         <Text style={card.statText}>{routine.duration_minutes} min</Text>
                     </View>
                     <TouchableOpacity onPress={onStart} activeOpacity={0.8}>
-                        <LinearGradient colors={grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={card.startBtn}>
-                            <Text style={card.startText}>Empezar</Text>
-                            <Ionicons name="arrow-forward" size={13} color="#fff" />
+                        <LinearGradient colors={assignMode ? ['#7C3AED', '#A855F7'] : grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={card.startBtn}>
+                            <Text style={card.startText}>{assignMode ? 'Asignar' : 'Empezar'}</Text>
+                            <Ionicons name={assignMode ? 'person-add-outline' : 'arrow-forward'} size={13} color="#fff" />
                         </LinearGradient>
                     </TouchableOpacity>
                 </View>
@@ -88,12 +90,34 @@ export const RoutinesScreen: React.FC<{ navigation: any; route: any }> = ({ navi
     const { profile } = useAuthStore();
     const { publicRoutines, fetchPublicRoutines, isLoading } = useRoutineStore();
 
+    const assignToClientId: string | undefined = route.params?.assignToClientId;
+
     const [catFilter, setCatFilter] = useState<string>(route.params?.category ?? 'all');
     const [diffFilter, setDiffFilter] = useState<string>('all');
     const [tab, setTab] = useState<'library' | 'saved'>('library');
     const [saved, setSaved] = useState<Set<string>>(new Set());
+    const [assigning, setAssigning] = useState(false);
 
     useEffect(() => { fetchPublicRoutines(); }, []);
+
+    const handleAssign = async (routineId: string, routineTitle: string) => {
+        if (!assignToClientId) return;
+        setAssigning(true);
+        try {
+            const { error } = await supabase.from('user_routines').upsert(
+                { user_id: assignToClientId, routine_id: routineId, status: 'active' },
+                { onConflict: 'user_id,routine_id' }
+            );
+            if (error) throw error;
+            Alert.alert('✅ Rutina asignada', `"${routineTitle}" asignada al cliente.`, [
+                { text: 'OK', onPress: () => navigation.goBack() },
+            ]);
+        } catch (e: any) {
+            Alert.alert('Error', e?.message ?? 'No se pudo asignar la rutina');
+        } finally {
+            setAssigning(false);
+        }
+    };
 
     const allRoutines = useMemo(() => {
         const backendIds = new Set(publicRoutines.map((r) => r.id));
@@ -139,7 +163,19 @@ export const RoutinesScreen: React.FC<{ navigation: any; route: any }> = ({ navi
         <LinearGradient colors={['#0A0A0A', '#0D0A18']} style={{ flex: 1 }}>
             {/* Header */}
             <View style={s.header}>
-                <Text style={s.heading}>Rutinas</Text>
+                {assignToClientId && (
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: Spacing.sm }}>
+                        <Ionicons name="arrow-back" size={18} color={Colors.textSecondary} />
+                        <Text style={{ color: Colors.textSecondary, fontSize: FontSizes.sm }}>Volver</Text>
+                    </TouchableOpacity>
+                )}
+                <Text style={s.heading}>{assignToClientId ? 'Asignar rutina' : 'Rutinas'}</Text>
+                {assignToClientId && (
+                    <LinearGradient colors={['#7C3AED33', '#7C3AED11']} style={s.assignBanner}>
+                        <Ionicons name="person-add-outline" size={18} color="#A855F7" />
+                        <Text style={s.assignBannerText}>Selecciona una rutina para asignar al cliente</Text>
+                    </LinearGradient>
+                )}
                 <View style={s.tabRow}>
                     {[
                         { id: 'library', label: '📚 Biblioteca' },
@@ -218,7 +254,11 @@ export const RoutinesScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                         <RoutineCard key={r.id} routine={r} saved={saved.has(r.id)}
                             onPress={() => navigation.navigate('RoutineDetail', { routineId: r.id })}
                             onToggleSave={() => toggleSave(r.id)}
-                            onStart={() => navigation.navigate('ActiveWorkout', { routineId: r.id })} />
+                            assignMode={!!assignToClientId}
+                            onStart={() => assignToClientId
+                                ? handleAssign(r.id, r.title)
+                                : navigation.navigate('ActiveWorkout', { routineId: r.id })
+                            } />
                     ))}
                 </ScrollView>
             ) : (
@@ -240,7 +280,11 @@ export const RoutinesScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                                 <RoutineCard key={r.id} routine={r} saved
                                     onPress={() => navigation.navigate('RoutineDetail', { routineId: r.id })}
                                     onToggleSave={() => toggleSave(r.id)}
-                                    onStart={() => navigation.navigate('ActiveWorkout', { routineId: r.id })} />
+                                    assignMode={!!assignToClientId}
+                                    onStart={() => assignToClientId
+                                        ? handleAssign(r.id, r.title)
+                                        : navigation.navigate('ActiveWorkout', { routineId: r.id })
+                                    } />
                             ))}
                         </>
                     )}
@@ -300,4 +344,6 @@ const s = StyleSheet.create({
     emptySub: { fontSize: FontSizes.sm, color: Colors.textSecondary, textAlign: 'center', lineHeight: 20 },
     emptyBtn: { marginTop: Spacing.md, paddingHorizontal: Spacing.xl, paddingVertical: Spacing.md, borderRadius: BorderRadius.full },
     emptyBtnText: { color: '#fff', fontWeight: '700', fontSize: FontSizes.base },
+    assignBanner: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, borderRadius: BorderRadius.lg, padding: Spacing.md, marginTop: Spacing.sm, borderWidth: 1, borderColor: '#7C3AED44' },
+    assignBannerText: { flex: 1, fontSize: FontSizes.sm, fontWeight: '600', color: '#A855F7', lineHeight: 18 },
 });

@@ -1,10 +1,11 @@
 ﻿import React, { useEffect, useRef, useState } from 'react';
 import {
     View, Text, StyleSheet, ScrollView,
-    Dimensions, TouchableOpacity, Alert, ActivityIndicator,
+    Dimensions, TouchableOpacity, Alert, ActivityIndicator, TextInput,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoutineStore } from '../../store/routineStore';
 import { useThemeStore } from '../../store/themeStore';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../utils/constants';
@@ -152,8 +153,176 @@ const SlideHistory: React.FC<{ sessions: any[]; primary: string }> = ({ sessions
     </View>
 );
 
+// ── Slide 4: Peso corporal ───────────────────────────────
+type WeightEntry = { date: string; weight: number };
+const WEIGHT_KEY = 'movo_weight_log';
+
+const SlideWeight: React.FC<{ primary: string }> = ({ primary }) => {
+    const [entries, setEntries] = useState<WeightEntry[]>([]);
+    const [input, setInput] = useState('');
+    const [saving, setSaving] = useState(false);
+
+    const load = async () => {
+        try {
+            const raw = await AsyncStorage.getItem(WEIGHT_KEY);
+            if (raw) setEntries(JSON.parse(raw));
+        } catch { /* ignore */ }
+    };
+    useEffect(() => { load(); }, []);
+
+    const handleSave = async () => {
+        const kg = parseFloat(input.replace(',', '.'));
+        if (isNaN(kg) || kg < 20 || kg > 300) { Alert.alert('Peso inválido', 'Introduce un peso entre 20 y 300 kg'); return; }
+        setSaving(true);
+        const today = new Date().toISOString().split('T')[0];
+        const updated = [{ date: today, weight: kg }, ...entries.filter(e => e.date !== today)].slice(0, 60);
+        await AsyncStorage.setItem(WEIGHT_KEY, JSON.stringify(updated));
+        setEntries(updated);
+        setInput('');
+        setSaving(false);
+    };
+
+    const sorted = [...entries].sort((a, b) => a.date.localeCompare(b.date));
+    const last10 = sorted.slice(-10);
+    const weights = last10.map(e => e.weight);
+    const maxW = Math.max(...weights, 1);
+    const minW = Math.min(...weights, 0);
+    const range = maxW - minW || 1;
+    const latest = entries[0];
+    const prev = entries[1];
+    const diff = latest && prev ? (latest.weight - prev.weight) : null;
+
+    return (
+        <View style={sl.wrap}>
+            <Text style={sl.title}>⚖️ Peso corporal</Text>
+            <Text style={sl.sub}>{latest ? `Último: ${latest.weight} kg · ${latest.date}` : 'Sin registros aún'}</Text>
+
+            {/* Diff badge */}
+            {diff !== null && (
+                <View style={[wl.diffBadge, { backgroundColor: diff <= 0 ? Colors.success + '22' : '#FF6B3522' }]}>
+                    <Text style={[wl.diffText, { color: diff <= 0 ? Colors.success : '#FF6B35' }]}>
+                        {diff > 0 ? `↑ +${diff.toFixed(1)} kg` : `↓ ${diff.toFixed(1)} kg`} respecto al anterior
+                    </Text>
+                </View>
+            )}
+
+            {/* Mini line chart */}
+            {last10.length > 1 && (
+                <View style={wl.chartWrap}>
+                    <Text style={sl.panelTitle}>Últimas {last10.length} mediciones</Text>
+                    <View style={wl.chartBars}>
+                        {last10.map((entry, i) => {
+                            const pct = ((entry.weight - minW) / range) * 80 + 10;
+                            const isLast = i === last10.length - 1;
+                            return (
+                                <View key={entry.date} style={wl.barCol}>
+                                    <Text style={wl.barVal}>{isLast ? entry.weight : ''}</Text>
+                                    <View style={wl.barTrack}>
+                                        <LinearGradient
+                                            colors={isLast ? [primary, primary + 'AA'] : [Colors.border, Colors.border]}
+                                            style={[wl.barFill, { height: `${pct}%` }]}
+                                        />
+                                    </View>
+                                    <Text style={wl.barDate}>{entry.date.slice(5)}</Text>
+                                </View>
+                            );
+                        })}
+                    </View>
+                </View>
+            )}
+
+            {/* Input */}
+            <View style={wl.inputRow}>
+                <TextInput
+                    style={[wl.input, { borderColor: primary + '55' }]}
+                    value={input}
+                    onChangeText={setInput}
+                    placeholder="Ej: 75.5"
+                    placeholderTextColor={Colors.textMuted}
+                    keyboardType="decimal-pad"
+                    returnKeyType="done"
+                    onSubmitEditing={handleSave}
+                />
+                <Text style={wl.inputUnit}>kg</Text>
+                <TouchableOpacity onPress={handleSave} disabled={saving || !input} style={[wl.saveBtn, { backgroundColor: primary, opacity: input ? 1 : 0.4 }]}>
+                    {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={wl.saveBtnText}>Registrar</Text>}
+                </TouchableOpacity>
+            </View>
+
+            {/* History list */}
+            {entries.length > 0 && (
+                <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+                    <Text style={[sl.panelTitle, { marginTop: Spacing.md }]}>Historial completo</Text>
+                    {entries.slice(0, 20).map((entry, i) => (
+                        <View key={entry.date} style={wl.histRow}>
+                            <Text style={wl.histRank}>#{i + 1}</Text>
+                            <Text style={wl.histDate}>{entry.date}</Text>
+                            <Text style={[wl.histWeight, { color: primary }]}>{entry.weight} kg</Text>
+                        </View>
+                    ))}
+                </ScrollView>
+            )}
+        </View>
+    );
+};
+
+// ── Slide 5: Récords personales (PRs) ───────────────────
+type PREntry = { maxWeight: number; reps: number; date: string };
+const PR_KEY = 'movo_pr_tracking';
+
+const SlidePRs: React.FC<{ primary: string }> = ({ primary }) => {
+    const [prs, setPrs] = useState<Record<string, PREntry>>({});
+    const [loaded, setLoaded] = useState(false);
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const raw = await AsyncStorage.getItem(PR_KEY);
+                if (raw) setPrs(JSON.parse(raw));
+            } catch { /* ignore */ }
+            setLoaded(true);
+        })();
+    }, []);
+
+    const prList = Object.entries(prs).sort((a, b) => b[1].maxWeight - a[1].maxWeight);
+
+    return (
+        <View style={sl.wrap}>
+            <Text style={sl.title}>🏆 Récords personales</Text>
+            <Text style={sl.sub}>Tu mejor marca por ejercicio</Text>
+            {!loaded ? (
+                <ActivityIndicator color={primary} style={{ marginTop: 40 }} />
+            ) : prList.length === 0 ? (
+                <View style={sl.emptyBox}>
+                    <Text style={{ fontSize: 48 }}>🏋️</Text>
+                    <Text style={sl.emptyText}>Sin récords aún</Text>
+                    <Text style={sl.emptySub}>Completa series con peso para registrar tus récords automáticamente.</Text>
+                </View>
+            ) : (
+                <ScrollView showsVerticalScrollIndicator={false}>
+                    {prList.map(([name, pr], i) => (
+                        <View key={name} style={prl.row}>
+                            <View style={[prl.rank, { backgroundColor: i === 0 ? '#FFD700' + '33' : i === 1 ? '#C0C0C0' + '33' : '#CD7F32' + '33' }]}>
+                                <Text style={[prl.rankText, { color: i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : '#CD7F32' }]}>
+                                    {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
+                                </Text>
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <Text style={prl.name} numberOfLines={1}>{name}</Text>
+                                <Text style={prl.meta}>{pr.date} · {pr.reps} reps</Text>
+                            </View>
+                            <Text style={[prl.weight, { color: primary }]}>{pr.maxWeight} kg</Text>
+                        </View>
+                    ))}
+                </ScrollView>
+            )}
+        </View>
+    );
+};
+
+
 // ── Main screen ─────────────────────────────────────────
-const SLIDES = ['Semana', 'Actividad', 'Historial'];
+const SLIDES = ['Semana', 'Actividad', 'Historial', 'Peso', 'Récords'];
 
 export const ProgressScreen: React.FC<{ navigation?: any }> = ({ navigation }) => {
     const { stats, sessions, fetchStats, fetchSessions, isLoading, seedDemoSessions } = useRoutineStore();
@@ -247,6 +416,14 @@ export const ProgressScreen: React.FC<{ navigation?: any }> = ({ navigation }) =
                 <View style={{ width: SCREEN_W }}>
                     <SlideHistory sessions={sessions} primary={primary} />
                 </View>
+                {/* Slide 4 */}
+                <View style={{ width: SCREEN_W }}>
+                    <SlideWeight primary={primary} />
+                </View>
+                {/* Slide 5 */}
+                <View style={{ width: SCREEN_W }}>
+                    <SlidePRs primary={primary} />
+                </View>
             </ScrollView>
 
             {/* Dot indicators */}
@@ -287,6 +464,7 @@ const sl = StyleSheet.create({
     sessionMeta: { fontSize: FontSizes.xs, color: Colors.textSecondary, marginTop: 2 },
     seedBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderRadius: BorderRadius.full, paddingHorizontal: Spacing.lg, paddingVertical: 10, marginTop: 4 },
     seedBtnText: { fontSize: FontSizes.sm, fontWeight: '700' },
+    panelTitle: { fontSize: FontSizes.xs, fontWeight: '700', color: Colors.textSecondary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: Spacing.sm },
 });
 
 // ── Screen styles ────────────────────────────────────────
@@ -299,4 +477,36 @@ const s = StyleSheet.create({
     tabText: { fontSize: FontSizes.sm, color: Colors.textSecondary },
     dots: { flexDirection: 'row', justifyContent: 'center', gap: Spacing.sm, paddingBottom: 30, paddingTop: Spacing.sm },
     dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.border },
+});
+
+// ── Weight log styles ────────────────────────────────────
+const wl = StyleSheet.create({
+    diffBadge: { flexDirection: 'row', padding: Spacing.sm, borderRadius: BorderRadius.md, marginBottom: Spacing.md },
+    diffText: { fontSize: FontSizes.sm, fontWeight: '700' },
+    chartWrap: { backgroundColor: Colors.surface, borderRadius: BorderRadius.md, padding: Spacing.md, marginBottom: Spacing.md, borderWidth: 1, borderColor: Colors.border },
+    chartBars: { flexDirection: 'row', gap: 4, height: 100, alignItems: 'flex-end' },
+    barCol: { flex: 1, alignItems: 'center', gap: 2 },
+    barVal: { fontSize: 9, color: Colors.textSecondary, height: 12 },
+    barTrack: { flex: 1, width: '100%', borderRadius: 4, overflow: 'hidden', justifyContent: 'flex-end' },
+    barFill: { width: '100%', borderRadius: 4 },
+    barDate: { fontSize: 8, color: Colors.textMuted },
+    inputRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: Spacing.md },
+    input: { flex: 1, backgroundColor: Colors.surface, borderRadius: BorderRadius.md, borderWidth: 1.5, padding: Spacing.md, color: Colors.textPrimary, fontSize: FontSizes.base, fontWeight: '700' },
+    inputUnit: { fontSize: FontSizes.base, fontWeight: '800', color: Colors.textSecondary },
+    saveBtn: { paddingHorizontal: Spacing.lg, paddingVertical: 12, borderRadius: BorderRadius.full, alignItems: 'center', justifyContent: 'center' },
+    saveBtnText: { color: '#fff', fontWeight: '800', fontSize: FontSizes.sm },
+    histRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: BorderRadius.md, padding: Spacing.md, marginBottom: Spacing.sm, borderWidth: 1, borderColor: Colors.border },
+    histRank: { fontSize: FontSizes.xs, color: Colors.textMuted, fontWeight: '700', width: 30 },
+    histDate: { flex: 1, fontSize: FontSizes.sm, color: Colors.textSecondary },
+    histWeight: { fontSize: FontSizes.base, fontWeight: '800' },
+});
+
+// ── PR styles ────────────────────────────────────────────
+const prl = StyleSheet.create({
+    row: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: BorderRadius.md, padding: Spacing.md, marginBottom: Spacing.sm, borderWidth: 1, borderColor: Colors.border, gap: Spacing.md },
+    rank: { width: 38, height: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+    rankText: { fontSize: FontSizes.base, fontWeight: '900' },
+    name: { fontSize: FontSizes.base, fontWeight: '700', color: Colors.textPrimary },
+    meta: { fontSize: FontSizes.xs, color: Colors.textSecondary, marginTop: 2 },
+    weight: { fontSize: FontSizes.lg, fontWeight: '900' },
 });

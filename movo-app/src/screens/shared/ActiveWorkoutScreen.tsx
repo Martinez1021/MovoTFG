@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity, Alert, Vibration,
-    ScrollView, TextInput, Image, KeyboardAvoidingView, Platform,
+    ScrollView, TextInput, Image, KeyboardAvoidingView, Platform, Modal, Animated,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -83,6 +83,36 @@ export const ActiveWorkoutScreen: React.FC<{ navigation: any; route: any }> = ({
     const [notesOpen, setNotesOpen] = useState<Record<string, boolean>>({});
     const [routineImage, setRoutineImage] = useState<string | undefined>();
 
+    // ── Rest timer ──────────────────────────────────────────────────────────
+    const [restSeconds, setRestSeconds] = useState<number | null>(null);
+    const [restTotal, setRestTotal] = useState(60);
+    const restIntervalRef = useRef<any>(null);
+    const restAnim = useRef(new Animated.Value(1)).current;
+
+    const startRest = (seconds: number) => {
+        clearInterval(restIntervalRef.current);
+        setRestTotal(seconds);
+        setRestSeconds(seconds);
+        restAnim.setValue(1);
+        Animated.timing(restAnim, { toValue: 0, duration: seconds * 1000, useNativeDriver: false }).start();
+        restIntervalRef.current = setInterval(() => {
+            setRestSeconds((prev) => {
+                if (prev === null || prev <= 1) {
+                    clearInterval(restIntervalRef.current);
+                    Vibration.vibrate([0, 200, 100, 200]);
+                    return null;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+    };
+
+    const skipRest = () => {
+        clearInterval(restIntervalRef.current);
+        restAnim.stopAnimation();
+        setRestSeconds(null);
+    };
+
     useEffect(() => {
         (async () => {
             const isLocal = routineId.startsWith('local-');
@@ -120,7 +150,10 @@ export const ActiveWorkoutScreen: React.FC<{ navigation: any; route: any }> = ({
             setHistory(hist);
         })();
         intervalRef.current = setInterval(() => setElapsedSeconds((e) => e + 1), 1000);
-        return () => clearInterval(intervalRef.current);
+        return () => {
+            clearInterval(intervalRef.current);
+            clearInterval(restIntervalRef.current);
+        };
     }, []);
 
     const formatTime = (s: number) =>
@@ -137,7 +170,16 @@ export const ActiveWorkoutScreen: React.FC<{ navigation: any; route: any }> = ({
     const toggleSetDone = (exId: string, idx: number) => {
         setLogs((prev) => {
             const rows = [...(prev[exId] ?? [])];
+            const becomingDone = !rows[idx].done;
             rows[idx] = { ...rows[idx], done: !rows[idx].done };
+            if (becomingDone) {
+                // Only start rest if there are still incomplete sets
+                const remaining = rows.filter((r) => !r.done).length;
+                if (remaining > 0) {
+                    const ex = exercises.find((e) => e.id === exId);
+                    startRest(ex?.rest_seconds ?? 60);
+                }
+            }
             return { ...prev, [exId]: rows };
         });
     };
@@ -163,6 +205,27 @@ export const ActiveWorkoutScreen: React.FC<{ navigation: any; route: any }> = ({
         const updated = [newEntry, ...existing].slice(0, 3);
         setHistory((prev) => ({ ...prev, [ex.id]: updated }));
         try { await AsyncStorage.setItem(HISTORY_KEY(ex.id), JSON.stringify(updated)); } catch (_) {}
+
+        // ── Save personal record ───────────────────────────────
+        const maxWeightSet = completedSets.reduce((best, s) => s.weight > best.weight ? s : best, { weight: 0, reps: 0 });
+        if (maxWeightSet.weight > 0) {
+            try {
+                const prRaw = await AsyncStorage.getItem('movo_pr_tracking');
+                const prMap: Record<string, { maxWeight: number; reps: number; date: string }> = prRaw ? JSON.parse(prRaw) : {};
+                const existing = prMap[ex.name];
+                if (!existing || maxWeightSet.weight > existing.maxWeight) {
+                    prMap[ex.name] = { maxWeight: maxWeightSet.weight, reps: maxWeightSet.reps, date: today };
+                    await AsyncStorage.setItem('movo_pr_tracking', JSON.stringify(prMap));
+                    if (!existing) {
+                        // First ever PR for this exercise — silent
+                    } else {
+                        Vibration.vibrate([0, 100, 50, 200]);
+                    }
+                }
+            } catch (_) {}
+        }
+        // ──────────────────────────────────────────────────────
+
         setLogs((prev) => ({
             ...prev,
             [ex.id]: (prev[ex.id] ?? []).map((r) => ({ ...r, done: true })),
@@ -205,6 +268,25 @@ export const ActiveWorkoutScreen: React.FC<{ navigation: any; route: any }> = ({
 
     return (
         <View style={{ flex: 1, backgroundColor: Colors.background }}>
+            {/* ── Rest Timer Overlay ─────────────────────────────────────── */}
+            <Modal visible={restSeconds !== null} transparent animationType="fade" statusBarTranslucent>
+                <TouchableOpacity style={s.restBackdrop} activeOpacity={1} onPress={skipRest}>
+                    <View style={s.restCard}>
+                        <Text style={s.restTitle}>⏱️ Tiempo de descanso</Text>
+                        <Text style={s.restTimer}>{restSeconds ?? 0}s</Text>
+                        {/* progress bar */}
+                        <View style={s.restBarTrack}>
+                            <Animated.View style={[s.restBarFill, {
+                                width: restAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] })
+                            }]} />
+                        </View>
+                        <TouchableOpacity onPress={skipRest} style={s.restSkipBtn}>
+                            <Text style={s.restSkipText}>Saltar  →</Text>
+                        </TouchableOpacity>
+                        <Text style={s.restHint}>Toca fuera para saltar</Text>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
             <View style={s.header}>
                 <TouchableOpacity
                     onPress={() => Alert.alert('Abandonar', '\u00bfSalir del entrenamiento?', [
@@ -490,4 +572,22 @@ const s = StyleSheet.create({
         paddingVertical: 16, alignItems: 'center',
     },
     finishText: { color: Colors.textPrimary, fontSize: FontSizes.base, fontWeight: '700', letterSpacing: 0.5 },
+    // ── Rest timer ──────────────────────────────────────────────────────────
+    restBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.75)', alignItems: 'center', justifyContent: 'center' },
+    restCard: {
+        backgroundColor: Colors.surface, borderRadius: BorderRadius.xl,
+        padding: Spacing['2xl'], alignItems: 'center', width: 280,
+        borderWidth: 1, borderColor: Colors.border, gap: Spacing.md,
+    },
+    restTitle: { fontSize: FontSizes.sm, fontWeight: '700', color: Colors.textSecondary, textTransform: 'uppercase', letterSpacing: 1 },
+    restTimer: { fontSize: 72, fontWeight: '900', color: Colors.textPrimary, lineHeight: 80 },
+    restBarTrack: { width: '100%', height: 6, backgroundColor: Colors.border, borderRadius: 3, overflow: 'hidden' },
+    restBarFill: { height: '100%', backgroundColor: Colors.primary, borderRadius: 3 },
+    restSkipBtn: {
+        paddingHorizontal: Spacing.xl, paddingVertical: Spacing.sm,
+        borderRadius: BorderRadius.full, borderWidth: 1.5, borderColor: Colors.border,
+        marginTop: Spacing.sm,
+    },
+    restSkipText: { fontSize: FontSizes.base, fontWeight: '700', color: Colors.textPrimary },
+    restHint: { fontSize: FontSizes.xs, color: Colors.textMuted },
 });
