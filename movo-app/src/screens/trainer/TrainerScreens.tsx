@@ -447,8 +447,8 @@ export const ClientDetailScreen: React.FC<{ navigation: any; route: any }> = ({ 
 
                 {/* Actions */}
                 <View style={{ paddingHorizontal: Spacing.base, gap: Spacing.sm, paddingBottom: Spacing['2xl'] }}>
-                    <Button title="💬 Enviar mensaje" onPress={() => navigation.navigate('Messages', { clientId })} fullWidth />
-                    <Button title="Asignar rutina" variant="outline" onPress={() => navigation.navigate('TrainerRoutines', { assignToClientId: clientId })} fullWidth />
+                    <Button title="💬 Enviar mensaje" onPress={() => navigation.navigate('MainTabs', { screen: 'Messages', params: { clientId } })} fullWidth />
+                    <Button title="Asignar rutina" variant="outline" onPress={() => navigation.navigate('MainTabs', { screen: 'TrainerRoutines', params: { assignToClientId: clientId } })} fullWidth />
                 </View>
             </ScrollView>
         </LinearGradient>

@@ -121,7 +121,7 @@ export const TrainerMessagesScreen: React.FC<{ navigation: any; route: any }> = 
                 sender_uid: trainerUid,
                 receiver_uid: clientUid,
                 content: text,
-                read: false,
+                is_read: false,
             });
             if (error) throw error;
             await loadMessages();

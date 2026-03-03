@@ -102,6 +102,12 @@ export const RoutinesScreen: React.FC<{ navigation: any; route: any }> = ({ navi
 
     const handleAssign = async (routineId: string, routineTitle: string) => {
         if (!assignToClientId) return;
+        // Local catalogue routines have non-UUID ids (e.g. "local-g1") — can't insert into DB
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(routineId)) {
+            Alert.alert('No disponible', '"' + routineTitle + '" es una rutina de catálogo local y no puede asignarse directamente. Usa las rutinas de la Biblioteca oficial (las que aparecen primero en la lista).');
+            return;
+        }
         setAssigning(true);
         try {
             const { error } = await supabase.from('user_routines').upsert(
