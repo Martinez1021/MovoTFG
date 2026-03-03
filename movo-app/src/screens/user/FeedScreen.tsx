@@ -302,7 +302,7 @@ const wd = StyleSheet.create({
 });
 
 // ── Post card ────────────────────────────────────────────
-const PostCard: React.FC<{ post: Post; primary: string; onLike: () => void; onOpenComments: () => void; onOpenWorkout: () => void }> = ({ post, primary, onLike, onOpenComments, onOpenWorkout }) => {
+const PostCard: React.FC<{ post: Post; primary: string; onLike: () => void; onOpenComments: () => void; onOpenWorkout: () => void }> = React.memo(({ post, primary, onLike, onOpenComments, onOpenWorkout }) => {
     const navigation = useNavigation<any>();
     const goToProfile = () => {
         if (post.supabase_uid) navigation.navigate('UserProfile', { supabaseUid: post.supabase_uid });
@@ -371,7 +371,7 @@ const PostCard: React.FC<{ post: Post; primary: string; onLike: () => void; onOp
         </View>
     </View>
     );
-};
+});
 
 const pc = StyleSheet.create({
     card: { backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, marginHorizontal: Spacing.base, marginBottom: Spacing.md, borderWidth: 1, borderColor: Colors.border, overflow: 'hidden' },
@@ -421,7 +421,7 @@ const CommentsModal: React.FC<{
         }
     };
 
-    const renderComment = ({ item }: { item: Comment }) => (
+    const renderComment = useCallback(({ item }: { item: Comment }) => (
         <View style={co.row}>
             {item.user_avatar
                 ? <Image source={{ uri: item.user_avatar }} style={co.avatar} />
@@ -437,7 +437,7 @@ const CommentsModal: React.FC<{
                 <Text style={co.bubbleText}>{item.content}</Text>
             </View>
         </View>
-    );
+    ), [primary]);
 
     return (
         <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
@@ -482,6 +482,8 @@ const CommentsModal: React.FC<{
                                 keyExtractor={(item) => item.id}
                                 renderItem={renderComment}
                                 contentContainerStyle={{ padding: Spacing.base, paddingBottom: Spacing.lg, flexGrow: 1 }}
+                                maxToRenderPerBatch={10}
+                                windowSize={5}
                                 ListEmptyComponent={
                                     <View style={co.empty}>
                                         <Ionicons name="chatbubbles-outline" size={44} color={Colors.textSecondary} />
@@ -812,6 +814,16 @@ export const FeedScreen: React.FC = () => {
     const searchBarHeight = searchAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 52] });
     const searchBarOpacity = searchAnim;
 
+    const renderFeedItem = useCallback(({ item }: { item: Post }) => (
+        <PostCard
+            post={item}
+            primary={primary}
+            onLike={() => toggleLike(item.id)}
+            onOpenComments={() => setSelectedPost(item)}
+            onOpenWorkout={() => setWorkoutDetailPost(item)}
+        />
+    ), [primary, toggleLike]);
+
     return (
         <LinearGradient colors={['#0A0A0A', '#0D0A18']} style={{ flex: 1 }}>
             {/* Header */}
@@ -935,17 +947,13 @@ export const FeedScreen: React.FC = () => {
                     <FlatList
                         data={filteredPosts}
                         keyExtractor={(item) => item.id}
-                        renderItem={({ item }) => (
-                            <PostCard
-                                post={item}
-                                primary={primary}
-                                onLike={() => toggleLike(item.id)}
-                                onOpenComments={() => setSelectedPost(item)}
-                                onOpenWorkout={() => setWorkoutDetailPost(item)}
-                            />
-                        )}
+                        renderItem={renderFeedItem}
                         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primary} />}
                         contentContainerStyle={{ paddingTop: Spacing.sm, paddingBottom: 100 }}
+                        initialNumToRender={6}
+                        maxToRenderPerBatch={8}
+                        windowSize={7}
+                        removeClippedSubviews={true}
                         ListEmptyComponent={
                             searchQuery.trim()
                             ? (

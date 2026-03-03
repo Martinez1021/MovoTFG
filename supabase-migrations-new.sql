@@ -186,3 +186,27 @@ BEGIN
   END LOOP;
 END;
 $$;
+
+-- 
+-- TRAINER REQUESTS
+-- 
+-- Add trainer_id column to users if not present
+ALTER TABLE users ADD COLUMN IF NOT EXISTS trainer_id UUID REFERENCES users(id);
+
+-- Create trainer_requests table
+CREATE TABLE IF NOT EXISTS trainer_requests (
+  id          UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+  client_id   UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  trainer_id  UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  status      TEXT        NOT NULL DEFAULT 'pending'
+                          CHECK (status IN ('pending', 'accepted', 'rejected')),
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(client_id, trainer_id)
+);
+
+-- Row level security
+ALTER TABLE trainer_requests ENABLE ROW LEVEL SECURITY;
+CREATE POLICY IF NOT EXISTS "tr_select" ON trainer_requests FOR SELECT USING (true);
+CREATE POLICY IF NOT EXISTS "tr_insert" ON trainer_requests FOR INSERT WITH CHECK (true);
+CREATE POLICY IF NOT EXISTS "tr_update" ON trainer_requests FOR UPDATE USING (true);
+CREATE POLICY IF NOT EXISTS "tr_delete" ON trainer_requests FOR DELETE USING (true);

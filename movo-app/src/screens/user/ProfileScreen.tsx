@@ -375,6 +375,11 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
     // Follow requests
     const [followRequests, setFollowRequests] = useState<{ id: string; requester_id: string; full_name: string; avatar_url?: string }[]>([]);
     const [processingReq, setProcessingReq] = useState<Record<string, boolean>>({});
+    // Trainer
+    const [trainerInfo, setTrainerInfo] = useState<{ id: string; full_name: string; avatar_url?: string } | null>(null);
+    const [trainerCodeInput, setTrainerCodeInput] = useState('');
+    const [sendingTrainerReq, setSendingTrainerReq] = useState(false);
+    const [trainerReqSent, setTrainerReqSent] = useState(false);
     // Inline stats editing
     const [editingStats, setEditingStats] = useState(false);
     const [draftWeight, setDraftWeight] = useState('');
@@ -445,6 +450,68 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
             }
         }
     }, [user?.id]);
+
+    // ── Trainer request ──────────────────────────────────────────────────────
+    useEffect(() => {
+        // Load current trainer info if user has one assigned
+        const loadTrainer = async () => {
+            if (!myInternalId) return;
+            const { data: myRow } = await supabase.from('users').select('trainer_id').eq('id', myInternalId).maybeSingle();
+            if (!myRow?.trainer_id) { setTrainerInfo(null); return; }
+            const { data: tRow } = await supabase.from('users').select('id, full_name, avatar_url').eq('id', myRow.trainer_id).maybeSingle();
+            setTrainerInfo(tRow ?? null);
+            // Check if already requested
+            const { data: reqRow } = await supabase.from('trainer_requests').select('status').eq('client_id', myInternalId).maybeSingle();
+            if (reqRow?.status === 'pending') setTrainerReqSent(true);
+        };
+        loadTrainer();
+    }, [myInternalId]);
+
+    const sendTrainerRequest = async () => {
+        if (!trainerCodeInput.trim() || !myInternalId) return;
+        setSendingTrainerReq(true);
+        try {
+            const code = trainerCodeInput.trim().toUpperCase().slice(0, 8);
+            // Trainers use first 8 chars of their UUID as invite code
+            const { data: trainers } = await supabase
+                .from('users')
+                .select('id, full_name, avatar_url')
+                .eq('role', 'trainer')
+                .ilike('id', `${code}%`);
+            if (!trainers || trainers.length === 0) {
+                Alert.alert('Código inválido', 'No se encontró ningún entrenador con ese código. Pídele que lo comparta desde su perfil.');
+                return;
+            }
+            const trainer = trainers[0];
+            // Insert or ignore duplicate
+            const { error } = await supabase.from('trainer_requests').upsert(
+                { client_id: myInternalId, trainer_id: trainer.id, status: 'pending' },
+                { onConflict: 'client_id,trainer_id' }
+            );
+            if (error) throw error;
+            setTrainerReqSent(true);
+            setTrainerCodeInput('');
+            Alert.alert('✅ Solicitud enviada', `Tu solicitud ha sido enviada a ${trainer.full_name}. Te avisaremos cuando la acepte.`);
+        } catch (e: any) {
+            Alert.alert('Error', e?.message ?? 'No se pudo enviar la solicitud');
+        } finally {
+            setSendingTrainerReq(false);
+        }
+    };
+
+    const removeMyTrainer = async () => {
+        if (!myInternalId) return;
+        Alert.alert('Quitar entrenador', '¿Seguro que quieres desvincularte de tu entrenador?', [
+            { text: 'Cancelar', style: 'cancel' },
+            {
+                text: 'Quitar', style: 'destructive', onPress: async () => {
+                    await supabase.from('users').update({ trainer_id: null }).eq('id', myInternalId);
+                    setTrainerInfo(null);
+                    setTrainerReqSent(false);
+                },
+            },
+        ]);
+    };
 
     const handleFollowRequest = async (reqId: string, requesterId: string, accept: boolean) => {
         if (!myInternalId) {
@@ -1039,6 +1106,88 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                                 <Text style={[s.menuText, { flex: 1 }]}>Mis conversaciones</Text>
                                 <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
                             </TouchableOpacity>
+                        </View>
+
+                        {/* Mi Entrenador */}
+                        <View style={[s.section, { borderColor: primary + '33' }]}>
+                            <View style={s.sectionHeader}>
+                                <Ionicons name="barbell-outline" size={18} color={primary} />
+                                <Text style={s.sectionTitle}>Mi Entrenador</Text>
+                            </View>
+                            {trainerInfo ? (
+                                // Has a trainer assigned
+                                <View>
+                                    <View style={[s.menuRow, { alignItems: 'center', paddingBottom: Spacing.md }]}>
+                                        {trainerInfo.avatar_url
+                                            ? <Image source={{ uri: trainerInfo.avatar_url }} style={{ width: 44, height: 44, borderRadius: 22 }} />
+                                            : <LinearGradient colors={[primary, primary + '88']} style={{ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' }}>
+                                                <Text style={{ color: '#fff', fontWeight: '800', fontSize: 17 }}>{trainerInfo.full_name[0]}</Text>
+                                              </LinearGradient>
+                                        }
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={s.menuText}>{trainerInfo.full_name}</Text>
+                                            <Text style={s.menuSub}>Tu entrenador personal</Text>
+                                        </View>
+                                        <View style={{ backgroundColor: '#22c55e22', borderRadius: 8, borderWidth: 1, borderColor: '#22c55e44', paddingHorizontal: 10, paddingVertical: 4 }}>
+                                            <Text style={{ color: '#22c55e', fontSize: 11, fontWeight: '700' }}>Activo</Text>
+                                        </View>
+                                    </View>
+                                    <TouchableOpacity
+                                        style={{ alignSelf: 'flex-start', paddingVertical: 6, paddingHorizontal: 2 }}
+                                        onPress={removeMyTrainer}
+                                    >
+                                        <Text style={{ color: '#ef4444', fontSize: FontSizes.sm, fontWeight: '600' }}>Quitar entrenador</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            ) : trainerReqSent ? (
+                                // Pending request
+                                <View style={[s.menuRow, { borderBottomWidth: 0, alignItems: 'center', gap: Spacing.sm }]}>
+                                    <Ionicons name="time-outline" size={20} color="#FF9800" />
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={s.menuText}>Solicitud enviada</Text>
+                                        <Text style={s.menuSub}>Esperando que el entrenador la acepte</Text>
+                                    </View>
+                                </View>
+                            ) : (
+                                // No trainer - show code input
+                                <View>
+                                    <Text style={[s.menuSub, { marginBottom: Spacing.md }]}>
+                                        Introduce el código de 8 caracteres de tu entrenador para solicitar unirte
+                                    </Text>
+                                    <View style={{ flexDirection: 'row', gap: Spacing.sm, alignItems: 'center' }}>
+                                        <TextInput
+                                            style={[{
+                                                flex: 1, backgroundColor: Colors.surfaceElevated ?? Colors.surface,
+                                                borderRadius: BorderRadius.md, paddingHorizontal: Spacing.base,
+                                                paddingVertical: Spacing.sm, color: Colors.textPrimary,
+                                                fontSize: FontSizes.base, borderWidth: 1, borderColor: Colors.border,
+                                                letterSpacing: 2, fontWeight: '700' as any,
+                                            }]}
+                                            placeholder="ABC12345"
+                                            placeholderTextColor={Colors.textMuted}
+                                            value={trainerCodeInput}
+                                            onChangeText={(t) => setTrainerCodeInput(t.toUpperCase())}
+                                            autoCapitalize="characters"
+                                            maxLength={8}
+                                        />
+                                        <TouchableOpacity
+                                            style={[{
+                                                backgroundColor: trainerCodeInput.length === 8 ? primary : Colors.surface,
+                                                borderRadius: BorderRadius.md, paddingHorizontal: Spacing.base,
+                                                paddingVertical: Spacing.sm + 2, borderWidth: 1,
+                                                borderColor: trainerCodeInput.length === 8 ? primary : Colors.border,
+                                            }]}
+                                            onPress={sendTrainerRequest}
+                                            disabled={sendingTrainerReq || trainerCodeInput.length < 6}
+                                        >
+                                            {sendingTrainerReq
+                                                ? <ActivityIndicator size="small" color="#fff" />
+                                                : <Text style={{ color: trainerCodeInput.length === 8 ? '#fff' : Colors.textSecondary, fontWeight: '700', fontSize: FontSizes.sm }}>Solicitar</Text>
+                                            }
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            )}
                         </View>
 
                         {/* Account */}

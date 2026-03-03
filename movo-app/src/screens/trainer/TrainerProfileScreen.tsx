@@ -20,7 +20,7 @@ export const TrainerProfileScreen: React.FC<{ navigation: any }> = ({ navigation
 
     const pickAvatar = async () => {
         const res = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaType.Images,
+            mediaTypes: ['images'] as any,
             allowsEditing: true,
             aspect: [1, 1],
             quality: 0.7,
@@ -47,6 +47,10 @@ export const TrainerProfileScreen: React.FC<{ navigation: any }> = ({ navigation
                     .getPublicUrl(fileName);
 
                 await supabase.auth.updateUser({ data: { avatar_url: publicUrl } });
+                // Propagate to all tables
+                await supabase.from('users').update({ avatar_url: publicUrl }).eq('supabase_id', user.id);
+                await supabase.from('feed_posts').update({ user_avatar: publicUrl }).eq('supabase_uid', user.id);
+                await supabase.from('feed_comments').update({ user_avatar: publicUrl }).eq('supabase_uid', user.id);
                 setUser({ ...user, avatar_url: publicUrl });
                 Alert.alert('¡Foto actualizada!', '');
             } catch (e: any) {
