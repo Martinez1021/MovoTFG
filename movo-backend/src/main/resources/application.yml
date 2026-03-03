@@ -18,6 +18,8 @@ spring:
         default_schema: public
         temp:
           use_jdbc_metadata_defaults: false
+  jackson:
+    property-naming-strategy: SNAKE_CASE
 
 server:
   port: ${PORT:8080}

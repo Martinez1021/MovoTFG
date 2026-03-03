@@ -72,7 +72,16 @@ CREATE POLICY "trainer_requests_all"
   USING (true)
   WITH CHECK (true);
 
--- ─── 4. ÍNDICES ──────────────────────────────────────────────────────────────
+-- ─── 4. POLÍTICAS user_routines ─────────────────────────────────────────────
+-- user_routines tiene RLS activado pero sin políticas → bloquea todo.
+-- Necesario para que el entrenador pueda asignar rutinas a clientes.
+
+DROP POLICY IF EXISTS "user_routines_all" ON user_routines;
+CREATE POLICY "user_routines_all"
+  ON user_routines FOR ALL
+  USING (true) WITH CHECK (true);
+
+-- ─── 5. ÍNDICES ──────────────────────────────────────────────────────────────
 
 CREATE INDEX IF NOT EXISTS users_supabase_id_idx ON users (supabase_id);
 

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    ActivityIndicator, FlatList, Image, KeyboardAvoidingView, Platform,
+    ActivityIndicator, Alert, FlatList, Image, KeyboardAvoidingView, Platform,
     StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -59,9 +59,17 @@ export const TrainerMessagesScreen: React.FC<{ navigation: any; route: any }> = 
 
     // ── Load messages ───────────────────────────────────────────────────────
     const loadMessages = useCallback(async () => {
-        if (!selectedClient || !user) return;
-        const trainerUid = user.supabase_id ?? user.id;
-        const clientUid = selectedClient.supabase_id;
+        if (!selectedClient) return;
+        const { data: { session } } = await supabase.auth.getSession();
+        const trainerUid = session?.user?.id;
+        if (!trainerUid) return;
+        let clientUid = selectedClient.supabase_id;
+        if (!clientUid) {
+            const { data: row } = await supabase
+                .from('users').select('supabase_id').eq('id', selectedClient.id).maybeSingle();
+            clientUid = row?.supabase_id ?? null;
+        }
+        if (!clientUid) return;
         const { data } = await supabase
             .from('direct_messages')
             .select('*')
@@ -71,7 +79,7 @@ export const TrainerMessagesScreen: React.FC<{ navigation: any; route: any }> = 
             )
             .order('created_at', { ascending: true });
         if (data) setMessages(data as DirectMessage[]);
-    }, [selectedClient, user]);
+    }, [selectedClient]);
 
     useEffect(() => {
         if (!selectedClientId) return;
@@ -94,8 +102,21 @@ export const TrainerMessagesScreen: React.FC<{ navigation: any; route: any }> = 
         setInput('');
         setSending(true);
         try {
-            const trainerUid = user.supabase_id ?? user.id;
-            const clientUid = selectedClient.supabase_id;
+            // trainer uid = Supabase auth UUID (user.id is preserved as auth UUID)
+            const { data: { session } } = await supabase.auth.getSession();
+            const trainerUid = session?.user?.id;
+            if (!trainerUid) throw new Error('Sesión expirada. Vuelve a iniciar sesión.');
+
+            // client supabase_id: comes from users table (supabase_id column)
+            let clientUid = selectedClient.supabase_id;
+            if (!clientUid) {
+                // fallback: look it up directly (happens if backfill SQL not yet run)
+                const { data: row } = await supabase
+                    .from('users').select('supabase_id').eq('id', selectedClient.id).maybeSingle();
+                clientUid = row?.supabase_id ?? null;
+            }
+            if (!clientUid) throw new Error('No se pudo obtener el identificador del cliente. Ejecuta el SQL de configuración en Supabase.');
+
             const { error } = await supabase.from('direct_messages').insert({
                 sender_uid: trainerUid,
                 receiver_uid: clientUid,
@@ -104,8 +125,9 @@ export const TrainerMessagesScreen: React.FC<{ navigation: any; route: any }> = 
             });
             if (error) throw error;
             await loadMessages();
-        } catch {
+        } catch (e: any) {
             setInput(text); // restore on failure
+            Alert.alert('Error', e?.message ?? 'No se pudo enviar el mensaje');
         } finally {
             setSending(false);
         }

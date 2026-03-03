@@ -11,6 +11,16 @@ const withTimeout = <T>(promise: Promise<T>, ms: number): Promise<T> =>
         ),
     ]);
 
+// Normalize backend response: Java serializes as camelCase by default.
+// Even with SNAKE_CASE config, run this as safety net so avatar_url always exists.
+const normalizeBackendUser = (data: any): any => ({
+    ...data,
+    avatar_url: data.avatar_url ?? data.avatarUrl ?? undefined,
+    full_name:  data.full_name  ?? data.fullName  ?? undefined,
+    trainer_id: data.trainer_id ?? data.trainerId  ?? undefined,
+    created_at: data.created_at ?? data.createdAt  ?? undefined,
+});
+
 interface AuthState {
     user: User | null;
     profile: UserProfile | null;
@@ -66,9 +76,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                     fullName: supabaseUser.user_metadata?.full_name ?? '',
                     role: supabaseUser.user_metadata?.role ?? 'user',
                 }).then(({ data }) => {
-                    // Preserve id as Supabase auth UUID — backend returns internal DB UUID which breaks
-                    // supabase_id lookups and trainer codes throughout the app.
-                    if (data) set({ user: { ...data, id: supabaseUser.id } });
+                    if (data) set({ user: { ...normalizeBackendUser(data), id: supabaseUser.id } });
                 }).catch(() => { /* backend offline — use Supabase data */ });
             }
         } catch (e) {
@@ -117,8 +125,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 fullName: supabaseUser.user_metadata?.full_name ?? '',
                 role: supabaseUser.user_metadata?.role ?? 'user',
             }).then(({ data: syncRes }) => {
-                // Preserve id as Supabase auth UUID — backend internal UUID must not overwrite it.
-                if (syncRes) set({ user: { ...syncRes, id: supabaseUser.id } });
+                if (syncRes) set({ user: { ...normalizeBackendUser(syncRes), id: supabaseUser.id } });
             }).catch(() => { /* backend offline — use Supabase data */ });
         } finally {
             set({ isLoading: false });
@@ -161,8 +168,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                     fullName: data.full_name,
                     role: data.role,
                 }).then(async ({ data: syncRes }) => {
-                    // Preserve id as Supabase auth UUID.
-                    if (syncRes) set({ user: { ...syncRes, id: authData.user!.id, avatar_url: avatarUrl ?? syncRes.avatar_url } });
+                    if (syncRes) {
+                        const norm = normalizeBackendUser(syncRes);
+                        set({ user: { ...norm, id: authData.user!.id, avatar_url: avatarUrl ?? norm.avatar_url } });
+                    }
                     // Upload avatar to users table once the row is synced
                     if (avatarUrl) {
                         await supabase
