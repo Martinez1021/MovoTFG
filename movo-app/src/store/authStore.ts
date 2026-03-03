@@ -138,6 +138,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 throw new Error(error.message);
             }
             if (authData.user) {
+                const avatarUrl = (data as any).avatarUri ?? null;
                 // Set user immediately from Supabase (no backend blocking)
                 set({
                     user: {
@@ -145,6 +146,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                         email: data.email,
                         full_name: data.full_name,
                         role: data.role,
+                        avatar_url: avatarUrl,
                         created_at: authData.user.created_at,
                     },
                     isAuthenticated: !!authData.session, // false if email confirmation required
@@ -155,8 +157,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                     email: data.email,
                     fullName: data.full_name,
                     role: data.role,
-                }).then(({ data: syncRes }) => {
-                    if (syncRes) set({ user: syncRes });
+                }).then(async ({ data: syncRes }) => {
+                    if (syncRes) set({ user: { ...syncRes, avatar_url: avatarUrl ?? syncRes.avatar_url } });
+                    // Upload avatar to users table once the row is synced
+                    if (avatarUrl) {
+                        await supabase
+                            .from('users')
+                            .update({ avatar_url: avatarUrl })
+                            .eq('supabase_id', authData.user!.id);
+                    }
                 }).catch(() => { /* backend offline — use Supabase data */ });
             }
         } finally {
