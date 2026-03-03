@@ -248,6 +248,48 @@ INSERT INTO exercises (routine_id, name, description, sets, reps, duration_secon
 ('33333333-0000-0000-0000-000000000003', 'Rocking', 'Boca abajo, agarra los tobillos y balancea hacia adelante y atrás.', 3, 8, NULL, 45, 7, 'Columna, Cuádriceps, Pecho'),
 ('33333333-0000-0000-0000-000000000003', 'Open Leg Rocker', 'Equilibrio en cóccix con piernas extendidas en V. Rueda y vuelve al equilibrio.', 3, 6, NULL, 45, 8, 'Core, Isquiotibiales');
 
+-- ─── AUTO-SYNC TRIGGER ───────────────────────────────────────────────────────
+-- Creates/updates public.users row whenever a Supabase auth user signs up or logs in
+-- This ensures supabase_id is always populated even if the backend is offline
+
+CREATE OR REPLACE FUNCTION public.handle_auth_user_upsert()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.users (supabase_id, email, full_name, role, avatar_url)
+  VALUES (
+    NEW.id::text,
+    NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email),
+    COALESCE(NEW.raw_user_meta_data->>'role', 'user'),
+    NEW.raw_user_meta_data->>'avatar_url'
+  )
+  ON CONFLICT (supabase_id) DO UPDATE SET
+    email      = EXCLUDED.email,
+    full_name  = COALESCE(EXCLUDED.full_name, public.users.full_name),
+    role       = COALESCE(EXCLUDED.role, public.users.role);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_auth_user_upsert();
+
+-- Backfill: populate users row for ALL existing Supabase auth users
+-- (covers anyone who registered when backend was offline)
+INSERT INTO public.users (supabase_id, email, full_name, role, avatar_url)
+SELECT
+  id::text,
+  email,
+  COALESCE(raw_user_meta_data->>'full_name', email),
+  COALESCE(raw_user_meta_data->>'role', 'user'),
+  raw_user_meta_data->>'avatar_url'
+FROM auth.users
+ON CONFLICT (supabase_id) DO UPDATE SET
+  email     = EXCLUDED.email,
+  full_name = COALESCE(EXCLUDED.full_name, public.users.full_name);
+
 -- ─── INDEXES ─────────────────────────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_users_supabase_id ON users(supabase_id);
 CREATE INDEX IF NOT EXISTS idx_users_trainer_id ON users(trainer_id);

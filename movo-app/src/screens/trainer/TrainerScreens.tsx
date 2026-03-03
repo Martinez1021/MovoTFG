@@ -74,6 +74,7 @@ export const TrainerDashboardScreen: React.FC<{ navigation: any }> = ({ navigati
     const [trainerCode, setTrainerCode] = useState('——');
 
     useEffect(() => {
+        if (!user) return; // wait until auth is ready
         fetchClients();
         fetchPendingRequests();
         // Use Supabase auth UUID for trainer code (user.id may be overwritten with internal DB UUID after backend sync)
@@ -82,7 +83,7 @@ export const TrainerDashboardScreen: React.FC<{ navigation: any }> = ({ navigati
                 setTrainerCode(session.user.id.slice(0, 8).toUpperCase());
             }
         });
-    }, []);
+    }, [user?.id]);
 
     const handleAccept = (reqId: string, clientId: string) => {
         Alert.alert('Aceptar cliente', '¿Añadir este cliente a tu lista?', [

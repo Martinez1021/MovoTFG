@@ -74,13 +74,15 @@ export const useTrainerStore = create<TrainerState>((set, get) => ({
     fetchTrainerId: async () => {
         const cached = get().trainerInternalId;
         if (cached) return cached;
-        const authUser = useAuthStore.getState().user;
-        if (!authUser) return null;
+        // Always use Supabase auth UUID — authStore user.id can be overwritten by backend sync
+        const { data: { session } } = await supabase.auth.getSession();
+        const authUid = session?.user?.id;
+        if (!authUid) return null;
         const { data } = await supabase
             .from('users')
             .select('id')
-            .eq('supabase_id', authUser.id)
-            .single();
+            .eq('supabase_id', authUid)
+            .maybeSingle();
         const id = data?.id ?? null;
         set({ trainerInternalId: id });
         return id;

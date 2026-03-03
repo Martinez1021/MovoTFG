@@ -183,5 +183,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         // Reset per-user in-memory stats so next login loads fresh data
         const { useRoutineStore } = await import('./routineStore');
         useRoutineStore.setState({ stats: null, sessions: [], assignedRoutines: [] });
+        const { useTrainerStore } = await import('./trainerStore');
+        useTrainerStore.setState({ clients: [], pendingRequests: [], trainerInternalId: null });
     },
 }));
