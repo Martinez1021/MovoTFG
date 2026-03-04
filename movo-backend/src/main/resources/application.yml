@@ -38,10 +38,10 @@ management:
 app:
   jwt:
     secret: ${JWT_SECRET:BRI+F/E+/aVp0YzBtT+0Hpd2c3RaWITFBgpcwbJ50ufxuGdAobjPEhK0q41v0iQfiauB1iIKXwsam6q8Spacag==}
-  grok:
-    api-key: ${GROK_API_KEY:xai-zGczBWaaScDIJEadraP7texPUWtfsTfAdQKMY6W04jMGknE2E5TmSUg8JBI4MdNOBHreVmPA97tBQc0K}
-    base-url: https://api.x.ai/v1
-    model: grok-3-mini
+  groq:
+    api-key: ${GROQ_API_KEY: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}
+    base-url: https://api.groq.com/openai/v1
+    model: llama-3.3-70b-versatile
   supabase:
     jwt-secret: ${SUPABASE_JWT_SECRET:cce250d6-ff31-412a-8aa3-0e895ce3abf2}
     url: ${SUPABASE_URL:https://uyxysrodgxxduzyekgjo.supabase.co}

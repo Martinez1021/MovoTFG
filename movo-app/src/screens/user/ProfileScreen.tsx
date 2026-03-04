@@ -353,7 +353,7 @@ const pv = StyleSheet.create({
 
 export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     const { user, profile, logout, setUser, setProfile } = useAuthStore();
-    const { sessions, fetchSessions } = useRoutineStore();
+    const { sessions, fetchSessions, assignedRoutines, fetchAssigned } = useRoutineStore();
     const { posts, fetchPosts, fetchComments, addComment, comments, isLoadingComments, isAddingComment } = useFeedStore();
     const { primary } = useThemeStore();
 
@@ -601,6 +601,7 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
     useEffect(() => {
         fetchPosts();
         fetchSessions?.();
+        fetchAssigned();
         loadSocialData();
     }, []);
 
@@ -839,6 +840,51 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                 {/* ── TAB: ENTRENOS ── */}
                 {tab === 'entrenos' && (
                     <View style={{ paddingHorizontal: Spacing.base, paddingTop: Spacing.lg }}>
+
+                        {/* Rutinas asignadas por entrenador */}
+                        {assignedRoutines.length > 0 && (
+                            <View style={[s.section, { borderColor: primary + '55', borderWidth: 1.5 }]}>
+                                <View style={s.sectionHeader}>
+                                    <Ionicons name="barbell-outline" size={18} color={primary} />
+                                    <Text style={s.sectionTitle}>Rutinas asignadas</Text>
+                                    <View style={{ backgroundColor: primary, borderRadius: 10, paddingHorizontal: 7, paddingVertical: 2, marginLeft: 'auto' }}>
+                                        <Text style={{ color: '#fff', fontSize: 11, fontWeight: '800' }}>{assignedRoutines.length}</Text>
+                                    </View>
+                                </View>
+                                {assignedRoutines.map((ur, i) => {
+                                    const r = (ur as any).routine;
+                                    if (!r) return null;
+                                    const isYoga = r.category === 'yoga';
+                                    const isPilates = r.category === 'pilates';
+                                    const accent = isYoga ? '#A855F7' : isPilates ? '#06B6D4' : primary;
+                                    const iconN = isYoga ? 'leaf-outline' : isPilates ? 'body-outline' : 'barbell-outline';
+                                    const diffEs: Record<string, string> = { beginner: 'Principiante', intermediate: 'Intermedio', advanced: 'Avanzado' };
+                                    return (
+                                        <TouchableOpacity
+                                            key={ur.id}
+                                            style={[s.sessionRow, i === assignedRoutines.length - 1 && { borderBottomWidth: 0 }]}
+                                            onPress={() => navigation.navigate('RoutineDetail', { routineId: ur.routine_id })}
+                                            activeOpacity={0.75}
+                                        >
+                                            <View style={[s.workoutIcon, { backgroundColor: accent + '22', borderRadius: 10 }]}>
+                                                <Ionicons name={iconN as any} size={16} color={accent} />
+                                            </View>
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={s.sessionName} numberOfLines={1}>{r.title}</Text>
+                                                <Text style={s.sessionSub}>{diffEs[r.difficulty] ?? r.difficulty} · {r.duration_minutes} min</Text>
+                                            </View>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                <View style={{ backgroundColor: accent + '22', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: accent + '44' }}>
+                                                    <Text style={{ color: accent, fontSize: 10, fontWeight: '700' }}>{r.category.toUpperCase()}</Text>
+                                                </View>
+                                                <Ionicons name="chevron-forward" size={14} color={Colors.textSecondary} />
+                                            </View>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+                        )}
+
                         {/* Shared workout posts — top */}
                         {myWorkoutPosts.length > 0 && (
                             <View style={[s.section, { borderColor: primary + '33' }]}>

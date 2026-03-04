@@ -18,7 +18,7 @@ interface DirectMessage {
     receiver_uid: string;
     content: string;
     created_at: string;
-    read: boolean;
+    is_read: boolean;
 }
 
 const tTime = (iso: string) =>
@@ -174,7 +174,7 @@ export const TrainerMessagesScreen: React.FC<{ navigation: any; route: any }> = 
     }
 
     // ── Chat view ────────────────────────────────────────────────────────────
-    const trainerUid = user?.supabase_id ?? user?.id ?? '';
+    const trainerUid = user?.id ?? '';
 
     return (
         <LinearGradient colors={['#0A0A0A', '#0D0A18']} style={{ flex: 1 }}>

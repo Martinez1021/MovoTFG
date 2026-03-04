@@ -2,7 +2,7 @@ package com.movo.controller;
 
 import com.movo.model.*;
 import com.movo.repository.*;
-import com.movo.service.GrokAIService;
+import com.movo.service.GroqAIService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -233,7 +233,7 @@ class SessionController {
 @RequestMapping("/api/ai")
 @RequiredArgsConstructor
 class AIController {
-    private final GrokAIService grokAIService;
+    private final GroqAIService groqAIService;
 
     record ChatRequest(String message, String conversationId) {
     }
@@ -243,7 +243,7 @@ class AIController {
 
     @PostMapping("/chat")
     public ResponseEntity<ChatResponse> chat(@RequestBody ChatRequest req, @AuthenticationPrincipal User user) {
-        var result = grokAIService.chat(user.getId(), req.message(), req.conversationId());
+        var result = groqAIService.chat(user.getId(), req.message(), req.conversationId());
         return ResponseEntity.ok(new ChatResponse(result.reply(), result.conversationId(), result.tokensUsed()));
     }
 }

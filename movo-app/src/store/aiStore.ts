@@ -1,8 +1,8 @@
 ﻿import { create } from 'zustand';
 import { ChatMessage } from '../types';
 
-const GROK_KEY = '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';
-const GROK_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_KEY = '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';
+const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const SYSTEM_PROMPT = `Eres MOVO Coach, un entrenador personal virtual experto en fitness, nutrición y bienestar. 
 Responde SIEMPRE en español, de forma motivadora, práctica y concisa. 
 Máximo 200 palabras por respuesta. Usa emojis con moderación.
@@ -29,11 +29,11 @@ export const useAIStore = create<AIState>((set, get) => ({
         set({ messages: [...prevMessages, userMsg], isLoading: true });
 
         try {
-            const response = await fetch(GROK_URL, {
+            const response = await fetch(GROQ_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${GROK_KEY}`,
+                    'Authorization': `Bearer ${GROQ_KEY}`,
                 },
                 body: JSON.stringify({
                     model: 'llama-3.3-70b-versatile',
@@ -64,7 +64,7 @@ export const useAIStore = create<AIState>((set, get) => ({
                 isLoading: false,
             }));
         } catch (e: any) {
-            console.error('[AIStore] Grok error:', e?.message ?? e);
+            console.error('[AIStore] Groq error:', e?.message ?? e);
             set((s) => ({
                 messages: [...s.messages, {
                     role: 'assistant' as const,

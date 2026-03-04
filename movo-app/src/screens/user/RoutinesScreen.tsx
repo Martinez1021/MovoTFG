@@ -102,16 +102,61 @@ export const RoutinesScreen: React.FC<{ navigation: any; route: any }> = ({ navi
 
     const handleAssign = async (routineId: string, routineTitle: string) => {
         if (!assignToClientId) return;
-        // Local catalogue routines have non-UUID ids (e.g. "local-g1") — can't insert into DB
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        if (!uuidRegex.test(routineId)) {
-            Alert.alert('No disponible', '"' + routineTitle + '" es una rutina de catálogo local y no puede asignarse directamente. Usa las rutinas de la Biblioteca oficial (las que aparecen primero en la lista).');
-            return;
-        }
         setAssigning(true);
         try {
+            let finalRoutineId = routineId;
+
+            // Local catalogue routines have non-UUID ids (e.g. "local-g1")
+            // Auto-upsert them to Supabase so they can be assigned
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            if (!uuidRegex.test(routineId)) {
+                const catItem = CATALOGUE.find((r) => r.id === routineId);
+                if (!catItem) throw new Error('Rutina no encontrada en el catálogo');
+
+                // Check if already synced to Supabase
+                const { data: existing } = await supabase
+                    .from('routines')
+                    .select('id')
+                    .eq('title', catItem.title)
+                    .maybeSingle();
+
+                if (existing?.id) {
+                    finalRoutineId = existing.id;
+                } else {
+                    // Get trainer's internal DB id for created_by (required by RLS)
+                    const { data: { session } } = await supabase.auth.getSession();
+                    const trainerUid = session?.user?.id;
+                    let createdBy: string | null = null;
+                    if (trainerUid) {
+                        const { data: trainerRow } = await supabase
+                            .from('users').select('id').eq('supabase_id', trainerUid).maybeSingle();
+                        createdBy = trainerRow?.id ?? null;
+                    }
+
+                    // Insert it so it gets a real UUID
+                    const { data: inserted, error: insertErr } = await supabase
+                        .from('routines')
+                        .insert({
+                            title: catItem.title,
+                            description: catItem.description,
+                            category: catItem.category,
+                            difficulty: catItem.difficulty,
+                            duration_minutes: catItem.duration_minutes,
+                            is_public: true,
+                            thumbnail_url: catItem.image_url,
+                            ...(createdBy ? { created_by: createdBy } : {}),
+                        })
+                        .select('id')
+                        .single();
+                    if (insertErr) throw insertErr;
+                    finalRoutineId = inserted.id;
+                    // Refresh store so newly synced routine gets its real UUID on next render
+                    fetchPublicRoutines();
+                }
+            }
+
             const { error } = await supabase.from('user_routines').upsert(
-                { user_id: assignToClientId, routine_id: routineId, status: 'active' },
+                { user_id: assignToClientId, routine_id: finalRoutineId, status: 'active' },
                 { onConflict: 'user_id,routine_id' }
             );
             if (error) throw error;

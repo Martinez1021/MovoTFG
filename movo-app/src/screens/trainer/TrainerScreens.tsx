@@ -1,16 +1,25 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator, Alert, Dimensions, FlatList, Image,
     ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTrainerStore, ClientSession } from '../../store/trainerStore';
 import { useAuthStore } from '../../store/authStore';
 import { useThemeStore } from '../../store/themeStore';
 import { supabase } from '../../services/supabase';
-import { Colors, Spacing, FontSizes, BorderRadius } from '../../utils/constants';
+import { Colors, Spacing, FontSizes, BorderRadius, Goals, ActivityLevels } from '../../utils/constants';
 import { Button } from '../../components/ui/Button';
+
+// ─── Translation helpers ───────────────────────────────────────────────────────
+const GENDER_ES: Record<string, string> = {
+    male: 'Hombre', female: 'Mujer', prefer_not_to_say: 'No especificado',
+};
+const translateGender  = (g: string) => GENDER_ES[g] ?? g;
+const translateActivity = (a: string) => ActivityLevels.find((l) => l.id === a)?.label ?? a;
+const translateGoal     = (g: string) => Goals.find((gl) => gl.id === g)?.label ?? g;
 
 const W = Dimensions.get('window').width;
 
@@ -113,7 +122,7 @@ export const TrainerDashboardScreen: React.FC<{ navigation: any }> = ({ navigati
                     {[
                         { icon: 'people', val: String(clients.length), label: 'Clientes' },
                         { icon: 'notifications', val: String(pendingRequests.length), label: 'Solicitudes' },
-                        { icon: 'barbell', val: String(clients.length * 30), label: 'Sesiones' },
+                        { icon: 'barbell', val: '—', label: 'Sesiones' },
                     ].map((st) => (
                         <View key={st.label} style={s.statCard}>
                             <Ionicons name={st.icon as any} size={18} color={primary} />
@@ -291,14 +300,15 @@ export const ClientDetailScreen: React.FC<{ navigation: any; route: any }> = ({ 
     const [saving, setSaving] = useState(false);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
+    useFocusEffect(useCallback(() => {
+        setLoading(true);
         fetchClientProfile(clientId).then(({ profile: p, sessions: ss }) => {
             setProfile(p);
             setSessions(ss);
             setNotes(p?.notes_from_trainer ?? '');
             setLoading(false);
         });
-    }, [clientId]);
+    }, [clientId]));
 
     const saveNotes = async () => {
         setSaving(true);
@@ -343,12 +353,12 @@ export const ClientDetailScreen: React.FC<{ navigation: any; route: any }> = ({ 
                         <View style={{ flexDirection: 'row', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
                             {profile?.activity_level && (
                                 <View style={[s.pill, { backgroundColor: primary + '22', borderColor: primary + '44' }]}>
-                                    <Text style={{ color: primary, fontSize: 10, fontWeight: '700' }}>{profile.activity_level}</Text>
+                                    <Text style={{ color: primary, fontSize: 10, fontWeight: '700' }}>{translateActivity(profile.activity_level)}</Text>
                                 </View>
                             )}
                             {profile?.gender && (
                                 <View style={[s.pill, { backgroundColor: '#ffffff11', borderColor: '#ffffff22' }]}>
-                                    <Text style={{ color: Colors.textSecondary, fontSize: 10, fontWeight: '600' }}>{profile.gender}</Text>
+                                    <Text style={{ color: Colors.textSecondary, fontSize: 10, fontWeight: '600' }}>{translateGender(profile.gender)}</Text>
                                 </View>
                             )}
                         </View>
@@ -420,7 +430,7 @@ export const ClientDetailScreen: React.FC<{ navigation: any; route: any }> = ({ 
                         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                             {(profile.goals as string[]).map((g) => (
                                 <View key={g} style={[s.pill, { backgroundColor: primary + '22', borderColor: primary + '44' }]}>
-                                    <Text style={{ color: primary, fontSize: 12, fontWeight: '600' }}>{g}</Text>
+                                    <Text style={{ color: primary, fontSize: 12, fontWeight: '600' }}>{translateGoal(g)}</Text>
                                 </View>
                             ))}
                         </View>

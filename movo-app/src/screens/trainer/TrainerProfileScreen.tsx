@@ -1,17 +1,22 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, Switch } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuthStore } from '../../store/authStore';
+import { useTrainerStore } from '../../store/trainerStore';
 import { supabase } from '../../services/supabase';
 import { Button } from '../../components/ui/Button';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../utils/constants';
 
 export const TrainerProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     const { user, logout, setUser } = useAuthStore();
+    const { clients, fetchClients } = useTrainerStore();
     const [notifications, setNotifications] = useState(true);
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+    useFocusEffect(useCallback(() => { fetchClients(); }, []));
 
     const handleLogout = () => Alert.alert('Cerrar sesión', '¿Estás seguro?', [
         { text: 'Cancelar', style: 'cancel' },
@@ -96,11 +101,11 @@ export const TrainerProfileScreen: React.FC<{ navigation: any }> = ({ navigation
                         <Text style={s.statLabel}>Años exp.</Text>
                     </View>
                     <View style={s.statCard}>
-                        <Text style={s.statValue}>0</Text>
+                        <Text style={s.statValue}>{clients.length}</Text>
                         <Text style={s.statLabel}>Clientes</Text>
                     </View>
                     <View style={s.statCard}>
-                        <Text style={s.statValue}>0</Text>
+                        <Text style={s.statValue}>—</Text>
                         <Text style={s.statLabel}>Rutinas</Text>
                     </View>
                 </View>
@@ -166,13 +171,14 @@ export const TrainerProfileScreen: React.FC<{ navigation: any }> = ({ navigation
                     </TouchableOpacity>
                 </View>
 
-                <Button
-                    title="Cerrar sesión"
-                    variant="outline"
+                <TouchableOpacity
                     onPress={handleLogout}
-                    fullWidth
-                    style={{ marginHorizontal: Spacing.base, marginBottom: Spacing['2xl'] }}
-                />
+                    style={s.logoutBtn}
+                    activeOpacity={0.75}
+                >
+                    <Ionicons name="log-out-outline" size={18} color="#FF4444" />
+                    <Text style={s.logoutText}>Cerrar sesión</Text>
+                </TouchableOpacity>
             </ScrollView>
         </LinearGradient>
     );
@@ -200,4 +206,6 @@ const s = StyleSheet.create({
     infoText: { color: Colors.textSecondary, fontSize: FontSizes.base, lineHeight: 22 },
     menuRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: Spacing.md, gap: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.border },
     menuText: { flex: 1, color: Colors.textPrimary, fontSize: FontSizes.base },
+    logoutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, marginHorizontal: Spacing.base, marginBottom: Spacing['2xl'], paddingVertical: 14, borderRadius: BorderRadius.lg, backgroundColor: '#FF444418', borderWidth: 1, borderColor: '#FF444440' },
+    logoutText: { color: '#FF4444', fontWeight: '700', fontSize: FontSizes.base },
 });

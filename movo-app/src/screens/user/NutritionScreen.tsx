@@ -13,8 +13,8 @@ import { supabase } from '../../services/supabase';
 import { Colors, Spacing, FontSizes, BorderRadius, Goals } from '../../utils/constants';
 
 // ── Groq config (same key as AI Coach) ──────────────────
-const GROK_KEY = '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';
-const GROK_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_KEY = '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';
+const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 // ── Types ───────────────────────────────────────────────
 interface FoodItem {
@@ -85,11 +85,11 @@ IMPORTANTE: Responde ÚNICAMENTE con un JSON válido con esta estructura exacta 
 Incluye 4-5 comidas: Desayuno, Almuerzo, Merienda, Cena (y Pre-entreno si aplica).
 Usa alimentos reales, comunes en España. Cantidades precisas. Macros reales.`;
 
-    const response = await fetch(GROK_URL, {
+    const response = await fetch(GROQ_URL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${GROK_KEY}`,
+            'Authorization': `Bearer ${GROQ_KEY}`,
         },
         body: JSON.stringify({
             model: 'llama-3.3-70b-versatile',

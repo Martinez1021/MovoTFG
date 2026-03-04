@@ -105,6 +105,29 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
     },
 
     fetchAssigned: async () => {
+        // ── 1. Query Supabase directly ────────────────────────────────────────
+        try {
+            const uid = await getCurrentUid();
+            if (uid) {
+                const { data: userRow } = await supabase
+                    .from('users')
+                    .select('id')
+                    .eq('supabase_id', uid)
+                    .maybeSingle();
+                if (userRow?.id) {
+                    const { data } = await supabase
+                        .from('user_routines')
+                        .select('id, user_id, routine_id, assigned_by, start_date, end_date, status, routine:routine_id(id, title, description, category, difficulty, duration_minutes, thumbnail_url, is_public, created_by)')
+                        .eq('user_id', userRow.id)
+                        .in('status', ['active', 'paused']);
+                    if (data) {
+                        set({ assignedRoutines: data as any });
+                        return;
+                    }
+                }
+            }
+        } catch { /* fall through to backend */ }
+        // ── 2. Backend fallback ───────────────────────────────────────────────
         try {
             const { data } = await routineApi.getMyAssigned();
             set({ assignedRoutines: data });

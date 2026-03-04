@@ -125,7 +125,7 @@ export const useTrainerStore = create<TrainerState>((set, get) => ({
     fetchClientProfile: async (clientId: string) => {
         try {
             const [{ data: profileData }, { data: sessionsData }] = await Promise.all([
-                supabase.from('user_profiles').select('*').eq('user_id', clientId).single(),
+                supabase.from('user_profiles').select('*').eq('user_id', clientId).maybeSingle(),
                 supabase
                     .from('workout_sessions')
                     .select('*, routine:routine_id(title, category)')

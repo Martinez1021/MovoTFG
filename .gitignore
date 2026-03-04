@@ -67,4 +67,14 @@ movo-app/android
 !**/src/main/resources/**/*.class
 .mvn/wrapper/maven-wrapper.jar
 **/target/
+
+# Python venv
+.venv/
+
+# Office documents (generated locally)
+*.docx
+*.pdf
+
+# Temp files
+tmpclaude*/
 **/build/

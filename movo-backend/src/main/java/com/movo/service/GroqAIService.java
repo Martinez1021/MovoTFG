@@ -20,21 +20,21 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 /**
- * MOVO AI Coach — powered by Grok (xAI) API via REST.
- * Endpoint: POST https://api.x.ai/v1/chat/completions
+ * MOVO AI Coach — powered by Llama 3.3 (Meta) via Groq API.
+ * Endpoint: POST https://api.groq.com/openai/v1/chat/completions
  */
 @Service
 @RequiredArgsConstructor
-public class GrokAIService {
+public class GroqAIService {
 
-    @Value("${app.grok.api-key}")
-    private String grokApiKey;
+    @Value("${app.groq.api-key}")
+    private String groqApiKey;
 
-    @Value("${app.grok.base-url}")
-    private String grokBaseUrl;
+    @Value("${app.groq.base-url}")
+    private String groqBaseUrl;
 
-    @Value("${app.grok.model}")
-    private String grokModel;
+    @Value("${app.groq.model}")
+    private String groqModel;
 
     private final UserRepository userRepository;
     private final WorkoutSessionRepository sessionRepository;
@@ -76,9 +76,9 @@ public class GrokAIService {
         // Add user message to history
         history.add(Map.of("role", "user", "content", userMessage));
 
-        // Build JSON body for Grok API
+        // Build JSON body for Groq API (Llama 3.3)
         ObjectNode body = objectMapper.createObjectNode();
-        body.put("model", grokModel);
+        body.put("model", groqModel);
         body.put("temperature", 0.7);
         body.put("max_tokens", 300);
         body.put("stream", false);
@@ -96,10 +96,10 @@ public class GrokAIService {
             messages.add(m);
         }
 
-        // Call Grok API
+        // Call Groq API
         WebClient client = WebClient.builder()
-                .baseUrl(grokBaseUrl)
-                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + grokApiKey)
+                .baseUrl(groqBaseUrl)
+                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + groqApiKey)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
 
