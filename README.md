@@ -2,7 +2,7 @@
 
 # MOVO
 
-### Fitness platform for trainers and athletes
+### Plataforma fitness para entrenadores y deportistas
 
 [![React Native](https://img.shields.io/badge/React_Native-0.81-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactnative.dev/)
 [![Expo](https://img.shields.io/badge/Expo-SDK_54-000020?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev/)
@@ -11,171 +11,171 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Java](https://img.shields.io/badge/Java-17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://openjdk.org/)
 
-> Dark-themed fitness platform connecting trainers and athletes — gym, yoga & pilates — with an integrated AI coach powered by Llama 3.3 70B via Groq.
+> Plataforma fitness con temática oscura que conecta entrenadores y deportistas — gimnasio, yoga y pilates — con un entrenador virtual IA basado en Llama 3.3 70B a través de Groq.
 
 </div>
 
 ---
 
-## Table of Contents
+## Índice
 
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Architecture](#-architecture)
-- [Project Structure](#-project-structure)
-- [Getting Started](#-getting-started)
-  - [1. Supabase Setup](#1️⃣-supabase)
-  - [2. Backend Setup](#2️⃣-backend-spring-boot)
-  - [3. Frontend Setup](#3️⃣-frontend-expo)
-- [Environment Variables](#-environment-variables)
-- [API Reference](#-api-reference)
-- [Screens Overview](#-screens-overview)
-- [Auth Flow](#-auth-flow)
-- [License](#-license)
+- [Funcionalidades](#-funcionalidades)
+- [Stack tecnológico](#-stack-tecnológico)
+- [Arquitectura](#-arquitectura)
+- [Estructura del proyecto](#-estructura-del-proyecto)
+- [Primeros pasos](#-primeros-pasos)
+  - [1. Supabase](#1️⃣-supabase)
+  - [2. Backend](#2️⃣-backend-spring-boot)
+  - [3. Frontend](#3️⃣-frontend-expo)
+- [Variables de entorno](#-variables-de-entorno)
+- [Referencia de la API](#-referencia-de-la-api)
+- [Pantallas](#-pantallas)
+- [Flujo de autenticación](#-flujo-de-autenticación)
+- [Licencia](#-licencia)
 
 ---
 
-## ✨ Features
+## ✨ Funcionalidades
 
-**For Athletes**
-- 📋 Personalized routines across gym, yoga, and pilates with difficulty levels
-- 🏃 Real-time active workout tracker — set/rep counter, rest timer, haptic feedback
-- 🤖 AI Coach powered by **Llama 3.3 70B** (Groq) — context-aware, motivational, Spanish-first
-- 📊 Progress dashboard — weekly bar chart, session history, personal stats
-- 🔔 Push notifications for workout reminders and trainer messages
+**Para deportistas**
+- 📋 Rutinas personalizadas de gimnasio, yoga y pilates con niveles de dificultad
+- 🏃 Entrenamiento en tiempo real — contador de series/reps, temporizador de descanso, feedback háptico
+- 🤖 Entrenador IA con **Llama 3.3 70B** (Groq) — contextual, motivador, en español
+- 📊 Panel de progreso — gráfica semanal, historial de sesiones, estadísticas personales
+- 🔔 Notificaciones push para recordatorios de entrenamiento y mensajes del entrenador
 
-**For Trainers**
-- 👥 Full client management — profiles, stats, custom trainer notes
-- 📝 Routine creation and assignment per client
-- 💬 Direct messaging with each athlete
-- 🏆 Client progress monitoring with inactivity alerts
+**Para entrenadores**
+- 👥 Gestión completa de clientes — perfiles, estadísticas, notas personalizadas
+- 📝 Creación y asignación de rutinas por cliente
+- 💬 Mensajería directa con cada deportista
+- 🏆 Seguimiento del progreso con alertas de inactividad
 
 **General**
-- 🔐 Secure JWT auth via Supabase — no re-login on app restart
-- 🌙 Dark-themed UI (`#0A0A0A` background, `#6C63FF` purple accent)
-- 🇪🇸 Spanish-first interface
+- 🔐 Autenticación JWT segura con Supabase — sin necesidad de volver a iniciar sesión
+- 🌙 Interfaz oscura (`#0A0A0A` fondo, acento morado `#6C63FF`)
+- 🇪🇸 Interfaz completamente en español
 
 ---
 
-## 🛠 Tech Stack
+## 🛠 Stack tecnológico
 
-| Layer | Technology | Version |
+| Capa | Tecnología | Versión |
 |---|---|---|
-| Mobile | React Native + Expo | RN 0.81 / SDK 54 |
-| Language | TypeScript | 5.9 |
-| State Management | Zustand | 5.0 |
-| Forms | React Hook Form | 7.x |
-| Navigation | React Navigation | 7.x |
-| Auth | Supabase Auth | 2.x |
-| HTTP Client | Axios | 1.x |
+| Móvil | React Native + Expo | RN 0.81 / SDK 54 |
+| Lenguaje | TypeScript | 5.9 |
+| Estado global | Zustand | 5.0 |
+| Formularios | React Hook Form | 7.x |
+| Navegación | React Navigation | 7.x |
+| Autenticación | Supabase Auth | 2.x |
+| Cliente HTTP | Axios | 1.x |
 | Backend | Spring Boot | 3.2.3 |
-| Language | Java | 17 |
-| Security | JJWT (Supabase JWT validation) | 0.12.5 |
+| Lenguaje | Java | 17 |
+| Seguridad | JJWT (validación JWT de Supabase) | 0.12.5 |
 | ORM | Spring Data JPA + Hibernate | — |
-| Database | Supabase (PostgreSQL 15) | — |
-| AI | Groq — Llama 3.3 70B Versatile (Meta) | — |
-| API Docs | Springdoc OpenAPI / Swagger UI | 2.3.0 |
+| Base de datos | Supabase (PostgreSQL 15) | — |
+| IA | Groq — Llama 3.3 70B Versatile (Meta) | — |
+| Docs API | Springdoc OpenAPI / Swagger UI | 2.3.0 |
 
 ---
 
-## 🏗 Architecture
+## 🏗 Arquitectura
 
 ```
 ┌──────────────────────────────────────────────────────┐
 │                   Expo (React Native)                │
-│  Auth via Supabase SDK ─────────────────────────────►│
-│  API calls via Axios + JWT Bearer token             │
+│  Auth mediante Supabase SDK ────────────────────────►│
+│  Llamadas API mediante Axios + token JWT Bearer      │
 └────────────────────────┬─────────────────────────────┘
                          │ HTTP + JWT
                          ▼
 ┌──────────────────────────────────────────────────────┐
 │              Spring Boot API  :8080                  │
 │                                                      │
-│  POST  /api/auth/sync          User registration     │
-│  GET   /api/users/me           Profile               │
-│  CRUD  /api/routines           Routine library       │
-│  GET   /api/exercises          Exercises by routine  │
-│  POST  /api/sessions           Workout sessions      │
-│  GET   /api/sessions/stats     User statistics       │
-│  POST  /api/ai/chat            AI Coach              │
-│  GET   /api/trainer/clients    Client management     │
-│  POST  /api/trainer/messages   Trainer messaging     │
+│  POST  /api/auth/sync          Registro de usuario   │
+│  GET   /api/users/me           Perfil                │
+│  CRUD  /api/routines           Biblioteca de rutinas │
+│  GET   /api/exercises          Ejercicios por rutina │
+│  POST  /api/sessions           Sesiones de entreno   │
+│  GET   /api/sessions/stats     Estadísticas          │
+│  POST  /api/ai/chat            Entrenador IA         │
+│  GET   /api/trainer/clients    Gestión de clientes   │
+│  POST  /api/trainer/messages   Mensajería            │
 └──────┬──────────────────────────┬────────────────────┘
        │ JDBC                     │ HTTPS
        ▼                          ▼
 ┌─────────────┐        ┌─────────────────────────────┐
 │  Supabase   │        │  Groq API                   │
 │  PostgreSQL │        │  llama-3.3-70b-versatile    │
-│  (8 tables) │        │  api.groq.com               │
+│  (8 tablas) │        │  api.groq.com               │
 └─────────────┘        └─────────────────────────────┘
 ```
 
 ---
 
-## 📁 Project Structure
+## 📁 Estructura del proyecto
 
 ```
 MovoApp/
-├── movo-app/                    # React Native / Expo frontend
+├── movo-app/                    # Frontend React Native / Expo
 │   ├── src/
-│   │   ├── components/ui/       # Reusable UI components
-│   │   ├── navigation/          # React Navigation setup
+│   │   ├── components/ui/       # Componentes reutilizables
+│   │   ├── navigation/          # Configuración de React Navigation
 │   │   ├── screens/
-│   │   │   ├── auth/            # Login, Register, Splash
-│   │   │   ├── user/            # Home, Routines, AI Coach, Progress, Profile
-│   │   │   ├── trainer/         # Trainer dashboard, clients, messages
-│   │   │   └── shared/          # Active Workout, Routine Detail
-│   │   ├── services/            # Supabase client, API service, notifications
-│   │   ├── store/               # Zustand stores (auth, routines, AI)
-│   │   ├── types/               # TypeScript interfaces
-│   │   └── utils/               # Constants, helpers
+│   │   │   ├── auth/            # Login, Registro, Splash
+│   │   │   ├── user/            # Home, Rutinas, Coach IA, Progreso, Perfil
+│   │   │   ├── trainer/         # Panel entrenador, clientes, mensajes
+│   │   │   └── shared/          # Entreno activo, Detalle de rutina
+│   │   ├── services/            # Cliente Supabase, API, notificaciones
+│   │   ├── store/               # Stores Zustand (auth, rutinas, IA)
+│   │   ├── types/               # Interfaces TypeScript
+│   │   └── utils/               # Constantes y helpers
 │   └── package.json
 │
-├── movo-backend/                # Spring Boot 3 REST API
+├── movo-backend/                # API REST Spring Boot 3
 │   └── src/main/java/com/movo/
-│       ├── config/              # Security configuration
-│       ├── controller/          # REST controllers
-│       ├── model/               # JPA entities
-│       ├── repository/          # Spring Data repositories
-│       ├── security/            # JWT filter
-│       └── service/             # Business logic + Groq AI
+│       ├── config/              # Configuración de seguridad
+│       ├── controller/          # Controladores REST
+│       ├── model/               # Entidades JPA
+│       ├── repository/          # Repositorios Spring Data
+│       ├── security/            # Filtro JWT
+│       └── service/             # Lógica de negocio + IA Groq
 │
-└── supabase-schema.sql          # Full DB schema, RLS policies, seed data
+└── supabase-schema.sql          # Esquema completo, políticas RLS y datos iniciales
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Primeros pasos
 
-### Prerequisites
+### Requisitos previos
 
-| Tool | Version |
+| Herramienta | Versión |
 |---|---|
 | Node.js | 18+ |
 | Java JDK | 17+ |
 | Maven | 3.8+ |
-| Expo Go | Latest (iOS/Android) |
-| Supabase account | — |
-| Groq API key | [console.groq.com](https://console.groq.com) (free tier available) |
+| Expo Go | Última (iOS/Android) |
+| Cuenta en Supabase | — |
+| Clave API de Groq | [console.groq.com](https://console.groq.com) (capa gratuita disponible) |
 
 ---
 
 ### 1️⃣ Supabase
 
-1. Create a new project at [supabase.com](https://supabase.com)
-2. Open **SQL Editor** and run the full contents of `supabase-schema.sql`
-   - Creates **8 tables** with Row Level Security, 9 seed routines, 66 seed exercises, and performance indexes
-3. Collect credentials from **Project Settings → API**:
+1. Crea un nuevo proyecto en [supabase.com](https://supabase.com)
+2. Abre el **Editor SQL** y ejecuta el contenido completo de `supabase-schema.sql`
+   - Crea **8 tablas** con Row Level Security, 9 rutinas de ejemplo, 66 ejercicios de ejemplo e índices de rendimiento
+3. Recoge las credenciales desde **Configuración del proyecto → API**:
 
-   | Value | Maps to |
+   | Valor | Variable |
    |---|---|
-   | Project URL | `EXPO_PUBLIC_SUPABASE_URL`, `SUPABASE_URL` |
-   | `anon` public key | `EXPO_PUBLIC_SUPABASE_ANON_KEY` |
-   | JWT Secret (Settings → API → JWT Settings) | `SUPABASE_JWT_SECRET` |
+   | URL del proyecto | `EXPO_PUBLIC_SUPABASE_URL`, `SUPABASE_URL` |
+   | Clave pública `anon` | `EXPO_PUBLIC_SUPABASE_ANON_KEY` |
+   | JWT Secret (Configuración → API → JWT) | `SUPABASE_JWT_SECRET` |
 
-4. Get the **JDBC connection string** from Settings → Database → Connection string → JDBC
-   - Set `SUPABASE_DB_URL`, `SUPABASE_DB_USER`, `SUPABASE_DB_PASSWORD`
-5. Enable **Email Auth** under Authentication → Providers
+4. Obtén la **cadena de conexión JDBC** desde Configuración → Base de datos → Cadena de conexión → JDBC
+   - Configura `SUPABASE_DB_URL`, `SUPABASE_DB_USER`, `SUPABASE_DB_PASSWORD`
+5. Activa **Email Auth** en Autenticación → Proveedores
 
 ---
 
@@ -184,17 +184,17 @@ MovoApp/
 ```bash
 cd movo-backend
 
-# Copy env template and fill in your values
+# Copia la plantilla de entorno y rellena tus valores
 copy .env.example .env
 
-# Run
+# Arranca el servidor
 mvn spring-boot:run
 ```
 
-> 💡 In **IntelliJ**, add env vars under Run → Edit Configurations → Environment Variables to avoid using a .env file.
+> 💡 En **IntelliJ**, añade las variables de entorno en Ejecutar → Editar configuraciones → Variables de entorno para evitar usar el archivo `.env`.
 
-Once running:
-- **REST API** → `http://localhost:8080/api`
+Una vez en marcha:
+- **API REST** → `http://localhost:8080/api`
 - **Swagger UI** → `http://localhost:8080/swagger-ui.html`
 
 ---
@@ -204,36 +204,36 @@ Once running:
 ```bash
 cd movo-app
 
-# Copy env template and fill in your values
+# Copia la plantilla de entorno y rellena tus valores
 copy .env.example .env
 
 npm install
 npx expo start
 ```
 
-Scan the QR code with **Expo Go** (Android) or the Camera app (iOS).
+Escanea el código QR con **Expo Go** (Android) o la app de Cámara (iOS).
 
-> ⚠️ On physical devices, use your machine's Wi-Fi IP instead of `localhost`. Run `ipconfig` to find it — e.g. `http://192.168.1.50:8080/api`.
+> ⚠️ En dispositivos físicos, usa la IP Wi-Fi de tu máquina en lugar de `localhost`. Ejecuta `ipconfig` para encontrarla — p.ej. `http://192.168.1.50:8080/api`.
 
 ---
 
-## 🔑 Environment Variables
+## 🔑 Variables de entorno
 
 ### Backend — `movo-backend/.env`
 
-| Variable | Description | Where to get it |
+| Variable | Descripción | Dónde obtenerla |
 |---|---|---|
-| `SUPABASE_DB_URL` | JDBC connection string | Supabase → Settings → Database |
-| `SUPABASE_DB_USER` | DB user (usually `postgres`) | Supabase → Settings → Database |
-| `SUPABASE_DB_PASSWORD` | DB password | Supabase → Settings → Database |
-| `SUPABASE_URL` | Project URL | Supabase → Settings → API |
-| `SUPABASE_JWT_SECRET` | JWT signing secret | Supabase → Settings → API → JWT |
-| `GROQ_API_KEY` | Groq API key (`gsk_…`) | [console.groq.com](https://console.groq.com) |
-| `JWT_SECRET` | Any 32+ char random string | Generate yourself |
+| `SUPABASE_DB_URL` | Cadena de conexión JDBC | Supabase → Configuración → Base de datos |
+| `SUPABASE_DB_USER` | Usuario de la BD (normalmente `postgres`) | Supabase → Configuración → Base de datos |
+| `SUPABASE_DB_PASSWORD` | Contraseña de la BD | Supabase → Configuración → Base de datos |
+| `SUPABASE_URL` | URL del proyecto | Supabase → Configuración → API |
+| `SUPABASE_JWT_SECRET` | Secreto de firma JWT | Supabase → Configuración → API → JWT |
+| `GROQ_API_KEY` | Clave API de Groq (`gsk_…`) | [console.groq.com](https://console.groq.com) |
+| `JWT_SECRET` | Cadena aleatoria de 32+ caracteres | Genérala tú mismo |
 
 ### Frontend — `movo-app/.env`
 
-| Variable | Example |
+| Variable | Ejemplo |
 |---|---|
 | `EXPO_PUBLIC_SUPABASE_URL` | `https://xxxx.supabase.co` |
 | `EXPO_PUBLIC_SUPABASE_ANON_KEY` | `eyJhbGc...` |
@@ -241,129 +241,129 @@ Scan the QR code with **Expo Go** (Android) or the Camera app (iOS).
 
 ---
 
-## 📡 API Reference
+## 📡 Referencia de la API
 
-Full interactive docs available at **`http://localhost:8080/swagger-ui.html`** when the backend is running.
+Documentación interactiva completa en **`http://localhost:8080/swagger-ui.html`** con el backend en marcha.
 
-| Method | Endpoint | Description | Auth |
+| Método | Endpoint | Descripción | Auth |
 |---|---|---|---|
-| `POST` | `/api/auth/sync` | Sync Supabase user into backend DB | ✅ |
-| `GET` | `/api/users/me` | Get current user profile | ✅ |
-| `PUT` | `/api/users/me` | Update profile | ✅ |
-| `GET` | `/api/routines` | List routines (filter by category/difficulty) | ✅ |
-| `POST` | `/api/routines` | Create routine | ✅ |
-| `GET` | `/api/exercises` | Get exercises by routine | ✅ |
-| `POST` | `/api/sessions` | Start a workout session | ✅ |
-| `PUT` | `/api/sessions/{id}/complete` | Complete a session | ✅ |
-| `GET` | `/api/sessions/stats` | User workout statistics | ✅ |
-| `POST` | `/api/ai/chat` | Chat with AI coach | ✅ |
-| `GET` | `/api/trainer/clients` | Trainer's client list | ✅ Trainer |
-| `GET` | `/api/trainer/clients/{id}` | Client profile + stats | ✅ Trainer |
-| `POST` | `/api/trainer/messages` | Send message to client | ✅ Trainer |
+| `POST` | `/api/auth/sync` | Sincronizar usuario de Supabase en la BD del backend | ✅ |
+| `GET` | `/api/users/me` | Obtener perfil del usuario actual | ✅ |
+| `PUT` | `/api/users/me` | Actualizar perfil | ✅ |
+| `GET` | `/api/routines` | Listar rutinas (filtrar por categoría/dificultad) | ✅ |
+| `POST` | `/api/routines` | Crear rutina | ✅ |
+| `GET` | `/api/exercises` | Obtener ejercicios por rutina | ✅ |
+| `POST` | `/api/sessions` | Iniciar sesión de entrenamiento | ✅ |
+| `PUT` | `/api/sessions/{id}/complete` | Completar sesión | ✅ |
+| `GET` | `/api/sessions/stats` | Estadísticas de entrenamiento | ✅ |
+| `POST` | `/api/ai/chat` | Chat con el entrenador IA | ✅ |
+| `GET` | `/api/trainer/clients` | Lista de clientes del entrenador | ✅ Entrenador |
+| `GET` | `/api/trainer/clients/{id}` | Perfil y estadísticas de un cliente | ✅ Entrenador |
+| `POST` | `/api/trainer/messages` | Enviar mensaje a un cliente | ✅ Entrenador |
 
 ---
 
-## 📱 Screens Overview
+## 📱 Pantallas
 
-### 👤 Athlete
+### 👤 Deportista
 
-| Screen | Description |
+| Pantalla | Descripción |
 |---|---|
-| Splash | Animated logo on launch |
-| Login | Email/password via Supabase Auth |
-| Register | 4-step wizard: role → personal data → goals → preferences |
-| Home | Dashboard: today's routine, weekly stats, category shortcuts |
-| Routines | Browsable library filtered by gym / yoga / pilates + difficulty |
-| Routine Detail | Exercise list with sets, reps, and descriptions |
-| Active Workout | Live set/rep counter, rest timer, haptic feedback on completion |
-| AI Coach | Conversational AI chat — context-aware, Spanish-first |
-| Progress | Weekly bar chart, session count, total time, personal records |
-| Profile | Photo, goals, body stats, trainer notes |
-| Settings | Notifications, preferences, account |
+| Splash | Logo animado al arrancar |
+| Inicio de sesión | Email/contraseña mediante Supabase Auth |
+| Registro | Asistente de 4 pasos: rol → datos personales → objetivos → preferencias |
+| Inicio | Panel: rutina del día, estadísticas semanales, accesos directos por categoría |
+| Rutinas | Biblioteca filtrable por gimnasio / yoga / pilates y dificultad |
+| Detalle de rutina | Lista de ejercicios con series, reps y descripciones |
+| Entreno activo | Contador en vivo de series/reps, temporizador de descanso, feedback háptico |
+| Coach IA | Chat conversacional — contextual, motivador, en español |
+| Progreso | Gráfica semanal, número de sesiones, tiempo total, récords personales |
+| Perfil | Foto, objetivos, medidas corporales, notas del entrenador |
+| Ajustes | Notificaciones, preferencias, cuenta |
 
-### 🏋️ Trainer
+### 🏋️ Entrenador
 
-| Screen | Description |
+| Pantalla | Descripción |
 |---|---|
-| Dashboard | Overview of all clients and their activity |
-| Clients | Searchable, sortable client list |
-| Client Detail | Full profile, session history, editable trainer notes |
-| Routines | Create, edit, and assign routines |
-| Messages | Real-time chat with each client |
-| Profile | Trainer bio, specialties, certifications |
+| Panel principal | Vista general de todos los clientes y su actividad |
+| Clientes | Lista de clientes con búsqueda y ordenación |
+| Detalle de cliente | Perfil completo, historial de sesiones, notas editables |
+| Rutinas | Crear, editar y asignar rutinas |
+| Mensajes | Chat en tiempo real con cada cliente |
+| Perfil | Biografía, especialidades y certificaciones del entrenador |
 
 ---
 
-## 🔐 Auth Flow
+## 🔐 Flujo de autenticación
 
 ```
-User ──► Supabase Auth (email/password)
-              │
-              ▼
-         Supabase JWT (ES256, signed with project JWT secret)
-              │
-              ├──► Frontend stores token (AsyncStorage)
-              │
-              └──► POST /api/auth/sync  (backend receives JWT)
-                          │
-                          ▼
-                   JwtAuthFilter validates JWT
-                   using same Supabase JWT secret
-                          │
-                          ▼
-                   SecurityContextHolder populated
-                   All protected endpoints accessible
+Usuario ──► Supabase Auth (email/contraseña)
+                  │
+                  ▼
+           JWT de Supabase (ES256, firmado con el JWT secret del proyecto)
+                  │
+                  ├──► El frontend guarda el token (AsyncStorage)
+                  │
+                  └──► POST /api/auth/sync  (el backend recibe el JWT)
+                                │
+                                ▼
+                         JwtAuthFilter valida el JWT
+                         con el mismo JWT secret de Supabase
+                                │
+                                ▼
+                         SecurityContextHolder poblado
+                         Todos los endpoints protegidos accesibles
 ```
 
 ---
 
-## 🗄 Database Schema
+## 🗄 Base de datos
 
-The Supabase database contains **8 tables**:
+La base de datos en Supabase contiene **8 tablas**:
 
-| Table | Description |
+| Tabla | Descripción |
 |---|---|
-| `users` | User accounts + role (`user` / `trainer`) |
-| `user_profiles` | Body stats, goals, preferences |
-| `routines` | Workout routines with category, difficulty, duration |
-| `exercises` | Exercises linked to routines (sets, reps, descriptions) |
-| `workout_sessions` | Session logs with duration and completion status |
-| `session_exercises` | Per-exercise completion tracking within a session |
-| `trainer_clients` | Trainer ↔ client assignments |
-| `messages` | Chat messages between trainers and clients |
+| `users` | Cuentas de usuario + rol (`user` / `trainer`) |
+| `user_profiles` | Medidas corporales, objetivos y preferencias |
+| `routines` | Rutinas con categoría, dificultad y duración |
+| `exercises` | Ejercicios vinculados a rutinas (series, reps, descripciones) |
+| `workout_sessions` | Registro de sesiones con duración y estado de completado |
+| `session_exercises` | Seguimiento del completado de cada ejercicio dentro de una sesión |
+| `trainer_clients` | Asignaciones entrenador ↔ cliente |
+| `messages` | Mensajes de chat entre entrenadores y clientes |
 
-All tables have **Row Level Security (RLS)** enabled. The backend connects via a direct JDBC connection using service-level credentials.
-
----
-
-## 🤖 AI Coach
-
-The AI coach is powered by **Meta's Llama 3.3 70B Versatile** model served via the **Groq** inference platform.
-
-- **Frontend**: direct calls to `https://api.groq.com/openai/v1/chat/completions` from `aiStore.ts`
-- **Backend**: `GroqAIService.java` builds context-aware system prompts using the user's profile, recent sessions, and inactivity detection
-- **System prompt** includes: user name, role, last workout info, and inactivity alerts (> 3 days)
-- **Conversation history**: last 20 messages kept in memory per session
+Todas las tablas tienen **Row Level Security (RLS)** activado. El backend se conecta directamente mediante JDBC con credenciales de nivel de servicio.
 
 ---
 
-## 📝 Development Notes
+## 🤖 Entrenador IA
 
-- `ddl-auto: validate` — Hibernate validates the schema against the DB at startup. Always run `supabase-schema.sql` before starting the backend for the first time.
-- RLS is active on all tables; the backend bypasses it via direct JDBC credentials.
-- The `GroqAIService` keeps conversation history in-memory per `conversationId`. For production, replace with a DB-backed `AIConversation` entity.
-- All UI uses `#0A0A0A` dark background with `#6C63FF` purple accent — hardcoded in `constants.ts`.
+El coach virtual está impulsado por el modelo **Llama 3.3 70B Versatile de Meta** servido a través de la plataforma de inferencia **Groq**.
+
+- **Frontend**: llamadas directas a `https://api.groq.com/openai/v1/chat/completions` desde `aiStore.ts`
+- **Backend**: `GroqAIService.java` construye prompts de sistema contextuales usando el perfil del usuario, sesiones recientes y detección de inactividad
+- **Prompt del sistema** incluye: nombre del usuario, rol, info del último entrenamiento y alertas de inactividad (> 3 días)
+- **Historial de conversación**: se mantienen los últimos 20 mensajes en memoria por sesión
 
 ---
 
-## 📄 License
+## 📝 Notas de desarrollo
 
-This project is licensed under the **MIT License**.
+- `ddl-auto: validate` — Hibernate valida el esquema contra la BD al arrancar. Ejecuta siempre `supabase-schema.sql` antes de iniciar el backend por primera vez.
+- El RLS está activo en todas las tablas; el backend lo omite mediante credenciales JDBC directas.
+- `GroqAIService` mantiene el historial de conversación en memoria por `conversationId`. Para producción, sustitúyelo por una entidad `AIConversation` respaldada por BD.
+- Toda la interfaz usa el fondo oscuro `#0A0A0A` con acento morado `#6C63FF` — definidos en `constants.ts`.
+
+---
+
+## 📄 Licencia
+
+Este proyecto está licenciado bajo la **Licencia MIT**.
 
 ---
 
 <div align="center">
 
-Built with ❤️ for the Spanish-speaking fitness community
+Hecho con ❤️ para la comunidad fitness de habla hispana
 
 </div>
