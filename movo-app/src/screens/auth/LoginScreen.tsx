@@ -39,7 +39,7 @@ export const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
                     {/* Logo */}
                     <View style={styles.logoWrap}>
-                        <MovoLogo size={80} />
+                        <MovoLogo size={120} />
                     </View>
 
                     <Text style={styles.heading}>Bienvenido de vuelta</Text>

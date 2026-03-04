@@ -22,7 +22,7 @@ export const SplashScreen: React.FC<{ navigation?: any }> = ({ navigation }) => 
     return (
         <View style={styles.container}>
             <Animated.View style={{ transform: [{ scale }], opacity, alignItems: 'center' }}>
-                <MovoLogo size={100} />
+                <MovoLogo size={140} />
                 <Text style={styles.tagline}>Tu entrenador definitivo</Text>
             </Animated.View>
         </View>
