@@ -1,8 +1,5 @@
 <div align="center">
 
-<img width="1280" height="720" alt="El Nuevo Dron de México que Dejó a EE UU  Sin Palabras (3)" src="https://github.com/user-attachments/assets/f51805d0-e2eb-4796-87cc-0ee3c149c4de" />
-
-
 # MOVO
 
 ### Plataforma fitness para entrenadores y deportistas
@@ -15,6 +12,9 @@
 [![Java](https://img.shields.io/badge/Java-17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://openjdk.org/)
 
 > Plataforma fitness con temática oscura que conecta entrenadores y deportistas — gimnasio, yoga y pilates — con un entrenador virtual IA basado en Llama 3.3 70B a través de Groq.
+
+
+<img width="1280" height="720" alt="El Nuevo Dron de México que Dejó a EE UU  Sin Palabras (3)" src="https://github.com/user-attachments/assets/f51805d0-e2eb-4796-87cc-0ee3c149c4de" />
 
 </div>
 
