@@ -16,33 +16,54 @@ import { supabase } from '../../services/supabase';
 // ─────────────────────────────────────────────────────────────────────────────
 //  "HAZ TU RUTINA"  —  grupos musculares + ejercicios
 // ─────────────────────────────────────────────────────────────────────────────
-// 20 verified Unsplash fitness photo IDs — all manually checked (no 404s)
+// 40 verified Unsplash fitness photo IDs — all HTTP-checked, no 404s
+// Formula: (gIdx * 12 + eIdx) % 40  →  within each group every exercise has a UNIQUE photo
 const PHOTO_IDS = [
-    '1534438327276-14e5300c3a48', // bench press
-    '1598971639058-fab3c3109a00', // pushup / chest workout
-    '1571019613454-1cb2f99b2d8b', // chest fly / dumbbell
-    '1566241440091-ec10de8db2e1', // plank / core
-    '1518611012118-696072aa579a', // ab crunch / core
-    '1593810450967-f9c42742e326', // mountain climbers
-    '1574680096145-d05b474e2155', // squat / legs
-    '1517963879433-6ad2b056d712', // deadlift / barbell
-    '1518310383802-640c2de311b2', // hip thrust / glute
-    '1549476464-37392f717541',    // gym dumbbell / lunge
-    '1583454110551-21f2fa2afe61', // pull-up / back
-    '1571019614242-c5c5dee9f50b', // shoulder overhead press
-    '1581009137042-c552e485697a', // bicep curl
-    '1548690312-e3b507d8c110',    // tricep / arm workout
-    '1552674605-db6ffd4facb5',    // cardio / running
-    '1567013127542-490d757e51fc', // gym weights
-    '1579758629938-03607ccdbaba', // fitness training
-    '1544033527-b192daee1f5b',    // gym / strength
-    '1526506118085-60ce8714f8c5', // outdoor run / cardio
-    '1606889464198-fcb18894cf50', // gym workout
+    '1534438327276-14e5300c3a48', // 0  bench press
+    '1598971639058-fab3c3109a00', // 1  pushup
+    '1571019613454-1cb2f99b2d8b', // 2  treadmill / cardio
+    '1566241440091-ec10de8db2e1', // 3  pull-up bar
+    '1518611012118-696072aa579a', // 4  aerobics jump
+    '1593810450967-f9c42742e326', // 5  home workout mat
+    '1574680096145-d05b474e2155', // 6  squat
+    '1517963879433-6ad2b056d712', // 7  deadlift barbell
+    '1518310383802-640c2de311b2', // 8  hip thrust glute
+    '1549476464-37392f717541',    // 9  dumbbell lunge
+    '1583454110551-21f2fa2afe61', // 10 pull-up / back
+    '1571019614242-c5c5dee9f50b', // 11 shoulder overhead press
+    '1581009137042-c552e485697a', // 12 bicep curl
+    '1548690312-e3b507d8c110',    // 13 tricep arm workout
+    '1552674605-db6ffd4facb5',    // 14 cardio running
+    '1567013127542-490d757e51fc', // 15 barbell squat rack
+    '1579758629938-03607ccdbaba', // 16 yoga stretch
+    '1544033527-b192daee1f5b',    // 17 outdoor runner
+    '1526506118085-60ce8714f8c5', // 18 outdoor cardio
+    '1606889464198-fcb18894cf50', // 19 dumbbell workout
+    '1590487988256-9ed24133863e', // 20 gym floor exercise
+    '1540497077202-7c8a3999166f', // 21 gym interior weights
+    '1627483262769-04d0a1401487', // 22 strength training
+    '1571731956672-f2b94d7dd0cb', // 23 push-up variation
+    '1547592180-85f173990554',    // 24 core workout
+    '1507398941214-572c25f4b1dc', // 25 barbell row
+    '1532029837206-abbe2b7620e3', // 26 gym cable machine
+    '1597452485669-2c7bb5fef90d', // 27 fitness training
+    '1550259979-ed79b48d2a30',    // 28 weight lifting
+    '1560472355-536de3962603',    // 29 gym dumbbell set
+    '1599058917765-a780eda07a3e', // 30 workout session
+    '1554344728-77cf90d9ed26',    // 31 leg day exercise
+    '1583454155184-870a1f63aebc', // 32 resistance training
+    '1485727749690-d091e8284ef3', // 33 sport performance
+    '1434682881908-b43d0467b798', // 34 fitness class
+    '1558611848-73f7eb4001a1',    // 35 gym training
+    '1603287681836-b174ce5074c2', // 36 functional fitness
+    '1476480862126-209bfaa8edc8', // 37 running outdoors
+    '1517836357463-d25dfeac3438', // 38 gym equipment
+    '1605296867304-46d5465a13f1', // 39 workout gear
 ];
 
-// Each exercise in the same group gets a different photo by cycling through the pool
+// gIdx * 12 ensures each group starts 12 slots apart → within any group all 12 exercises get different photos
 const getExImg = (gIdx: number, eIdx: number) =>
-    `https://images.unsplash.com/photo-${PHOTO_IDS[(gIdx * 7 + eIdx) % PHOTO_IDS.length]}?w=300&q=75`;
+    `https://images.unsplash.com/photo-${PHOTO_IDS[(gIdx * 12 + eIdx) % PHOTO_IDS.length]}?w=300&q=75`;
 
 // Estimate workout duration (seconds) from sets × reps
 const getDuration = (e: { sets: number; reps: string }): number => {
