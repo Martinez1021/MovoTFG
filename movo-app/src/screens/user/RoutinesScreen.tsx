@@ -223,6 +223,8 @@ const QUICK_GROUPS: QuickGroup[] = [
 // ─── Quick Workout Modal ──────────────────────────────────────────────────────
 const { width: SW, height: SH } = Dimensions.get('window');
 
+const REST_SECS = 30; // segundos de descanso entre ejercicios
+
 const QuickWorkoutModal: React.FC<{
     group: QuickGroup | null;
     onClose: () => void;
@@ -230,31 +232,42 @@ const QuickWorkoutModal: React.FC<{
     const [phase, setPhase] = useState<'list' | 'workout'>('list');
     const [selected, setSelected] = useState<Set<number>>(new Set());
     const [currentIdx, setCurrentIdx] = useState(0);
+
+    // Exercise timer
     const [timerSec, setTimerSec] = useState(0);
     const [timerTotal, setTimerTotal] = useState(0);
     const [timerRunning, setTimerRunning] = useState(false);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-    const fadeAnim = useRef(new Animated.Value(1)).current;
 
+    // Rest overlay
+    const [resting, setResting] = useState(false);
+    const [restSec, setRestSec] = useState(REST_SECS);
+    const restRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    // Done overlay (instead of Alert so tap outside works)
+    const [showDone, setShowDone] = useState(false);
+
+    const fadeAnim = useRef(new Animated.Value(1)).current;
     const groupIdx = group ? QUICK_GROUPS.findIndex(g => g.id === group.id) : 0;
 
-    // Selected items: original index + exercise
     const selectedItems = group
         ? group.exercises.map((e, i) => ({ e, i })).filter(({ i }) => selected.has(i))
         : [];
 
+    // Reset on new group
     useEffect(() => {
-        if (group) { setPhase('list'); setSelected(new Set()); setCurrentIdx(0); }
+        if (group) {
+            setPhase('list'); setSelected(new Set()); setCurrentIdx(0);
+            setResting(false); setShowDone(false);
+        }
     }, [group]);
 
-    // Start / reset timer when exercise changes
+    // Exercise timer: start/reset on new exercise
     useEffect(() => {
-        if (phase !== 'workout' || !selectedItems[currentIdx]) return;
-        const secs = getDuration(selectedItems[currentIdx].e);
+        if (phase !== 'workout' || resting || !selectedItems[currentIdx]) return;
         if (timerRef.current) clearInterval(timerRef.current);
-        setTimerTotal(secs);
-        setTimerSec(secs);
-        setTimerRunning(true);
+        const secs = getDuration(selectedItems[currentIdx].e);
+        setTimerTotal(secs); setTimerSec(secs); setTimerRunning(true);
         timerRef.current = setInterval(() => {
             setTimerSec(s => {
                 if (s <= 1) { clearInterval(timerRef.current!); setTimerRunning(false); return 0; }
@@ -262,15 +275,47 @@ const QuickWorkoutModal: React.FC<{
             });
         }, 1000);
         return () => { if (timerRef.current) clearInterval(timerRef.current); };
-    }, [currentIdx, phase]);
+    }, [currentIdx, phase, resting]);
 
-    // Cleanup on unmount
-    useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
+    // Rest timer
+    useEffect(() => {
+        if (!resting) return;
+        if (restRef.current) clearInterval(restRef.current);
+        setRestSec(REST_SECS);
+        restRef.current = setInterval(() => {
+            setRestSec(s => {
+                if (s <= 1) {
+                    clearInterval(restRef.current!);
+                    advanceAfterRest();
+                    return 0;
+                }
+                return s - 1;
+            });
+        }, 1000);
+        return () => { if (restRef.current) clearInterval(restRef.current); };
+    }, [resting]);
+
+    // Cleanup
+    useEffect(() => () => {
+        if (timerRef.current) clearInterval(timerRef.current);
+        if (restRef.current) clearInterval(restRef.current);
+    }, []);
+
+    const advanceAfterRest = () => {
+        if (restRef.current) clearInterval(restRef.current);
+        setResting(false);
+        Animated.sequence([
+            Animated.timing(fadeAnim, { toValue: 0, duration: 150, useNativeDriver: true }),
+            Animated.timing(fadeAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
+        ]).start();
+        setCurrentIdx(i => i + 1);
+    };
+
+    const skipRest = () => advanceAfterRest();
 
     const toggleTimer = () => {
         if (timerRunning) {
-            clearInterval(timerRef.current!);
-            setTimerRunning(false);
+            clearInterval(timerRef.current!); setTimerRunning(false);
         } else {
             timerRef.current = setInterval(() => {
                 setTimerSec(s => {
@@ -295,22 +340,15 @@ const QuickWorkoutModal: React.FC<{
             Alert.alert('Selecciona ejercicios', 'Pulsa + en al menos un ejercicio para añadirlo a tu entrenamiento.');
             return;
         }
-        setCurrentIdx(0);
-        setPhase('workout');
+        setCurrentIdx(0); setPhase('workout');
     };
 
     const goNext = () => {
         if (timerRef.current) clearInterval(timerRef.current);
         if (currentIdx < selectedItems.length - 1) {
-            Animated.sequence([
-                Animated.timing(fadeAnim, { toValue: 0, duration: 150, useNativeDriver: true }),
-                Animated.timing(fadeAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
-            ]).start();
-            setCurrentIdx(i => i + 1);
+            setResting(true); // show rest overlay, auto-advance after REST_SECS
         } else {
-            Alert.alert('🎉 ¡Entrenamiento completado!', `Has completado ${selectedItems.length} ejercicio${selectedItems.length > 1 ? 's' : ''}. ¡Buen trabajo!`, [
-                { text: 'Cerrar', onPress: onClose },
-            ]);
+            setShowDone(true); // show done overlay instead of Alert
         }
     };
 
@@ -319,16 +357,19 @@ const QuickWorkoutModal: React.FC<{
     const ex = currentItem?.e;
     const exOrigIdx = currentItem?.i ?? 0;
     const isLast = currentIdx === selectedItems.length - 1;
+    const nextEx = !isLast ? selectedItems[currentIdx + 1] : null;
     const progress = selectedItems.length > 0 ? (currentIdx + 1) / selectedItems.length : 0;
     const timerColor = timerSec === 0 ? '#22c55e' : timerSec <= 10 ? '#ef4444' : timerSec <= 30 ? '#f97316' : group.gradient[0];
     const mm = String(Math.floor(timerSec / 60)).padStart(2, '0');
     const ss = String(timerSec % 60).padStart(2, '0');
+    const restPct = restSec / REST_SECS;
+    const restColor = restSec <= 5 ? '#22c55e' : restSec <= 10 ? '#f97316' : '#60a5fa';
 
     return (
         <Modal visible={!!group} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
             <LinearGradient colors={['#0A0A0A', '#0D0A18']} style={{ flex: 1 }}>
 
-                {/* ── PHASE: LIST (selección) ── */}
+                {/* ── PHASE: LIST ── */}
                 {phase === 'list' && (
                     <>
                         <View style={qw.photoHeader}>
@@ -350,11 +391,10 @@ const QuickWorkoutModal: React.FC<{
                         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: Spacing.base, paddingBottom: 140 }}>
                             {group.exercises.map((e, i) => {
                                 const isSel = selected.has(i);
-                                const img = getExImg(groupIdx, i);
                                 return (
                                     <View key={i} style={[qw.exRow, isSel && { borderColor: group.gradient[0], borderWidth: 1.5 }]}>
                                         <View style={qw.exThumbWrap}>
-                                            <Image source={{ uri: img }} style={StyleSheet.absoluteFill as any} resizeMode="cover" />
+                                            <Image source={{ uri: getExImg(groupIdx, i) }} style={StyleSheet.absoluteFill as any} resizeMode="cover" />
                                             {isSel && <LinearGradient colors={[group.gradient[0] + 'CC', group.gradient[1] + 'AA']} style={StyleSheet.absoluteFill as any} />}
                                             {isSel && <Ionicons name="checkmark" size={22} color="#fff" />}
                                         </View>
@@ -389,9 +429,8 @@ const QuickWorkoutModal: React.FC<{
                 {/* ── PHASE: WORKOUT ── */}
                 {phase === 'workout' && ex && (
                     <View style={{ flex: 1 }}>
-                        {/* Top bar */}
                         <View style={qw.topBar}>
-                            <TouchableOpacity onPress={() => { if (timerRef.current) clearInterval(timerRef.current); setPhase('list'); }}>
+                            <TouchableOpacity onPress={() => { if (timerRef.current) clearInterval(timerRef.current); setResting(false); setPhase('list'); }}>
                                 <Ionicons name="arrow-back" size={22} color={Colors.textSecondary} />
                             </TouchableOpacity>
                             <Text style={qw.topBarTitle}>{group.label}</Text>
@@ -400,7 +439,6 @@ const QuickWorkoutModal: React.FC<{
                             </TouchableOpacity>
                         </View>
 
-                        {/* Progress bar */}
                         <View style={qw.progressBg}>
                             <View style={[qw.progressFill, { width: `${progress * 100}%` as any, backgroundColor: group.gradient[0] }]} />
                         </View>
@@ -410,7 +448,6 @@ const QuickWorkoutModal: React.FC<{
                             contentContainerStyle={{ alignItems: 'center', padding: Spacing.xl, paddingBottom: 40 }}
                             style={{ flex: 1, opacity: fadeAnim }}>
 
-                            {/* Foto única del ejercicio */}
                             <View style={qw.workoutImgWrap}>
                                 <Image source={{ uri: getExImg(groupIdx, exOrigIdx) }} style={StyleSheet.absoluteFill as any} resizeMode="cover" />
                                 <LinearGradient colors={[group.gradient[0] + '55', group.gradient[1] + '44']} style={StyleSheet.absoluteFill as any} />
@@ -418,10 +455,9 @@ const QuickWorkoutModal: React.FC<{
 
                             <Text style={qw.workoutExName}>{ex.name}</Text>
 
-                            {/* ── Cronómetro de cuenta atrás ── */}
+                            {/* Cronómetro ejercicio */}
                             <View style={qw.timerWrap}>
                                 <Text style={[qw.timerTime, { color: timerColor }]}>{mm}:{ss}</Text>
-                                {/* Barra de progreso del timer */}
                                 <View style={qw.timerBarBg}>
                                     <View style={[qw.timerBarFill, {
                                         width: timerTotal > 0 ? `${(timerSec / timerTotal) * 100}%` as any : '0%',
@@ -434,7 +470,6 @@ const QuickWorkoutModal: React.FC<{
                                 </TouchableOpacity>
                             </View>
 
-                            {/* Series × Reps */}
                             <LinearGradient colors={[group.gradient[0] + '33', group.gradient[1] + '22']} style={qw.repsCard}>
                                 <View style={qw.repsRow}>
                                     <View style={qw.repsStat}>
@@ -464,6 +499,55 @@ const QuickWorkoutModal: React.FC<{
                                 </LinearGradient>
                             </TouchableOpacity>
                         </View>
+
+                        {/* ── REST OVERLAY — tap anywhere to skip ── */}
+                        {resting && (
+                            <TouchableOpacity activeOpacity={1} onPress={skipRest} style={qw.restOverlay}>
+                                <LinearGradient colors={['rgba(0,0,0,0.92)', 'rgba(10,10,30,0.96)']} style={StyleSheet.absoluteFill as any} />
+                                <Text style={qw.restTitle}>Descanso</Text>
+                                <Text style={[qw.restTimer, { color: restColor }]}>{restSec}</Text>
+                                {/* Circular progress bar */}
+                                <View style={qw.restBarBg}>
+                                    <View style={[qw.restBarFill, { width: `${restPct * 100}%` as any, backgroundColor: restColor }]} />
+                                </View>
+                                {nextEx && (
+                                    <View style={qw.restNextWrap}>
+                                        <Text style={qw.restNextLabel}>A continuación</Text>
+                                        <View style={qw.restNextRow}>
+                                            <View style={qw.restNextThumb}>
+                                                <Image source={{ uri: getExImg(groupIdx, nextEx.i) }} style={StyleSheet.absoluteFill as any} resizeMode="cover" />
+                                            </View>
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={qw.restNextName}>{nextEx.e.name}</Text>
+                                                <Text style={qw.restNextMeta}>{nextEx.e.sets} series · {nextEx.e.reps}</Text>
+                                            </View>
+                                        </View>
+                                    </View>
+                                )}
+                                <Text style={qw.restSkip}>Toca en cualquier lugar para saltar</Text>
+                            </TouchableOpacity>
+                        )}
+
+                        {/* ── DONE OVERLAY — tap outside card to close ── */}
+                        {showDone && (
+                            <TouchableOpacity activeOpacity={1} onPress={onClose} style={qw.restOverlay}>
+                                <LinearGradient colors={['rgba(0,0,0,0.92)', 'rgba(10,10,30,0.96)']} style={StyleSheet.absoluteFill as any} />
+                                {/* Card — tap inside doesn't propagate */}
+                                <TouchableOpacity activeOpacity={1} onPress={() => {}} style={qw.doneCard}>
+                                    <Text style={qw.doneEmoji}>🎉</Text>
+                                    <Text style={qw.doneTitle}>¡Completado!</Text>
+                                    <Text style={qw.doneSubtitle}>
+                                        Has terminado {selectedItems.length} ejercicio{selectedItems.length > 1 ? 's' : ''}.{'\n'}¡Buen trabajo!
+                                    </Text>
+                                    <TouchableOpacity onPress={onClose} activeOpacity={0.85} style={{ width: '100%' }}>
+                                        <LinearGradient colors={['#22c55e', '#16a34a']} style={qw.doneBtn}>
+                                            <Text style={qw.doneBtnText}>Cerrar</Text>
+                                        </LinearGradient>
+                                    </TouchableOpacity>
+                                </TouchableOpacity>
+                                <Text style={qw.restSkip}>Toca fuera para cerrar</Text>
+                            </TouchableOpacity>
+                        )}
                     </View>
                 )}
             </LinearGradient>
@@ -492,14 +576,12 @@ const qw = StyleSheet.create({
     progressText: { textAlign: 'center', color: Colors.textSecondary, fontSize: FontSizes.sm, marginTop: 6 },
     workoutImgWrap: { width: '100%', height: 190, borderRadius: BorderRadius.xl, overflow: 'hidden', marginBottom: Spacing.md },
     workoutExName: { fontSize: FontSizes['2xl'], fontWeight: '900', color: Colors.textPrimary, textAlign: 'center', lineHeight: 34, marginBottom: Spacing.md },
-    // Timer
     timerWrap: { width: '100%', alignItems: 'center', marginBottom: Spacing.md },
     timerTime: { fontSize: 52, fontWeight: '900', letterSpacing: 3, lineHeight: 60 },
     timerBarBg: { width: '75%', height: 5, backgroundColor: Colors.surface, borderRadius: 3, overflow: 'hidden', marginTop: 8, marginBottom: 10 },
     timerBarFill: { height: 5, borderRadius: 3 },
     timerToggle: { flexDirection: 'row', alignItems: 'center', gap: 6 },
     timerLabel: { fontSize: FontSizes.xs, fontWeight: '700' },
-    // Reps card
     repsCard: { width: '100%', borderRadius: BorderRadius.xl, padding: Spacing.xl, marginBottom: Spacing.md },
     repsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
     repsStat: { flex: 1, alignItems: 'center' },
@@ -511,6 +593,26 @@ const qw = StyleSheet.create({
     nextWrap: { padding: Spacing.base, paddingBottom: 44 },
     nextBtn: { borderRadius: BorderRadius.xl, paddingVertical: 20, alignItems: 'center', justifyContent: 'center' },
     nextBtnText: { fontSize: FontSizes['2xl'], fontWeight: '900', color: '#fff', letterSpacing: 1 },
+    // Rest overlay
+    restOverlay: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', zIndex: 50, paddingHorizontal: Spacing.xl },
+    restTitle: { fontSize: FontSizes.lg, fontWeight: '700', color: 'rgba(255,255,255,0.6)', marginBottom: Spacing.sm, letterSpacing: 2, textTransform: 'uppercase' },
+    restTimer: { fontSize: 100, fontWeight: '900', lineHeight: 110, letterSpacing: -4 },
+    restBarBg: { width: '70%', height: 6, backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 3, overflow: 'hidden', marginTop: 12, marginBottom: Spacing.xl },
+    restBarFill: { height: 6, borderRadius: 3 },
+    restNextWrap: { width: '100%', backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: BorderRadius.xl, padding: Spacing.md, marginBottom: Spacing.xl },
+    restNextLabel: { fontSize: FontSizes.xs, color: 'rgba(255,255,255,0.5)', marginBottom: Spacing.sm, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
+    restNextRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+    restNextThumb: { width: 52, height: 52, borderRadius: BorderRadius.sm, overflow: 'hidden' },
+    restNextName: { fontSize: FontSizes.base, fontWeight: '800', color: '#fff' },
+    restNextMeta: { fontSize: FontSizes.xs, color: 'rgba(255,255,255,0.6)', marginTop: 3 },
+    restSkip: { fontSize: FontSizes.xs, color: 'rgba(255,255,255,0.3)', marginTop: 8 },
+    // Done overlay
+    doneCard: { width: '100%', backgroundColor: Colors.surface, borderRadius: BorderRadius.xl, padding: Spacing.xl, alignItems: 'center', borderWidth: 1, borderColor: Colors.border },
+    doneEmoji: { fontSize: 56, marginBottom: Spacing.md },
+    doneTitle: { fontSize: FontSizes['2xl'], fontWeight: '900', color: Colors.textPrimary, marginBottom: Spacing.sm },
+    doneSubtitle: { fontSize: FontSizes.base, color: Colors.textSecondary, textAlign: 'center', lineHeight: 22, marginBottom: Spacing.xl },
+    doneBtn: { borderRadius: BorderRadius.xl, paddingVertical: 16, alignItems: 'center' },
+    doneBtnText: { fontSize: FontSizes.base, fontWeight: '800', color: '#fff' },
 });
 
 const CAT_LABELS: Record<string, string> = { gym: '🏋️ Gym', yoga: '🧘 Yoga', pilates: '🌀 Pilates' };
