@@ -16,23 +16,28 @@ import { supabase } from '../../services/supabase';
 // ─────────────────────────────────────────────────────────────────────────────
 //  "HAZ TU RUTINA"  —  grupos musculares + ejercicios
 // ─────────────────────────────────────────────────────────────────────────────
-// 15 unique Unsplash fitness photo IDs — rotated per exercise so each one looks different
+// 20 verified Unsplash fitness photo IDs — all manually checked (no 404s)
 const PHOTO_IDS = [
     '1534438327276-14e5300c3a48', // bench press
-    '1598971639058-fab3c3109a00', // pushup
-    '1571019613454-1cb2f99b2d8b', // chest fly
-    '1566241440091-ec10de8db2e1', // plank
-    '1518611012118-696072aa579a', // crunch
+    '1598971639058-fab3c3109a00', // pushup / chest workout
+    '1571019613454-1cb2f99b2d8b', // chest fly / dumbbell
+    '1566241440091-ec10de8db2e1', // plank / core
+    '1518611012118-696072aa579a', // ab crunch / core
     '1593810450967-f9c42742e326', // mountain climbers
-    '1574680096145-d05b474e2155', // squat
-    '1517963879433-6ad2b056d712', // deadlift
-    '1518310383802-640c2de311b2', // hip thrust
-    '1574680178181-b4b675eac1b4', // lunge
-    '1583454110551-21f2fa2afe61', // pullup
-    '1571019614242-c5c5dee9f50b', // shoulder press
+    '1574680096145-d05b474e2155', // squat / legs
+    '1517963879433-6ad2b056d712', // deadlift / barbell
+    '1518310383802-640c2de311b2', // hip thrust / glute
+    '1549476464-37392f717541',    // gym dumbbell / lunge
+    '1583454110551-21f2fa2afe61', // pull-up / back
+    '1571019614242-c5c5dee9f50b', // shoulder overhead press
     '1581009137042-c552e485697a', // bicep curl
-    '1530822847156-5df684ec5933', // tricep extension
-    '1552674605-db6ffd4facb5',    // cardio
+    '1548690312-e3b507d8c110',    // tricep / arm workout
+    '1552674605-db6ffd4facb5',    // cardio / running
+    '1567013127542-490d757e51fc', // gym weights
+    '1579758629938-03607ccdbaba', // fitness training
+    '1544033527-b192daee1f5b',    // gym / strength
+    '1526506118085-60ce8714f8c5', // outdoor run / cardio
+    '1606889464198-fcb18894cf50', // gym workout
 ];
 
 // Each exercise in the same group gets a different photo by cycling through the pool
