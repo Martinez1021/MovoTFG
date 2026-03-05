@@ -595,7 +595,7 @@ const CreatePostModal: React.FC<{ visible: boolean; onClose: () => void; primary
 
     return (
         <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: '#111' }}>
                 <View style={cm.container}>
                     {/* Header */}
                     <View style={cm.header}>

@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+  body {
+    font-family: 'Calibri', sans-serif;
+    font-size: 11pt;
+    margin: 2.54cm;
+    color: #000;
+    line-height: 1.5;
+  }
+  h1 {
+    font-size: 24pt;
+    font-weight: bold;
+    color: #6C63FF;
+    text-align: center;
+    border-bottom: 3px solid #6C63FF;
+    padding-bottom: 10px;
+    margin-bottom: 6px;
+  }
+  h2 {
+    font-size: 14pt;
+    font-weight: bold;
+    color: #4A4080;
+    border-left: 5px solid #6C63FF;
+    padding-left: 8px;
+    margin-top: 28px;
+    margin-bottom: 8px;
+  }
+  h3 {
+    font-size: 12pt;
+    font-weight: bold;
+    color: #333;
+    margin-top: 16px;
+    margin-bottom: 4px;
+  }
+  .portada {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .portada .subtitulo {
+    font-size: 14pt;
+    color: #555;
+    margin: 6px 0;
+  }
+  .portada .version {
+    font-size: 10pt;
+    color: #888;
+    margin-top: 20px;
+  }
+  .indice {
+    background: #f5f4ff;
+    border: 1px solid #d0ccff;
+    border-radius: 6px;
+    padding: 14px 20px;
+    margin: 20px 0 30px 0;
+  }
+  .indice h2 {
+    border: none;
+    margin-top: 0;
+    color: #6C63FF;
+    font-size: 13pt;
+  }
+  .indice ol {
+    margin: 0;
+    padding-left: 22px;
+  }
+  .indice li {
+    margin: 4px 0;
+    font-size: 11pt;
+  }
+  .paso {
+    background: #f9f9f9;
+    border-left: 4px solid #6C63FF;
+    padding: 10px 16px;
+    margin: 10px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .paso strong {
+    color: #6C63FF;
+    font-size: 12pt;
+  }
+  .nota {
+    background: #fff8e1;
+    border: 1px solid #ffcc02;
+    border-radius: 6px;
+    padding: 10px 16px;
+    margin: 12px 0;
+    font-size: 10.5pt;
+  }
+  .nota::before {
+    content: "⚠️ Nota: ";
+    font-weight: bold;
+  }
+  .info {
+    background: #e8f4fd;
+    border: 1px solid #90caf9;
+    border-radius: 6px;
+    padding: 10px 16px;
+    margin: 12px 0;
+    font-size: 10.5pt;
+  }
+  .info::before {
+    content: "ℹ️ Info: ";
+    font-weight: bold;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 14px 0;
+    font-size: 10.5pt;
+  }
+  th {
+    background: #6C63FF;
+    color: white;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: bold;
+  }
+  td {
+    border: 1px solid #ddd;
+    padding: 7px 12px;
+  }
+  tr:nth-child(even) { background: #f5f4ff; }
+  ul, ol {
+    margin: 6px 0;
+    padding-left: 22px;
+  }
+  li { margin: 4px 0; }
+  .placeholder-img {
+    border: 2px dashed #ccc;
+    background: #f9f9f9;
+    text-align: center;
+    padding: 30px;
+    color: #999;
+    font-size: 10pt;
+    margin: 12px auto;
+    border-radius: 8px;
+    max-width: 280px;
+  }
+  .separador {
+    border: none;
+    border-top: 1px solid #e0e0e0;
+    margin: 28px 0;
+  }
+  .pie {
+    text-align: center;
+    color: #888;
+    font-size: 9pt;
+    margin-top: 40px;
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+  }
+  .badge {
+    display: inline-block;
+    background: #6C63FF;
+    color: white;
+    border-radius: 12px;
+    padding: 2px 10px;
+    font-size: 9.5pt;
+    font-weight: bold;
+  }
+  @page {
+    margin: 2.54cm;
+  }
+</style>
+</head>
+<body>
+
+<!-- PORTADA -->
+<div class="portada">
+  <br><br>
+  <h1>MOVO</h1>
+  <p class="subtitulo"><strong>Manual de Instalación y Uso</strong></p>
+  <p class="subtitulo">Aplicación Móvil de Entrenamiento Personal</p>
+  <p class="version">Versión 1.0 &nbsp;|&nbsp; Marzo 2026</p>
+</div>
+
+<hr class="separador">
+
+<!-- ÍNDICE -->
+<div class="indice">
+  <h2>Índice de contenidos</h2>
+  <ol>
+    <li>Introducción</li>
+    <li>Requisitos del sistema</li>
+    <li>Instalación de Expo Go</li>
+    <li>Acceso a la aplicación MOVO</li>
+    <li>Registro e inicio de sesión</li>
+    <li>Primeros pasos en la app</li>
+    <li>Resolución de problemas frecuentes</li>
+    <li>Contacto y soporte</li>
+  </ol>
+</div>
+
+<hr class="separador">
+
+<!-- 1. INTRODUCCIÓN -->
+<h2>1. Introducción</h2>
+<p>
+  <strong>MOVO</strong> es una aplicación móvil de entrenamiento personal inteligente que combina rutinas de ejercicio personalizadas, seguimiento de progreso, coaching con inteligencia artificial y una comunidad de usuarios activos.
+</p>
+<p>
+  La aplicación ha sido desarrollada con <strong>React Native + Expo</strong> para el frontend móvil, <strong>Spring Boot</strong> para el backend y <strong>PostgreSQL</strong> como base de datos. Actualmente se distribuye a través de <strong>Expo Go</strong>, lo que permite instalarla en cualquier dispositivo sin necesidad de pasar por la App Store ni Google Play.
+</p>
+
+<hr class="separador">
+
+<!-- 2. REQUISITOS -->
+<h2>2. Requisitos del sistema</h2>
+
+<h3>Dispositivo móvil</h3>
+<table>
+  <tr>
+    <th>Plataforma</th>
+    <th>Versión mínima</th>
+    <th>Recomendada</th>
+  </tr>
+  <tr>
+    <td>iPhone (iOS)</td>
+    <td>iOS 13.0</td>
+    <td>iOS 16.0 o superior</td>
+  </tr>
+  <tr>
+    <td>Android</td>
+    <td>Android 8.0 (API 26)</td>
+    <td>Android 11 o superior</td>
+  </tr>
+</table>
+
+<h3>Conexión a internet</h3>
+<ul>
+  <li>Conexión WiFi o datos móviles (4G/5G) activa durante el uso de la app.</li>
+  <li>La primera carga del bundle requiere conexión estable. Las siguientes cargas son más rápidas.</li>
+</ul>
+
+<h3>Aplicación necesaria</h3>
+<ul>
+  <li><strong>Expo Go</strong> — disponible gratuitamente en App Store (iOS) y Google Play (Android).</li>
+</ul>
+
+<hr class="separador">
+
+<!-- 3. INSTALACIÓN EXPO GO -->
+<h2>3. Instalación de Expo Go</h2>
+
+<div class="paso">
+  <strong>Paso 1 — iPhone (iOS)</strong><br>
+  Abre la <strong>App Store</strong> en tu iPhone. En el buscador escribe <em>"Expo Go"</em>. Pulsa <strong>Obtener</strong> e instala la app. El desarrollador es <em>Expo Project, Inc.</em>
+</div>
+
+<div class="placeholder-img">
+    [Captura: Expo Go en App Store]
+</div>
+
+<div class="paso">
+  <strong>Paso 1 — Android</strong><br>
+  Abre <strong>Google Play</strong>. Busca <em>"Expo Go"</em>. Pulsa <strong>Instalar</strong>. El desarrollador es <em>Expo Project, Inc.</em>
+</div>
+
+<div class="nota">
+  Expo Go es una herramienta de desarrollo. No requiere cuenta de desarrollador ni pago alguno.
+</div>
+
+<hr class="separador">
+
+<!-- 4. ACCESO A MOVO -->
+<h2>4. Acceso a la aplicación MOVO</h2>
+
+<p>MOVO se ejecuta a través de Expo Go mediante un enlace o código QR proporcionado por el desarrollador.</p>
+
+<div class="paso">
+  <strong>Paso 1 — Obtener el enlace / QR</strong><br>
+  El desarrollador facilitará un <strong>enlace exp://</strong> o un <strong>código QR</strong> para acceder a la aplicación.
+</div>
+
+<div class="paso">
+  <strong>Paso 2 — Abrir Expo Go</strong><br>
+  Abre la aplicación <strong>Expo Go</strong> en tu dispositivo.
+</div>
+
+<div class="paso">
+  <strong>Paso 3 — Escanear el QR o introducir el enlace</strong><br>
+  <ul>
+    <li><strong>iPhone</strong>: abre la <em>Cámara</em> del sistema y apunta al código QR. Aparecerá una notificación → pulsa para abrir en Expo Go.</li>
+    <li><strong>Android</strong>: dentro de Expo Go, pulsa <em>"Scan QR code"</em> y escanea el código.</li>
+    <li>Si tienes el enlace directo, pulsa <em>"Enter URL manually"</em> en Expo Go e introdúcelo.</li>
+  </ul>
+</div>
+
+<div class="placeholder-img">
+  [Captura: Escaneando QR con Expo Go]
+</div>
+
+<div class="paso">
+  <strong>Paso 4 — Esperar la carga inicial</strong><br>
+  La primera vez se descargará el bundle de la aplicación (puede tardar 10-30 segundos según la conexión). Verás una barra de progreso en la parte inferior. Las siguientes aperturas serán instantáneas.
+</div>
+
+<div class="info">
+  El servidor Expo debe estar en ejecución para que la app funcione. Si obtienes un error de conexión, contacta al desarrollador.
+</div>
+
+<hr class="separador">
+
+<!-- 5. REGISTRO E INICIO DE SESIÓN -->
+<h2>5. Registro e inicio de sesión</h2>
+
+<h3>Crear cuenta nueva</h3>
+<ol>
+  <li>En la pantalla inicial de MOVO, pulsa <strong>"Crear cuenta"</strong>.</li>
+  <li>Introduce tu <strong>nombre completo</strong>.</li>
+  <li>Introduce un <strong>correo electrónico</strong> válido.</li>
+  <li>Elige una <strong>contraseña</strong> (mínimo 6 caracteres).</li>
+  <li>Selecciona tu <strong>rol</strong>: Usuario o Entrenador.</li>
+  <li>Pulsa <strong>"Registrarse"</strong>.</li>
+</ol>
+
+<div class="placeholder-img">
+  [Captura: Pantalla de registro]
+</div>
+
+<h3>Iniciar sesión con cuenta existente</h3>
+<ol>
+  <li>En la pantalla inicial, pulsa <strong>"Iniciar sesión"</strong>.</li>
+  <li>Introduce tu <strong>correo</strong> y <strong>contraseña</strong>.</li>
+  <li>Pulsa <strong>"Entrar"</strong>.</li>
+</ol>
+
+<h3>Recuperar contraseña</h3>
+<ol>
+  <li>En la pantalla de inicio de sesión, pulsa <strong>"¿Olvidaste tu contraseña?"</strong>.</li>
+  <li>Introduce tu correo electrónico.</li>
+  <li>Recibirás un email con el enlace de recuperación.</li>
+</ol>
+
+<div class="nota">
+  El correo de verificación puede tardar unos minutos. Revisa también la carpeta de spam.
+</div>
+
+<hr class="separador">
+
+<!-- 6. PRIMEROS PASOS -->
+<h2>6. Primeros pasos en la app</h2>
+
+<h3>Panel principal (Home)</h3>
+<p>Al iniciar sesión accederás al panel principal donde encontrarás:</p>
+<ul>
+  <li>Resumen de tu actividad reciente</li>
+  <li>Acceso rápido a tus rutinas activas</li>
+  <li>Estadísticas de la semana</li>
+  <li>Notificaciones y recordatorios</li>
+</ul>
+
+<h3>Navegación</h3>
+<table>
+  <tr>
+    <th>Icono</th>
+    <th>Sección</th>
+    <th>Descripción</th>
+  </tr>
+  <tr>
+    <td>🏠</td>
+    <td>Inicio</td>
+    <td>Panel principal con resumen de actividad</td>
+  </tr>
+  <tr>
+    <td>🏋️</td>
+    <td>Rutinas</td>
+    <td>Explorar y gestionar rutinas de entrenamiento</td>
+  </tr>
+  <tr>
+    <td>📊</td>
+    <td>Progreso</td>
+    <td>Gráficas y estadísticas de evolución</td>
+  </tr>
+  <tr>
+    <td>💬</td>
+    <td>Feed</td>
+    <td>Comunidad y publicaciones</td>
+  </tr>
+  <tr>
+    <td>👤</td>
+    <td>Perfil</td>
+    <td>Datos personales y configuración</td>
+  </tr>
+</table>
+
+<h3>Iniciar un entrenamiento</h3>
+<ol>
+  <li>Ve a la sección <strong>Rutinas</strong>.</li>
+  <li>Selecciona una rutina de la lista.</li>
+  <li>Pulsa <strong>"Iniciar entrenamiento"</strong>.</li>
+  <li>Sigue los ejercicios en pantalla. Registra series, repeticiones y peso.</li>
+  <li>Al finalizar, pulsa <strong>"Terminar sesión"</strong> para guardar.</li>
+</ol>
+
+<h3>Coach de IA</h3>
+<p>MOVO incluye un asistente de inteligencia artificial que proporciona consejos personalizados, responde preguntas sobre entrenamiento y analiza tu progreso. Accede desde el menú principal.</p>
+
+<hr class="separador">
+
+<!-- 7. RESOLUCIÓN DE PROBLEMAS -->
+<h2>7. Resolución de problemas frecuentes</h2>
+
+<table>
+  <tr>
+    <th>Problema</th>
+    <th>Causa probable</th>
+    <th>Solución</th>
+  </tr>
+  <tr>
+    <td>La app no carga / pantalla negra</td>
+    <td>Error en el bundle o sin conexión</td>
+    <td>Agita el teléfono → pulsa "Reload"</td>
+  </tr>
+  <tr>
+    <td>QR no funciona</td>
+    <td>El servidor Expo no está activo</td>
+    <td>Contacta al desarrollador para reiniciar el servidor</td>
+  </tr>
+  <tr>
+    <td>No recibo el email de verificación</td>
+    <td>Filtro de spam</td>
+    <td>Revisa la carpeta de correo no deseado</td>
+  </tr>
+  <tr>
+    <td>Error al iniciar sesión</td>
+    <td>Credenciales incorrectas</td>
+    <td>Verifica email y contraseña. Usa "¿Olvidaste tu contraseña?"</td>
+  </tr>
+  <tr>
+    <td>La app va lenta</td>
+    <td>Conexión débil</td>
+    <td>Conéctate a una red WiFi estable</td>
+  </tr>
+  <tr>
+    <td>Expo Go pide actualización</td>
+    <td>Versión desactualizada</td>
+    <td>Actualiza Expo Go desde la tienda de aplicaciones</td>
+  </tr>
+</table>
+
+<hr class="separador">
+
+<!-- 8. CONTACTO -->
+<h2>8. Contacto y soporte</h2>
+
+<p>Para cualquier incidencia técnica o duda sobre la instalación, contacta con el equipo de desarrollo:</p>
+
+<table>
+  <tr>
+    <th>Campo</th>
+    <th>Detalle</th>
+  </tr>
+  <tr>
+    <td><strong>Aplicación</strong></td>
+    <td>MOVO — Entrenador Personal Inteligente</td>
+  </tr>
+  <tr>
+    <td><strong>Desarrollador</strong></td>
+    <td>Trabajo de Fin de Grado — Ingeniería Informática</td>
+  </tr>
+  <tr>
+    <td><strong>Versión</strong></td>
+    <td>1.0.0</td>
+  </tr>
+  <tr>
+    <td><strong>Tecnologías</strong></td>
+    <td>React Native, Expo, Spring Boot, PostgreSQL</td>
+  </tr>
+  <tr>
+    <td><strong>Backend</strong></td>
+    <td>https://movotfg-production.up.railway.app</td>
+  </tr>
+</table>
+
+<br>
+
+<div class="pie">
+  <strong>MOVO</strong> — Manual de Instalación v1.0 &nbsp;|&nbsp; Marzo 2026<br>
+  Documento generado para presentación académica (TFG)
+</div>
+
+</body>
+</html>
