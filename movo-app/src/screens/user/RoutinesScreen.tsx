@@ -16,12 +16,184 @@ import { supabase } from '../../services/supabase';
 // ─────────────────────────────────────────────────────────────────────────────
 //  "HAZ TU RUTINA"  —  grupos musculares + ejercicios
 // ─────────────────────────────────────────────────────────────────────────────
-type QuickExercise = { name: string; sets: number; reps: string; tip?: string };
-type QuickGroup    = { id: string; label: string; emoji: string; gradient: [string, string]; exercises: QuickExercise[] };
+const eImg = (id: string) => `https://images.unsplash.com/photo-${id}?w=200&q=70`;
+// Photo pool
+const P = {
+    bench:    eImg('1534438327276-14e5300c3a48'),
+    pushup:   eImg('1598971639058-fab3c3109a00'),
+    fly:      eImg('1571019613454-1cb2f99b2d8b'),
+    dips:     eImg('1598971639058-fab3c3109a00'),
+    plank:    eImg('1566241440091-ec10de8db2e1'),
+    crunch:   eImg('1518611012118-696072aa579a'),
+    climbers: eImg('1593810450967-f9c42742e326'),
+    squat:    eImg('1574680096145-d05b474e2155'),
+    deadlift: eImg('1517963879433-6ad2b056d712'),
+    glute:    eImg('1518310383802-640c2de311b2'),
+    lunge:    eImg('1574680178181-b4b675eac1b4'),
+    pullup:   eImg('1583454110551-21f2fa2afe61'),
+    row:      eImg('1583454110551-21f2fa2afe61'),
+    shoulder: eImg('1571019614242-c5c5dee9f50b'),
+    bicep:    eImg('1581009137042-c552e485697a'),
+    tricep:   eImg('1530822847156-5df684ec5933'),
+    cardio:   eImg('1552674605-db6ffd4facb5'),
+    jump:     eImg('1552674605-db6ffd4facb5'),
+    cable:    eImg('1534438327276-14e5300c3a48'),
+    legpress: eImg('1574680178181-b4b675eac1b4'),
+};
+
+type QuickExercise = { name: string; sets: number; reps: string; tip?: string; image: string };
+type QuickGroup    = { id: string; label: string; image: string; gradient: [string, string]; exercises: QuickExercise[] };
 
 const QUICK_GROUPS: QuickGroup[] = [
     {
-        id: 'pecho', label: 'Pecho', emoji: '💪', gradient: ['#FF6B6B', '#FF8E53'],
+        id: 'pecho', label: 'Pecho',
+        image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=75',
+        gradient: ['#FF6B6B', '#FF8E53'],
+        exercises: [
+            { name: 'Press de banca', sets: 4, reps: '10', tip: 'Codos a 45°, no rebotar la barra.', image: P.bench },
+            { name: 'Press inclinado con barra', sets: 3, reps: '12', tip: 'Ángulo 30-45°, controla la bajada.', image: P.bench },
+            { name: 'Press declinado con barra', sets: 3, reps: '12', tip: 'Agarre algo más cerrado que en press plano.', image: P.bench },
+            { name: 'Press con mancuernas', sets: 3, reps: '12', tip: 'Rango completo, palmas al frente.', image: P.bench },
+            { name: 'Aperturas con mancuernas', sets: 3, reps: '15', tip: 'Ligera flexión de codo, no bajar demasiado.', image: P.fly },
+            { name: 'Press en máquina de pecho', sets: 3, reps: '15', tip: 'Ajusta el asiento a nivel de pecho.', image: P.cable },
+            { name: 'Aperturas en polea cruzada', sets: 3, reps: '15', tip: 'Movimiento de abrazo, espeja el pecho.', image: P.cable },
+            { name: 'Pullover con mancuerna', sets: 3, reps: '12', tip: 'Mantén los codos ligeramente flexionados.', image: P.fly },
+            { name: 'Fondos en paralelas (pecho)', sets: 3, reps: '12', tip: 'Inclínate hacia delante para enfatizar el pecho.', image: P.dips },
+            { name: 'Flexiones estándar', sets: 3, reps: '20', tip: 'Cuerpo recto como una tabla.', image: P.pushup },
+            { name: 'Flexiones diamante', sets: 3, reps: '15', tip: 'Manos juntas en diamante, tríceps activos.', image: P.pushup },
+            { name: 'Flexiones inclinadas (pies elevados)', sets: 3, reps: '15', tip: 'Enfatiza la parte alta del pecho.', image: P.pushup },
+        ],
+    },
+    {
+        id: 'core', label: 'Core',
+        image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=75',
+        gradient: ['#F7971E', '#FFD200'],
+        exercises: [
+            { name: 'Plancha frontal', sets: 3, reps: '45 seg', tip: 'Glúteos activos, no subas las caderas.', image: P.plank },
+            { name: 'Crunch abdominal', sets: 4, reps: '20', tip: 'Sube solo los hombros, no el cuello.', image: P.crunch },
+            { name: 'Crunch inverso', sets: 3, reps: '15', tip: 'Controla la bajada de las piernas.', image: P.crunch },
+            { name: 'Mountain climbers', sets: 3, reps: '30', tip: 'Ritmo rápido, cadera paralela al suelo.', image: P.climbers },
+            { name: 'Bicycle crunches', sets: 3, reps: '20', tip: 'Rota el torso, no el cuello.', image: P.crunch },
+            { name: 'Russian twists', sets: 3, reps: '20', tip: 'Piernas elevadas para mayor dificultad.', image: P.crunch },
+            { name: 'Plancha lateral', sets: 3, reps: '30 seg', tip: 'Cadera alta, oblicuos en tensión.', image: P.plank },
+            { name: 'Hollow body hold', sets: 3, reps: '30 seg', tip: 'Espalda baja pegada al suelo.', image: P.crunch },
+            { name: 'Leg raises', sets: 3, reps: '15', tip: 'Piernas rectas, no rebotes al bajar.', image: P.crunch },
+            { name: 'Dead bug', sets: 3, reps: '12', tip: 'Baja brazo y pierna opuestos al mismo tiempo.', image: P.plank },
+            { name: 'Ab rollout (rueda)', sets: 3, reps: '10', tip: 'Core tenso, no hundas la espalda.', image: P.climbers },
+            { name: 'Dragon flag', sets: 3, reps: '8', tip: 'Ejercicio avanzado, baja lentamente.', image: P.crunch },
+        ],
+    },
+    {
+        id: 'piernas', label: 'Piernas',
+        image: 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=400&q=75',
+        gradient: ['#43E97B', '#38F9D7'],
+        exercises: [
+            { name: 'Sentadilla con barra', sets: 4, reps: '10', tip: 'Rodillas alineadas con los pies.', image: P.squat },
+            { name: 'Prensa de piernas', sets: 3, reps: '12', tip: 'No bloquees las rodillas en extensión.', image: P.legpress },
+            { name: 'Zancadas (lunges)', sets: 3, reps: '12 por pierna', tip: 'Rodilla delantera no pasa la punta del pie.', image: P.lunge },
+            { name: 'Peso muerto rumano', sets: 3, reps: '10', tip: 'Espalda recta, bisagra de cadera.', image: P.deadlift },
+            { name: 'Hip thrust con barra', sets: 4, reps: '12', tip: 'Squeeze de glúteo arriba del todo.', image: P.glute },
+            { name: 'Extensión de cuádriceps', sets: 3, reps: '15', tip: 'Extensión completa, contracción en el tope.', image: P.legpress },
+            { name: 'Curl de isquiotibiales', sets: 3, reps: '12', tip: 'Controlado en bajada.', image: P.deadlift },
+            { name: 'Sentadilla búlgara', sets: 3, reps: '10 por pierna', tip: 'Pie trasero elevado, tronco erguido.', image: P.squat },
+            { name: 'Step-ups con mancuernas', sets: 3, reps: '12 por pierna', tip: 'Empuja con el talón del pie de apoyo.', image: P.lunge },
+            { name: 'Calf raises de pie', sets: 4, reps: '20', tip: 'Pausa en la parte alta.', image: P.squat },
+            { name: 'Goblet squat', sets: 3, reps: '15', tip: 'Mancuerna sujeta en el pecho, talones en el suelo.', image: P.squat },
+            { name: 'Box jumps', sets: 3, reps: '10', tip: 'Aterriza suavemente con las rodillas flexionadas.', image: P.jump },
+        ],
+    },
+    {
+        id: 'espalda', label: 'Espalda',
+        image: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=400&q=75',
+        gradient: ['#4776E6', '#8E54E9'],
+        exercises: [
+            { name: 'Dominadas (pull-ups)', sets: 3, reps: '8', tip: 'Agarre prono, activa los dorsales desde abajo.', image: P.pullup },
+            { name: 'Remo con barra', sets: 4, reps: '10', tip: 'Espalda paralela al suelo, codos pegados.', image: P.row },
+            { name: 'Jalón al pecho en polea', sets: 3, reps: '12', tip: 'Tira hacia el pecho, no hacia atrás.', image: P.pullup },
+            { name: 'Remo con mancuerna', sets: 3, reps: '12 por lado', tip: 'Apoyo con rodilla, codo junto al cuerpo.', image: P.row },
+            { name: 'Face pulls en polea', sets: 3, reps: '15', tip: 'Codos altos, manos a las orejas.', image: P.cable },
+            { name: 'Remo sentado en polea baja', sets: 3, reps: '12', tip: 'Pecho erguido, no balancees el torso.', image: P.cable },
+            { name: 'Pull-over en polea', sets: 3, reps: '12', tip: 'Brazos casi rectos, arco amplio.', image: P.pullup },
+            { name: 'Encogimientos con barra (traps)', sets: 3, reps: '15', tip: 'Sube recto, no hagas círculos.', image: P.row },
+            { name: 'Hiperextensiones', sets: 3, reps: '15', tip: 'No hiperextiendas la zona lumbar.', image: P.deadlift },
+            { name: 'Band pull-aparts', sets: 3, reps: '20', tip: 'Goma a la altura del pecho, brazos extendidos.', image: P.row },
+        ],
+    },
+    {
+        id: 'hombros', label: 'Hombros',
+        image: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=75',
+        gradient: ['#FC5C7D', '#6A3093'],
+        exercises: [
+            { name: 'Press militar con barra', sets: 4, reps: '10', tip: 'De pie o sentado, core activo.', image: P.shoulder },
+            { name: 'Press Arnold', sets: 3, reps: '12', tip: 'Gira las palmas durante la subida.', image: P.shoulder },
+            { name: 'Elevaciones laterales', sets: 3, reps: '15', tip: 'Codos ligeramente flexionados, no por encima de los hombros.', image: P.shoulder },
+            { name: 'Elevaciones frontales', sets: 3, reps: '15', tip: 'Alterna brazos o hazlas juntas.', image: P.shoulder },
+            { name: 'Face pulls deltoides posterior', sets: 3, reps: '15', tip: 'Codos altos.', image: P.cable },
+            { name: 'Press con mancuernas sentado', sets: 3, reps: '12', tip: 'No bloquees los codos arriba.', image: P.shoulder },
+            { name: 'Encogimientos de hombros (shrugs)', sets: 3, reps: '15', tip: 'Sube directo, sin girar.', image: P.shoulder },
+            { name: 'Vuelos en decúbito prono', sets: 3, reps: '12', tip: 'Trabajo del deltoides posterior.', image: P.shoulder },
+            { name: 'Rotación externa con banda', sets: 3, reps: '15 por lado', tip: 'Codo pegado al costado.', image: P.cable },
+        ],
+    },
+    {
+        id: 'biceps', label: 'Bíceps',
+        image: 'https://images.unsplash.com/photo-1581009137042-c552e485697a?w=400&q=75',
+        gradient: ['#3CA55C', '#B5AC49'],
+        exercises: [
+            { name: 'Curl con barra', sets: 4, reps: '12', tip: 'Codos pegados al cuerpo, sin balanceo.', image: P.bicep },
+            { name: 'Curl con mancuernas alterno', sets: 3, reps: '12 por brazo', tip: 'Supina la muñeca al subir.', image: P.bicep },
+            { name: 'Curl martillo', sets: 3, reps: '12', tip: 'Agarre neutro, trabaja el braquial.', image: P.bicep },
+            { name: 'Curl en polea baja', sets: 3, reps: '15', tip: 'Tensión constante en todo el recorrido.', image: P.cable },
+            { name: 'Curl concentrado', sets: 3, reps: '12 por brazo', tip: 'Codo apoyado en el muslo.', image: P.bicep },
+            { name: 'Curl predicador (Scott)', sets: 3, reps: '10', tip: 'No sueltes el peso al bajar.', image: P.bicep },
+            { name: 'Curl 21s', sets: 3, reps: '7+7+7', tip: 'Parte baja, parte alta y recorrido completo.', image: P.bicep },
+            { name: 'Curl inclinado con mancuernas', sets: 3, reps: '12', tip: 'Máximo estiramiento del bíceps.', image: P.bicep },
+        ],
+    },
+    {
+        id: 'triceps', label: 'Tríceps',
+        image: 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=400&q=75',
+        gradient: ['#f953c6', '#b91d73'],
+        exercises: [
+            { name: 'Press francés (skullcrusher)', sets: 3, reps: '12', tip: 'Codos apuntando al techo, no se abren.', image: P.tricep },
+            { name: 'Fondos en banco', sets: 3, reps: '15', tip: 'Cuanto más separado el banco, más difícil.', image: P.dips },
+            { name: 'Extensión en polea alta', sets: 3, reps: '15', tip: 'Codos fijos, solo extiende el antebrazo.', image: P.cable },
+            { name: 'Kickbacks con mancuerna', sets: 3, reps: '15 por brazo', tip: 'Torso paralelo al suelo.', image: P.tricep },
+            { name: 'Press cerrado con barra', sets: 3, reps: '10', tip: 'Agarre estrecho, codos en.', image: P.bench },
+            { name: 'Extensión sobre la cabeza con mancuerna', sets: 3, reps: '12', tip: 'Codos apuntando al techo.', image: P.tricep },
+            { name: 'Fondos en paralelas (tríceps)', sets: 3, reps: '10', tip: 'Tronco erguido para más tríceps.', image: P.dips },
+            { name: 'Extensión en polea con cuerda', sets: 3, reps: '15', tip: 'Separa la cuerda al bajar.', image: P.cable },
+        ],
+    },
+    {
+        id: 'cardio', label: 'Cardio',
+        image: 'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=400&q=75',
+        gradient: ['#11998e', '#38ef7d'],
+        exercises: [
+            { name: 'Burpees', sets: 3, reps: '15', tip: 'Salto con los brazos arriba al final.', image: P.cardio },
+            { name: 'Jumping jacks', sets: 3, reps: '30', tip: 'Ritmo constante y controlado.', image: P.jump },
+            { name: 'High knees', sets: 3, reps: '30 seg', tip: 'Rodillas al nivel del ombligo.', image: P.cardio },
+            { name: 'Mountain climbers', sets: 3, reps: '30', tip: 'Core activo, caderas bajas.', image: P.climbers },
+            { name: 'Jump rope (simulado)', sets: 3, reps: '1 min', tip: 'Aterrizaje suave en punta de pies.', image: P.jump },
+            { name: 'Box jumps', sets: 3, reps: '12', tip: 'Aterrizaje amortiguado, aterriza como gatito.', image: P.jump },
+            { name: 'Sprints en sitio', sets: 3, reps: '30 seg', tip: 'Máxima velocidad, brazos activos.', image: P.cardio },
+            { name: 'Escaladores (step-up cardio)', sets: 3, reps: '20 por pierna', tip: 'No apoyes el pie trasero.', image: P.lunge },
+            { name: 'Saltos de tijera', sets: 3, reps: '20', tip: 'Pies alternos, brazos al contrario.', image: P.jump },
+            { name: 'Sentadillas con salto', sets: 3, reps: '15', tip: 'Aterriza con rodillas flexionadas.', image: P.squat },
+        ],
+    },
+];
+
+// ─── Quick Workout Modal ──────────────────────────────────────────────────────
+const { width: SW, height: SH } = Dimensions.get('window');
+
+const QuickWorkoutModal: React.FC<{
+
+const QUICK_GROUPS: QuickGroup[] = [
+    {
+        id: 'pecho', label: 'Pecho', emoji: '💪',
+        image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=75',
+        gradient: ['#FF6B6B', '#FF8E53'],
         exercises: [
             { name: 'Press de banca', sets: 4, reps: '10', tip: 'Codos a 45°, no rebotar la barra.' },
             { name: 'Press inclinado con barra', sets: 3, reps: '12', tip: 'Ángulo 30-45°, controla la bajada.' },
@@ -38,7 +210,9 @@ const QUICK_GROUPS: QuickGroup[] = [
         ],
     },
     {
-        id: 'core', label: 'Core', emoji: '🔥', gradient: ['#F7971E', '#FFD200'],
+        id: 'core', label: 'Core', emoji: '🔥',
+        image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=75',
+        gradient: ['#F7971E', '#FFD200'],
         exercises: [
             { name: 'Plancha frontal', sets: 3, reps: '45 seg', tip: 'Glúteos activos, no subas las caderas.' },
             { name: 'Crunch abdominal', sets: 4, reps: '20', tip: 'Sube solo los hombros, no el cuello.' },
@@ -55,7 +229,9 @@ const QUICK_GROUPS: QuickGroup[] = [
         ],
     },
     {
-        id: 'piernas', label: 'Piernas', emoji: '🦵', gradient: ['#43E97B', '#38F9D7'],
+        id: 'piernas', label: 'Piernas', emoji: '🦵',
+        image: 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=400&q=75',
+        gradient: ['#43E97B', '#38F9D7'],
         exercises: [
             { name: 'Sentadilla con barra', sets: 4, reps: '10', tip: 'Rodillas alineadas con los pies.' },
             { name: 'Prensa de piernas', sets: 3, reps: '12', tip: 'No bloquees las rodillas en extensión.' },
@@ -72,7 +248,9 @@ const QUICK_GROUPS: QuickGroup[] = [
         ],
     },
     {
-        id: 'espalda', label: 'Espalda', emoji: '🏋️', gradient: ['#4776E6', '#8E54E9'],
+        id: 'espalda', label: 'Espalda', emoji: '🏋️',
+        image: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=400&q=75',
+        gradient: ['#4776E6', '#8E54E9'],
         exercises: [
             { name: 'Dominadas (pull-ups)', sets: 3, reps: '8', tip: 'Agarre prono, activa los dorsales desde abajo.' },
             { name: 'Remo con barra', sets: 4, reps: '10', tip: 'Espalda paralela al suelo, codos pegados.' },
@@ -87,7 +265,9 @@ const QUICK_GROUPS: QuickGroup[] = [
         ],
     },
     {
-        id: 'hombros', label: 'Hombros', emoji: '🎯', gradient: ['#FC5C7D', '#6A3093'],
+        id: 'hombros', label: 'Hombros', emoji: '🎯',
+        image: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=75',
+        gradient: ['#FC5C7D', '#6A3093'],
         exercises: [
             { name: 'Press militar con barra', sets: 4, reps: '10', tip: 'De pie o sentado, core activo.' },
             { name: 'Press Arnold', sets: 3, reps: '12', tip: 'Gira las palmas durante la subida.' },
@@ -101,7 +281,9 @@ const QUICK_GROUPS: QuickGroup[] = [
         ],
     },
     {
-        id: 'biceps', label: 'Bíceps', emoji: '💥', gradient: ['#3CA55C', '#B5AC49'],
+        id: 'biceps', label: 'Bíceps', emoji: '💥',
+        image: 'https://images.unsplash.com/photo-1581009137042-c552e485697a?w=400&q=75',
+        gradient: ['#3CA55C', '#B5AC49'],
         exercises: [
             { name: 'Curl con barra', sets: 4, reps: '12', tip: 'Codos pegados al cuerpo, sin balanceo.' },
             { name: 'Curl con mancuernas alterno', sets: 3, reps: '12 por brazo', tip: 'Supina la muñeca al subir.' },
@@ -114,7 +296,9 @@ const QUICK_GROUPS: QuickGroup[] = [
         ],
     },
     {
-        id: 'triceps', label: 'Tríceps', emoji: '⚡', gradient: ['#f953c6', '#b91d73'],
+        id: 'triceps', label: 'Tríceps', emoji: '⚡',
+        image: 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=400&q=75',
+        gradient: ['#f953c6', '#b91d73'],
         exercises: [
             { name: 'Press francés (skullcrusher)', sets: 3, reps: '12', tip: 'Codos apuntando al techo, no se abren.' },
             { name: 'Fondos en banco', sets: 3, reps: '15', tip: 'Cuanto más separado el banco, más difícil.' },
@@ -127,7 +311,9 @@ const QUICK_GROUPS: QuickGroup[] = [
         ],
     },
     {
-        id: 'cardio', label: 'Cardio', emoji: '🏃', gradient: ['#11998e', '#38ef7d'],
+        id: 'cardio', label: 'Cardio', emoji: '🏃',
+        image: 'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=400&q=75',
+        gradient: ['#11998e', '#38ef7d'],
         exercises: [
             { name: 'Burpees', sets: 3, reps: '15', tip: 'Salto con los brazos arriba al final.' },
             { name: 'Jumping jacks', sets: 3, reps: '30', tip: 'Ritmo constante y controlado.' },
@@ -150,110 +336,155 @@ const QuickWorkoutModal: React.FC<{
     group: QuickGroup | null;
     onClose: () => void;
 }> = ({ group, onClose }) => {
-    const { primary } = useThemeStore();
     const [phase, setPhase] = useState<'list' | 'workout'>('list');
-    const [currentIdx, setCurrentIdx] = useState(0);
+    const [selected, setSelected] = useState<Set<number>>(new Set());
+    const [currentIdx, setCurrentIdx] = useState(0);  // index in selectedList
     const fadeAnim = useRef(new Animated.Value(1)).current;
 
     useEffect(() => {
-        if (group) { setPhase('list'); setCurrentIdx(0); }
+        if (group) { setPhase('list'); setSelected(new Set()); setCurrentIdx(0); }
     }, [group]);
 
+    const toggleSelect = (i: number) => {
+        setSelected(prev => {
+            const next = new Set(prev);
+            next.has(i) ? next.delete(i) : next.add(i);
+            return next;
+        });
+    };
+
+    const selectedList = group ? group.exercises.filter((_, i) => selected.has(i)) : [];
+
+    const startWorkout = () => {
+        if (selectedList.length === 0) {
+            Alert.alert('Selecciona ejercicios', 'Pulsa + en al menos un ejercicio para añadirlo a tu entrenamiento.');
+            return;
+        }
+        setCurrentIdx(0);
+        setPhase('workout');
+    };
+
     const goNext = () => {
-        if (!group) return;
-        if (currentIdx < group.exercises.length - 1) {
+        if (currentIdx < selectedList.length - 1) {
             Animated.sequence([
-                Animated.timing(fadeAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
-                Animated.timing(fadeAnim, { toValue: 1, duration: 280, useNativeDriver: true }),
+                Animated.timing(fadeAnim, { toValue: 0, duration: 160, useNativeDriver: true }),
+                Animated.timing(fadeAnim, { toValue: 1, duration: 260, useNativeDriver: true }),
             ]).start();
             setCurrentIdx(i => i + 1);
         } else {
-            Alert.alert('🎉 ¡Entrenamiento completado!', `Has completado todos los ejercicios de ${group.label}. ¡Buen trabajo!`, [
+            Alert.alert('🎉 ¡Entrenamiento completado!', `Has completado ${selectedList.length} ejercicio${selectedList.length > 1 ? 's' : ''}. ¡Buen trabajo!`, [
                 { text: 'Cerrar', onPress: onClose },
             ]);
         }
     };
 
     if (!group) return null;
-    const ex = group.exercises[currentIdx];
-    const isLast = currentIdx === group.exercises.length - 1;
-    const progress = (currentIdx + 1) / group.exercises.length;
+    const ex = selectedList[currentIdx];
+    const isLast = currentIdx === selectedList.length - 1;
+    const progress = selectedList.length > 0 ? (currentIdx + 1) / selectedList.length : 0;
 
     return (
         <Modal visible={!!group} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
             <LinearGradient colors={['#0A0A0A', '#0D0A18']} style={{ flex: 1 }}>
 
-                {/* PHASE: LIST */}
+                {/* ── PHASE: LIST (selección) ── */}
                 {phase === 'list' && (
                     <>
-                        {/* Header */}
-                        <LinearGradient colors={group.gradient} style={qw.listHeader}>
+                        {/* Compact photo header */}
+                        <View style={qw.photoHeader}>
+                            <Image source={{ uri: group.image }} style={StyleSheet.absoluteFill as any} resizeMode="cover" />
+                            <LinearGradient colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.75)']} style={StyleSheet.absoluteFill as any} />
                             <TouchableOpacity onPress={onClose} style={qw.closeBtn}>
                                 <Ionicons name="close" size={20} color="#fff" />
                             </TouchableOpacity>
-                            <Text style={qw.listEmoji}>{group.emoji}</Text>
-                            <Text style={qw.listGroupName}>{group.label}</Text>
-                            <Text style={qw.listSubtitle}>{group.exercises.length} ejercicios</Text>
-                        </LinearGradient>
+                            <View style={qw.photoHeaderBottom}>
+                                <Text style={qw.listGroupName}>{group.label}</Text>
+                                <Text style={qw.listSubtitle}>
+                                    {selected.size === 0
+                                        ? 'Pulsa + para añadir ejercicios'
+                                        : `${selected.size} ejercicio${selected.size > 1 ? 's' : ''} seleccionado${selected.size > 1 ? 's' : ''}`}
+                                </Text>
+                            </View>
+                        </View>
 
                         {/* Exercise list */}
-                        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: Spacing.base, paddingBottom: 120 }}>
-                            {group.exercises.map((e, i) => (
-                                <View key={i} style={qw.exRow}>
-                                    <LinearGradient colors={[group.gradient[0] + '33', group.gradient[1] + '22']} style={qw.exNum}>
-                                        <Text style={[qw.exNumText, { color: group.gradient[0] }]}>{i + 1}</Text>
-                                    </LinearGradient>
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={qw.exName}>{e.name}</Text>
-                                        <Text style={qw.exMeta}>{e.sets} series × {e.reps} reps</Text>
+                        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: Spacing.base, paddingBottom: 140 }}>
+                            {group.exercises.map((e, i) => {
+                                const isSel = selected.has(i);
+                                return (
+                                    <View key={i} style={[qw.exRow, isSel && { borderColor: group.gradient[0], borderWidth: 1.5 }]}>
+                                        {/* Foto propia del ejercicio */}
+                                        <View style={qw.exThumbWrap}>
+                                            <Image source={{ uri: e.image }} style={StyleSheet.absoluteFill as any} resizeMode="cover" />
+                                            {isSel && (
+                                                <LinearGradient colors={[group.gradient[0] + 'CC', group.gradient[1] + 'AA']} style={StyleSheet.absoluteFill as any} />
+                                            )}
+                                            {isSel && <Ionicons name="checkmark" size={22} color="#fff" />}
+                                        </View>
+                                        {/* Info */}
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={[qw.exName, isSel && { color: group.gradient[0] }]}>{e.name}</Text>
+                                            <Text style={qw.exMeta}>{e.sets} series · {e.reps} reps</Text>
+                                        </View>
+                                        {/* Botón + / ✓ */}
+                                        <TouchableOpacity
+                                            onPress={() => toggleSelect(i)}
+                                            style={[qw.exPlusBtn, { backgroundColor: isSel ? group.gradient[0] : Colors.surface, borderWidth: 1.5, borderColor: isSel ? group.gradient[0] : Colors.border }]}
+                                            hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}>
+                                            <Ionicons name={isSel ? 'checkmark' : 'add'} size={18} color={isSel ? '#fff' : Colors.textSecondary} />
+                                        </TouchableOpacity>
                                     </View>
-                                </View>
-                            ))}
+                                );
+                            })}
                         </ScrollView>
 
                         {/* Start button */}
                         <View style={qw.startWrap}>
-                            <TouchableOpacity onPress={() => setPhase('workout')} activeOpacity={0.85}>
-                                <LinearGradient colors={group.gradient} style={qw.startBtn}>
+                            <TouchableOpacity onPress={startWorkout} activeOpacity={0.85}>
+                                <LinearGradient
+                                    colors={selected.size > 0 ? group.gradient : ['#333', '#222']}
+                                    style={qw.startBtn}>
                                     <Ionicons name="play" size={20} color="#fff" />
-                                    <Text style={qw.startBtnText}>Empezar entrenamiento</Text>
+                                    <Text style={qw.startBtnText}>
+                                        {selected.size > 0
+                                            ? `Empezar con ${selected.size} ejercicio${selected.size > 1 ? 's' : ''}`
+                                            : 'Selecciona ejercicios'}
+                                    </Text>
                                 </LinearGradient>
                             </TouchableOpacity>
                         </View>
                     </>
                 )}
 
-                {/* PHASE: WORKOUT (exercise by exercise) */}
-                {phase === 'workout' && (
+                {/* ── PHASE: WORKOUT ── */}
+                {phase === 'workout' && ex && (
                     <View style={{ flex: 1 }}>
-                        {/* Top bar */}
                         <View style={qw.topBar}>
                             <TouchableOpacity onPress={() => setPhase('list')}>
                                 <Ionicons name="arrow-back" size={22} color={Colors.textSecondary} />
                             </TouchableOpacity>
-                            <Text style={qw.topBarTitle}>{group.emoji} {group.label}</Text>
+                            <Text style={qw.topBarTitle}>{group.label}</Text>
                             <TouchableOpacity onPress={onClose}>
                                 <Ionicons name="close" size={22} color={Colors.textSecondary} />
                             </TouchableOpacity>
                         </View>
 
-                        {/* Progress bar */}
+                        {/* Progress */}
                         <View style={qw.progressBg}>
-                            <Animated.View style={[qw.progressFill, { width: `${progress * 100}%`, backgroundColor: group.gradient[0] }]} />
+                            <View style={[qw.progressFill, { width: `${progress * 100}%` as any, backgroundColor: group.gradient[0] }]} />
                         </View>
-                        <Text style={qw.progressText}>{currentIdx + 1} de {group.exercises.length}</Text>
+                        <Text style={qw.progressText}>{currentIdx + 1} de {selectedList.length}</Text>
 
-                        {/* Exercise card */}
-                        <Animated.View style={[{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.xl }, { opacity: fadeAnim }]}>
-                            {/* Number */}
-                            <LinearGradient colors={group.gradient} style={qw.exCircle}>
-                                <Text style={qw.exCircleNum}>{currentIdx + 1}</Text>
-                            </LinearGradient>
+                        {/* Exercise */}
+                        <Animated.View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.xl, opacity: fadeAnim }}>
+                            {/* Foto grande del ejercicio */}
+                            <View style={qw.workoutImgWrap}>
+                                <Image source={{ uri: ex.image }} style={StyleSheet.absoluteFill as any} resizeMode="cover" />
+                                <LinearGradient colors={[group.gradient[0] + '55', group.gradient[1] + '44']} style={StyleSheet.absoluteFill as any} />
+                            </View>
 
-                            {/* Exercise name */}
                             <Text style={qw.workoutExName}>{ex.name}</Text>
 
-                            {/* Sets × Reps */}
                             <LinearGradient colors={[group.gradient[0] + '33', group.gradient[1] + '22']} style={qw.repsCard}>
                                 <View style={qw.repsRow}>
                                     <View style={qw.repsStat}>
@@ -268,7 +499,6 @@ const QuickWorkoutModal: React.FC<{
                                 </View>
                             </LinearGradient>
 
-                            {/* Tip */}
                             {ex.tip && (
                                 <View style={qw.tipBox}>
                                     <Ionicons name="information-circle-outline" size={16} color={Colors.textSecondary} />
@@ -277,7 +507,6 @@ const QuickWorkoutModal: React.FC<{
                             )}
                         </Animated.View>
 
-                        {/* SIGUIENTE / TERMINAR big button */}
                         <View style={qw.nextWrap}>
                             <TouchableOpacity onPress={goNext} activeOpacity={0.88} style={{ width: '100%' }}>
                                 <LinearGradient colors={isLast ? ['#22c55e', '#16a34a'] : group.gradient} style={qw.nextBtn}>
@@ -293,39 +522,36 @@ const QuickWorkoutModal: React.FC<{
 };
 
 const qw = StyleSheet.create({
-    // List phase
-    listHeader: { paddingTop: 60, paddingBottom: Spacing.xl, alignItems: 'center', position: 'relative' },
-    closeBtn: { position: 'absolute', top: 52, right: Spacing.base, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(0,0,0,0.25)', alignItems: 'center', justifyContent: 'center' },
-    listEmoji: { fontSize: 52, marginBottom: 8 },
-    listGroupName: { fontSize: FontSizes['3xl'], fontWeight: '900', color: '#fff' },
-    listSubtitle: { fontSize: FontSizes.sm, color: 'rgba(255,255,255,0.8)', marginTop: 4 },
-    exRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, backgroundColor: Colors.surface, borderRadius: BorderRadius.md, padding: Spacing.md, marginBottom: Spacing.sm, borderWidth: 1, borderColor: Colors.border },
-    exNum: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-    exNumText: { fontWeight: '800', fontSize: FontSizes.base },
-    exName: { fontSize: FontSizes.base, fontWeight: '700', color: Colors.textPrimary },
-    exMeta: { fontSize: FontSizes.sm, color: Colors.textSecondary, marginTop: 2 },
-    startWrap: { padding: Spacing.xl, paddingBottom: 44 },
-    startBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, borderRadius: BorderRadius.xl, paddingVertical: 18 },
-    startBtnText: { fontSize: FontSizes.lg, fontWeight: '800', color: '#fff' },
-    // Workout phase
+    photoHeader: { height: 155, position: 'relative', justifyContent: 'flex-end', overflow: 'hidden' },
+    photoHeaderBottom: { padding: Spacing.base, paddingBottom: Spacing.md },
+    closeBtn: { position: 'absolute', top: 52, right: Spacing.base, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center', zIndex: 10 },
+    listGroupName: { fontSize: FontSizes['2xl'], fontWeight: '900', color: '#fff' },
+    listSubtitle: { fontSize: FontSizes.xs, color: 'rgba(255,255,255,0.85)', marginTop: 3 },
+    exRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, backgroundColor: Colors.surface, borderRadius: BorderRadius.md, padding: Spacing.sm, marginBottom: Spacing.sm, borderWidth: 1, borderColor: Colors.border },
+    exThumbWrap: { width: 56, height: 56, borderRadius: BorderRadius.sm, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+    exName: { fontSize: FontSizes.sm, fontWeight: '700', color: Colors.textPrimary },
+    exMeta: { fontSize: FontSizes.xs, color: Colors.textSecondary, marginTop: 2 },
+    exPlusBtn: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+    startWrap: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: Spacing.base, paddingBottom: 36, backgroundColor: '#0A0A0Aee' },
+    startBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, borderRadius: BorderRadius.xl, paddingVertical: 17 },
+    startBtnText: { fontSize: FontSizes.base, fontWeight: '800', color: '#fff' },
     topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.base, paddingTop: 56, paddingBottom: Spacing.md },
     topBarTitle: { fontSize: FontSizes.base, fontWeight: '700', color: Colors.textPrimary },
     progressBg: { height: 6, backgroundColor: Colors.surface, marginHorizontal: Spacing.base, borderRadius: 3, overflow: 'hidden' },
     progressFill: { height: 6, borderRadius: 3 },
     progressText: { textAlign: 'center', color: Colors.textSecondary, fontSize: FontSizes.sm, marginTop: 6 },
-    exCircle: { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.xl },
-    exCircleNum: { fontSize: FontSizes['3xl'], fontWeight: '900', color: '#fff' },
-    workoutExName: { fontSize: FontSizes['3xl'], fontWeight: '900', color: Colors.textPrimary, textAlign: 'center', lineHeight: 40, marginBottom: Spacing.xl },
-    repsCard: { width: '100%', borderRadius: BorderRadius.xl, padding: Spacing.xl, marginBottom: Spacing.lg },
+    workoutImgWrap: { width: '100%', height: 180, borderRadius: BorderRadius.xl, overflow: 'hidden', marginBottom: Spacing.lg },
+    workoutExName: { fontSize: FontSizes['2xl'], fontWeight: '900', color: Colors.textPrimary, textAlign: 'center', lineHeight: 34, marginBottom: Spacing.lg },
+    repsCard: { width: '100%', borderRadius: BorderRadius.xl, padding: Spacing.xl, marginBottom: Spacing.md },
     repsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
     repsStat: { flex: 1, alignItems: 'center' },
-    repsNumBig: { fontSize: 52, fontWeight: '900', lineHeight: 60 },
+    repsNumBig: { fontSize: 48, fontWeight: '900', lineHeight: 56 },
     repsLabel: { fontSize: FontSizes.sm, color: Colors.textSecondary, fontWeight: '600', marginTop: 2 },
-    repsDivider: { width: 1, height: 60, backgroundColor: Colors.border },
+    repsDivider: { width: 1, height: 56, backgroundColor: Colors.border },
     tipBox: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, backgroundColor: Colors.surface, borderRadius: BorderRadius.md, padding: Spacing.md, borderWidth: 1, borderColor: Colors.border },
     tipText: { flex: 1, fontSize: FontSizes.sm, color: Colors.textSecondary, lineHeight: 18 },
-    nextWrap: { padding: Spacing.xl, paddingBottom: 48 },
-    nextBtn: { borderRadius: BorderRadius.xl, paddingVertical: 22, alignItems: 'center', justifyContent: 'center' },
+    nextWrap: { padding: Spacing.base, paddingBottom: 44 },
+    nextBtn: { borderRadius: BorderRadius.xl, paddingVertical: 20, alignItems: 'center', justifyContent: 'center' },
     nextBtnText: { fontSize: FontSizes['2xl'], fontWeight: '900', color: '#fff', letterSpacing: 1 },
 });
 
@@ -410,7 +636,7 @@ export const RoutinesScreen: React.FC<{ navigation: any; route: any }> = ({ navi
 
     const [catFilter, setCatFilter] = useState<string>(route.params?.category ?? 'all');
     const [diffFilter, setDiffFilter] = useState<string>('all');
-    const [tab, setTab] = useState<'library' | 'saved'>('library');
+    const [tab, setTab] = useState<'library' | 'quick' | 'saved'>('library');
     const [saved, setSaved] = useState<Set<string>>(new Set());
     const [assigning, setAssigning] = useState(false);
     const [quickGroup, setQuickGroup] = useState<QuickGroup | null>(null);
@@ -528,6 +754,7 @@ export const RoutinesScreen: React.FC<{ navigation: any; route: any }> = ({ navi
     }, [profile]);
 
     return (
+        <>
         <LinearGradient colors={['#0A0A0A', '#0D0A18']} style={{ flex: 1 }}>
             {/* Header */}
             <View style={s.header}>
@@ -547,6 +774,7 @@ export const RoutinesScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                 <View style={s.tabRow}>
                     {[
                         { id: 'library', label: '📚 Biblioteca' },
+                        { id: 'quick', label: '⚡ Tu rutina' },
                         { id: 'saved', label: `❤️ Guardadas${saved.size > 0 ? ` (${saved.size})` : ''}` },
                     ].map((t) => (
                         <TouchableOpacity key={t.id} onPress={() => setTab(t.id as any)}
@@ -560,29 +788,6 @@ export const RoutinesScreen: React.FC<{ navigation: any; route: any }> = ({ navi
             {tab === 'library' ? (
                 <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}
                     refreshControl={<RefreshControl refreshing={isLoading} onRefresh={fetchPublicRoutines} tintColor={primary} />}>
-
-                    {/* ── HAZ TU RUTINA ─────────────────────────────────── */}
-                    <View style={s.quickSection}>
-                        <View style={s.quickHeader}>
-                            <View>
-                                <Text style={s.quickTitle}>⚡ Haz tu rutina</Text>
-                                <Text style={s.quickSub}>Elige un grupo muscular y empieza ya</Text>
-                            </View>
-                        </View>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: Spacing.sm, paddingRight: Spacing.base }}>
-                            {QUICK_GROUPS.map((g) => (
-                                <TouchableOpacity key={g.id} onPress={() => setQuickGroup(g)} activeOpacity={0.82} style={qg.card}>
-                                    <LinearGradient colors={g.gradient} style={StyleSheet.absoluteFill} borderRadius={BorderRadius.lg} />
-                                    <Text style={qg.emoji}>{g.emoji}</Text>
-                                    <Text style={qg.label}>{g.label}</Text>
-                                    <Text style={qg.count}>{g.exercises.length} ejercicios</Text>
-                                    <View style={qg.plusBtn}>
-                                        <Ionicons name="add" size={20} color="#fff" />
-                                    </View>
-                                </TouchableOpacity>
-                            ))}
-                        </ScrollView>
-                    </View>
 
                     {/* Recommendation banner */}
                     <LinearGradient colors={[primary + 'DD', primary + '66']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.recBanner}>
@@ -652,6 +857,24 @@ export const RoutinesScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                             } />
                     ))}
                 </ScrollView>
+            ) : tab === 'quick' ? (
+                /* ── Quick tab ── */
+                <ScrollView contentContainerStyle={[s.scroll, { paddingTop: Spacing.lg }]} showsVerticalScrollIndicator={false}>
+                    <Text style={s.quickTitle}>⚡ Haz tu rutina</Text>
+                    <Text style={[s.quickSub, { marginBottom: Spacing.lg }]}>Elige un grupo muscular y empieza ya</Text>
+                    <View style={qg.grid}>
+                        {QUICK_GROUPS.map((g) => (
+                            <TouchableOpacity key={g.id} onPress={() => setQuickGroup(g)} activeOpacity={0.82} style={qg.gridCard}>
+                                <Image source={{ uri: g.image }} style={StyleSheet.absoluteFill as any} resizeMode="cover" />
+                                <LinearGradient colors={['transparent', 'rgba(0,0,0,0.78)']} style={StyleSheet.absoluteFill as any} />
+                                <View style={qg.bottom}>
+                                    <Text style={qg.label}>{g.label}</Text>
+                                    <Text style={qg.count}>{g.exercises.length} ejercicios</Text>
+                                </View>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                </ScrollView>
             ) : (
                 /* ── Saved tab ── */
                 <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
@@ -683,6 +906,7 @@ export const RoutinesScreen: React.FC<{ navigation: any; route: any }> = ({ navi
             )}
         </LinearGradient>
         <QuickWorkoutModal group={quickGroup} onClose={() => setQuickGroup(null)} />
+        </>
     );
 };
 
@@ -739,17 +963,19 @@ const s = StyleSheet.create({
     assignBanner: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, borderRadius: BorderRadius.lg, padding: Spacing.md, marginTop: Spacing.sm, borderWidth: 1, borderColor: '#7C3AED44' },
     assignBannerText: { flex: 1, fontSize: FontSizes.sm, fontWeight: '600', color: '#A855F7', lineHeight: 18 },
     // Quick section
-    quickSection: { backgroundColor: Colors.surface, borderRadius: BorderRadius.xl, padding: Spacing.base, marginBottom: Spacing.lg, borderWidth: 1, borderColor: Colors.border },
-    quickHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.md },
-    quickTitle: { fontSize: FontSizes.lg, fontWeight: '900', color: Colors.textPrimary },
-    quickSub: { fontSize: FontSizes.xs, color: Colors.textSecondary, marginTop: 2 },
+    quickTitle: { fontSize: FontSizes.lg, fontWeight: '900', color: Colors.textPrimary, marginBottom: 2 },
+    quickSub: { fontSize: FontSizes.xs, color: Colors.textSecondary, marginBottom: 4 },
 });
 
 // ── Quick group card styles ───────────────────────────────────────────────────
 const qg = StyleSheet.create({
-    card: { width: 110, height: 130, borderRadius: BorderRadius.lg, padding: Spacing.sm, justifyContent: 'flex-end', overflow: 'hidden', position: 'relative' },
-    emoji: { fontSize: 26, marginBottom: 4 },
-    label: { fontSize: FontSizes.sm, fontWeight: '800', color: '#fff' },
-    count: { fontSize: 10, color: 'rgba(255,255,255,0.8)', marginBottom: 6 },
-    plusBtn: { position: 'absolute', top: 8, right: 8, width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center' },
+    // slider card (still used in list header if needed)
+    card: { width: 130, height: 160, borderRadius: BorderRadius.lg, overflow: 'hidden', position: 'relative', justifyContent: 'flex-end' },
+    // grid card for the tab
+    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
+    gridCard: { width: '47%', height: 160, borderRadius: BorderRadius.lg, overflow: 'hidden', position: 'relative', justifyContent: 'flex-end' },
+    bottom: { padding: Spacing.sm },
+    label: { fontSize: FontSizes.base, fontWeight: '900', color: '#fff' },
+    count: { fontSize: 10, color: 'rgba(255,255,255,0.75)', marginTop: 1 },
+    plusBtn: { position: 'absolute', top: 8, right: 8, width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' },
 });
