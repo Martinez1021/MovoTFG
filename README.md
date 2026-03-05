@@ -367,6 +367,6 @@ Este proyecto está licenciado bajo la **Licencia MIT**.
 
 <div align="center">
 
-Hecho con ❤️ para la comunidad fitness de habla hispana
+Hecho con ❤️ por Ernesto Martínez Magraner
 
 </div>
