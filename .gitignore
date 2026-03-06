@@ -50,6 +50,10 @@ yarn-error.*
 application-local.yml
 application-local.yaml
 
+# Vídeos de demostración (demasiado grandes para GitHub, >100MB)
+*.mov
+*.mp4
+
 # typescript
 *.tsbuildinfo
 
