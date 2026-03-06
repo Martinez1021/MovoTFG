@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MOVO — Manual de Usuario</title>
+<style>
+:root {
+  --purple:#6C63FF; --purple-dark:#4A4080; --purple-light:#f0eeff;
+  --green:#00C896; --yellow:#FFB800; --red:#FF5252;
+  --bg:#fafafa; --surface:#fff; --border:#e8e8f0; --text:#1a1a2e; --muted:#6b7280;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:11pt;line-height:1.6}
+
+/* ── PRINT ── */
+@media print { .no-print{display:none} body{background:#fff} }
+@page{margin:2.2cm}
+
+/* ── HEADER ── */
+.portada{text-align:center;padding:60px 40px 40px;background:linear-gradient(160deg,#0a0a14,#1a0a30)}
+.portada-logo{width:80px;height:80px;border-radius:24px;background:linear-gradient(135deg,#7c6fff,#00d4aa);display:flex;align-items:center;justify-content:center;font-size:2.2rem;font-weight:900;color:#fff;margin:0 auto 16px;box-shadow:0 12px 40px rgba(124,111,255,.5)}
+.portada h1{font-size:3rem;font-weight:900;color:#fff;letter-spacing:-2px;margin-bottom:6px}
+.portada .sub{font-size:1.1rem;color:rgba(255,255,255,.6);margin-bottom:4px}
+.portada .version{font-size:.85rem;color:rgba(255,255,255,.35);margin-top:18px;text-transform:uppercase;letter-spacing:2px}
+
+/* ── LAYOUT ── */
+.container{max-width:900px;margin:0 auto;padding:40px 28px 80px}
+
+/* ── INDEX ── */
+.indice{background:var(--purple-light);border:1px solid #d0ccff;border-radius:12px;padding:20px 28px;margin:32px 0}
+.indice h2{color:var(--purple);font-size:1rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;font-weight:800}
+.indice-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 24px}
+.indice-item{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:.9rem;color:var(--purple-dark);border-bottom:1px dotted #c5c0ff}
+.indice-item span{font-weight:700;color:var(--purple);min-width:20px}
+
+/* ── SECTIONS ── */
+h2{font-size:1.25rem;font-weight:800;color:var(--purple-dark);border-left:4px solid var(--purple);padding-left:12px;margin:40px 0 14px}
+h3{font-size:1rem;font-weight:700;color:var(--text);margin:20px 0 8px}
+
+/* ── SCREEN SECTION ── */
+.screen-section{display:flex;gap:32px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;margin:16px 0;align-items:flex-start;flex-wrap:wrap}
+.screen-section.flip{flex-direction:row-reverse}
+
+/* ── PHONE ── */
+.phone{flex-shrink:0;width:180px;background:#0a0a0a;border-radius:30px;border:5px solid #1e1e2e;box-shadow:0 0 0 1px #2e2e4e,0 16px 40px rgba(0,0,0,.35);position:relative;overflow:hidden;font-family:-apple-system,sans-serif}
+.phone::before{content:'';position:absolute;top:10px;left:50%;transform:translateX(-50%);width:48px;height:5px;background:#1e1e2e;border-radius:4px;z-index:10}
+.pscreen{width:100%;position:relative}
+.pbar{background:rgba(0,0,0,.7);padding:5px 12px 2px;display:flex;justify-content:space-between;font-size:7px;color:rgba(255,255,255,.45)}
+.pgrad{background:linear-gradient(160deg,#0a0a0a,#0d0a18)}
+
+/* ── EXPLANATION ── */
+.expl{flex:1;min-width:260px}
+.expl p{font-size:.9rem;color:var(--muted);line-height:1.7;margin-bottom:10px}
+
+/* ── STEPS ── */
+.steps{list-style:none;padding:0;counter-reset:step}
+.steps li{counter-increment:step;display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);font-size:.88rem;color:var(--muted)}
+.steps li:last-child{border:none}
+.steps li::before{content:counter(step);min-width:22px;height:22px;border-radius:50%;background:var(--purple);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.7rem;flex-shrink:0;margin-top:1px}
+
+/* ── BULLETS ── */
+.bullets{list-style:none;padding:0}
+.bullets li{display:flex;gap:8px;padding:5px 0;font-size:.88rem;color:var(--muted);border-bottom:1px solid var(--border)}
+.bullets li:last-child{border:none}
+.bullets li::before{content:attr(data-icon);flex-shrink:0}
+
+/* ── TIPS ── */
+.tip{background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:10px 14px;margin:10px 0;font-size:.85rem}
+.tip::before{content:'💡 Consejo: ';font-weight:700}
+.warn{background:#fff3f3;border:1px solid #ffcdd2;border-radius:8px;padding:10px 14px;margin:10px 0;font-size:.85rem}
+.warn::before{content:'⚠️ Atención: ';font-weight:700}
+.info{background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;padding:10px 14px;margin:10px 0;font-size:.85rem}
+.info::before{content:'✅ Info: ';font-weight:700}
+
+/* ── TAG ── */
+.tag{display:inline-block;padding:2px 9px;border-radius:10px;font-size:.72rem;font-weight:700;margin-right:4px}
+.tag-p{background:#ede9ff;color:var(--purple)}
+.tag-g{background:#e6faf5;color:#007a5e}
+.tag-y{background:#fff8e1;color:#996600}
+
+/* ── TABLE ── */
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.88rem}
+th{background:var(--purple);color:#fff;padding:8px 12px;text-align:left;font-weight:700}
+td{border:1px solid var(--border);padding:7px 12px}
+tr:nth-child(even){background:var(--purple-light)}
+
+/* ── WIDE INFO BOX ── */
+.info-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:16px 0}
+.info-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+.info-card .ico{font-size:1.8rem;margin-bottom:6px}
+.info-card strong{display:block;font-size:.9rem;color:var(--text);margin-bottom:4px}
+.info-card span{font-size:.8rem;color:var(--muted)}
+
+/* ── PHONE CONTENT ── */
+.pstat{display:flex;justify-content:space-around;padding:6px 8px;background:rgba(255,255,255,.04);margin:3px 6px;border-radius:8px;border:1px solid rgba(255,255,255,.07)}
+.pstat-v{text-align:center}
+.pstat-v .n{font-size:.8rem;font-weight:800;color:#a78bfa}
+.pstat-v .l{font-size:.42rem;color:#6b7280;text-transform:uppercase}
+.pcard{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:6px 8px;margin:3px 6px}
+.ptitle{font-size:.65rem;font-weight:800;color:#fff}
+.psub{font-size:.5rem;color:#6b7280}
+.pbtn{background:linear-gradient(135deg,#7c6fff,#a78bfa);border-radius:8px;padding:5px 8px;text-align:center;font-size:.6rem;font-weight:700;color:#fff;margin:5px 6px}
+.pchip{display:inline-block;background:rgba(124,111,255,.12);border:1px solid rgba(124,111,255,.25);border-radius:8px;padding:3px 6px;font-size:.5rem;color:#a78bfa;margin:2px}
+.pinp{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:4px 7px;font-size:.6rem;color:rgba(255,255,255,.3);margin:3px 6px}
+.plbl{font-size:.55rem;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;font-weight:700;padding:0 6px}
+.pav{width:26px;height:26px;border-radius:9px;background:linear-gradient(135deg,#7c6fff,#00d4aa);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;color:#fff;flex-shrink:0}
+.bnav{display:flex;justify-content:space-around;padding:5px 0 3px;background:rgba(10,10,30,.95);border-top:1px solid rgba(255,255,255,.06)}
+.bni{display:flex;flex-direction:column;align-items:center;gap:1px}
+.bni .i{font-size:.85rem;opacity:.3}
+.bni .i.on{opacity:1}
+.bni .t{font-size:.38rem;color:#6b7280;font-weight:700}
+.bni .t.on{color:#a78bfa}
+.week-row{display:flex;justify-content:space-around;padding:4px 8px}
+.wd{display:flex;flex-direction:column;align-items:center;gap:1px}
+.wd .dl{font-size:.4rem;color:#6b7280}
+.wd .dc{width:8px;height:8px;border-radius:50%;border:1.5px solid rgba(255,255,255,.15)}
+.wd .dc.done{background:#7c6fff;border-color:#7c6fff}
+.wd .dc.today{border-color:#00d4aa;background:rgba(0,212,170,.2)}
+.quote{background:rgba(124,111,255,.1);border:1px solid rgba(124,111,255,.2);border-radius:7px;padding:6px 7px;margin:3px 6px}
+.qt{font-size:.52rem;color:rgba(255,255,255,.8);font-style:italic;line-height:1.4}
+.qa{font-size:.45rem;color:#a78bfa;margin-top:2px}
+.bubble-u{background:linear-gradient(135deg,#7c6fff,#a78bfa);color:#fff;border-radius:10px 10px 2px 10px;padding:5px 7px;font-size:.52rem;align-self:flex-end;max-width:75%;margin:2px 6px 2px auto}
+.bubble-a{background:rgba(255,255,255,.07);color:rgba(255,255,255,.85);border-radius:10px 10px 10px 2px;padding:5px 7px;font-size:.52rem;max-width:78%;margin:2px auto 2px 6px;border:1px solid rgba(255,255,255,.09)}
+.sep{border:none;border-top:1px solid var(--border);margin:36px 0}
+.pie{text-align:center;color:var(--muted);font-size:.8rem;margin-top:48px;border-top:1px solid var(--border);padding-top:16px}
+
+/* ── PROGRESS SCREEN PHONE ── */
+.pbar-row{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:7px;padding:5px 7px;margin:3px 6px}
+.pb-lbl{font-size:.5rem;color:#6b7280;margin-bottom:2px;display:flex;justify-content:space-between}
+.pb-track{height:5px;background:rgba(255,255,255,.08);border-radius:3px}
+.pb-fill{height:100%;background:linear-gradient(90deg,#7c6fff,#00d4aa);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- ── PORTADA ── -->
+<div class="portada">
+  <div style="display:flex;justify-content:center">
+    <div class="portada-logo">M</div>
+  </div>
+  <h1>MOVO</h1>
+  <div class="sub">Manual de Usuario</div>
+  <div class="sub" style="font-size:.95rem">Tu entrenador personal inteligente</div>
+  <div class="version">Versión 1.0 &nbsp;·&nbsp; Marzo 2026</div>
+</div>
+
+<div class="container">
+
+<!-- ── ÍNDICE ── -->
+<div class="indice">
+  <h2>📋 Índice</h2>
+  <div class="indice-grid">
+    <div class="indice-item"><span>1</span> ¿Qué es MOVO?</div>
+    <div class="indice-item"><span>2</span> Primeros pasos</div>
+    <div class="indice-item"><span>3</span> Pantalla principal (Home)</div>
+    <div class="indice-item"><span>4</span> Rutinas de entrenamiento</div>
+    <div class="indice-item"><span>5</span> Iniciar un entrenamiento</div>
+    <div class="indice-item"><span>6</span> MOVO Coach — IA</div>
+    <div class="indice-item"><span>7</span> Perfil y estadísticas</div>
+    <div class="indice-item"><span>8</span> Ajustes</div>
+    <div class="indice-item"><span>9</span> Panel de entrenador</div>
+    <div class="indice-item"><span>10</span> Preguntas frecuentes</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<h2>1. ¿Qué es MOVO?</h2>
+
+<div class="info-row">
+  <div class="info-card"><div class="ico">🏋️</div><strong>Rutinas personalizadas</strong><span>Gym, Yoga y Pilates adaptadas a tu nivel</span></div>
+  <div class="info-card"><div class="ico">🤖</div><strong>Coach con IA</strong><span>Consejos personalizados con Llama 3.3</span></div>
+  <div class="info-card"><div class="ico">📊</div><strong>Seguimiento</strong><span>Racha, minutos y progresión de cargas</span></div>
+  <div class="info-card"><div class="ico">👨‍💼</div><strong>Entrenadores</strong><span>Sistema de entrenador personal integrado</span></div>
+</div>
+
+<p style="color:var(--muted);font-size:.9rem;line-height:1.7">MOVO es una app móvil que combina rutinas de entrenamiento, seguimiento del progreso y un asistente de inteligencia artificial. Está diseñada para que tanto principiantes como avanzados puedan entrenar de forma organizada y motivada.</p>
+
+<hr class="sep"/>
+
+<!-- ══════════════════════════════════════ -->
+<h2>2. Primeros pasos</h2>
+
+<h3>2.1 Crear una cuenta nueva</h3>
+<div class="screen-section">
+  <div class="phone">
+    <div class="pscreen pgrad">
+      <div class="pbar"><span>9:41</span><span>⚡100%</span></div>
+      <div style="padding:16px 0 10px">
+        <div style="text-align:center;margin-bottom:8px">
+          <div style="width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#7c6fff,#00d4aa);display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:900;color:#fff;margin:0 auto 4px">M</div>
+          <div style="font-size:.65rem;font-weight:900;background:linear-gradient(135deg,#7c6fff,#00d4aa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">MOVO</div>
+        </div>
+        <div style="text-align:center;font-size:.72rem;font-weight:800;color:#fff;margin-bottom:2px">Crea tu cuenta</div>
+        <div style="text-align:center;font-size:.52rem;color:#6b7280;margin-bottom:10px">Empieza tu camino fitness hoy</div>
+        <div class="plbl">Nombre completo</div>
+        <div class="pinp">👤 Tu nombre</div>
+        <div class="plbl">Email</div>
+        <div class="pinp">✉️ tu@email.com</div>
+        <div class="plbl">Contraseña</div>
+        <div class="pinp">🔒 Mín. 6 caracteres</div>
+        <div class="plbl">Confirmar contraseña</div>
+        <div class="pinp">🔒 Repite la contraseña</div>
+        <div class="pbtn" style="background:linear-gradient(135deg,#00d4aa,#7c6fff);margin-top:8px">Crear cuenta</div>
+        <div style="text-align:center;font-size:.52rem;color:#7c6fff;margin-top:6px">¿Ya tienes cuenta? <strong>Iniciar sesión</strong></div>
+      </div>
+    </div>
+  </div>
+  <div class="expl">
+    <ol class="steps">
+      <li>Abre MOVO. En la pantalla de bienvenida pulsa <strong>"Crear cuenta"</strong>.</li>
+      <li>Introduce tu <strong>nombre completo</strong>.</li>
+      <li>Escribe un <strong>correo electrónico</strong> válido.</li>
+      <li>Elige una <strong>contraseña</strong> de al menos 6 caracteres y repítela para confirmarla.</li>
+      <li>Pulsa <strong>"Crear cuenta"</strong>. Serás llevado directamente a la app.</li>
+    </ol>
+    <div class="tip">La contraseña nunca se almacena en texto plano — MOVO usa autenticación segura de Supabase.</div>
+    <div class="warn">Si ves el error "Email ya en uso", ya tienes cuenta con ese correo. Usa "Iniciar sesión".</div>
+  </div>
+</div>
+
+<h3>2.2 Iniciar sesión con cuenta existente</h3>
+<div class="screen-section flip">
+  <div class="phone">
+    <div class="pscreen pgrad" style="background:linear-gradient(160deg,#0a0a0a,#0f0a1e)">
+      <div class="pbar"><span>9:41</span><span>⚡100%</span></div>
+      <div style="padding:18px 0 12px">
+        <div style="text-align:center;margin-bottom:10px">
+          <div style="width:40px;height:40px;border-radius:14px;background:linear-gradient(135deg,#7c6fff,#00d4aa);display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:900;color:#fff;margin:0 auto 4px">M</div>
+          <div style="font-size:.65rem;font-weight:900;background:linear-gradient(135deg,#7c6fff,#00d4aa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">MOVO</div>
+        </div>
+        <div style="text-align:center;font-size:.75rem;font-weight:800;color:#fff;margin-bottom:2px">Bienvenido de vuelta</div>
+        <div style="text-align:center;font-size:.52rem;color:#6b7280;margin-bottom:12px">Accede a tu entrenamiento</div>
+        <div class="plbl">Email</div>
+        <div class="pinp">✉️ tu@email.com</div>
+        <div class="plbl">Contraseña</div>
+        <div class="pinp">🔒 ••••••••</div>
+        <div style="text-align:right;font-size:.5rem;color:#6b7280;padding:0 6px;margin-bottom:8px">¿Olvidaste tu contraseña?</div>
+        <div class="pbtn">Iniciar sesión</div>
+        <div style="display:flex;align-items:center;gap:5px;margin:7px 6px"><div style="flex:1;height:1px;background:rgba(255,255,255,.08)"></div><div style="font-size:.48rem;color:#6b7280">o</div><div style="flex:1;height:1px;background:rgba(255,255,255,.08)"></div></div>
+        <div style="text-align:center;font-size:.52rem;color:#7c6fff">¿No tienes cuenta? <strong>Regístrate</strong></div>
+      </div>
+    </div>
+  </div>
+  <div class="expl">
+    <ol class="steps">
+      <li>En la pantalla inicial, pulsa <strong>"Iniciar sesión"</strong>.</li>
+      <li>Introduce tu <strong>email</strong> y <strong>contraseña</strong>.</li>
+      <li>Pulsa <strong>"Iniciar sesión"</strong>. La app recordará tu sesión.</li>
+    </ol>
+    <h3 style="margin-top:16px">Recuperar contraseña</h3>
+    <ol class="steps">
+      <li>En la pantalla de login pulsa <strong>"¿Olvidaste tu contraseña?"</strong>.</li>
+      <li>Introduce tu email y pulsa enviar.</li>
+      <li>Recibirás un correo con el enlace de recuperación en minutos.</li>
+    </ol>
+    <div class="tip">MOVO recuerda tu sesión automáticamente. No tendrás que iniciar sesión cada vez que abras la app.</div>
+  </div>
+</div>
+
+<hr class="sep"/>
+
+<!-- ══════════════════════════════════════ -->
+<h2>3. Pantalla principal (Home)</h2>
+
+<div class="screen-section">
+  <div class="phone">
+    <div class="pscreen pgrad">
+      <div class="pbar"><span>9:41</span><span>⚡100%</span></div>
+      <div style="padding:10px 0 0">
+        <!-- header -->
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:0 8px 4px">
+          <div style="font-size:.65rem;font-weight:900;background:linear-gradient(135deg,#7c6fff,#00d4aa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">MOVO</div>
+          <span style="font-size:.65rem;opacity:.35">⚙️</span>
+        </div>
+        <!-- greeting -->
+        <div style="padding:0 8px;font-size:.55rem;color:#6b7280">Buenas tardes 🌤️</div>
+        <div style="padding:0 8px;font-size:.8rem;font-weight:800;color:#fff;margin-bottom:5px">Ernesto 💪</div>
+        <!-- stats -->
+        <div class="pstat">
+          <div class="pstat-v"><div style="font-size:.6rem">🔥</div><div class="n" style="color:#ff6b35">7</div><div class="l">Racha</div></div>
+          <div class="pstat-v"><div style="font-size:.6rem">⚡</div><div class="n">3</div><div class="l">Semana</div></div>
+          <div class="pstat-v"><div style="font-size:.6rem">⏱️</div><div class="n" style="color:#ffc947">145</div><div class="l">Minutos</div></div>
+        </div>
+        <!-- week -->
+        <div class="week-row">
+          <div class="wd"><div class="dl">L</div><div class="dc done"></div></div>
+          <div class="wd"><div class="dl">M</div><div class="dc done"></div></div>
+          <div class="wd"><div class="dl">X</div><div class="dc"></div></div>
+          <div class="wd"><div class="dl">J</div><div class="dc done"></div></div>
+          <div class="wd"><div class="dl">V</div><div class="dc today"></div></div>
+          <div class="wd"><div class="dl">S</div><div class="dc"></div></div>
+          <div class="wd"><div class="dl">D</div><div class="dc"></div></div>
+        </div>
+        <!-- quote -->
+        <div class="quote">
+          <div class="qt">"El dolor de hoy es la fuerza de mañana."</div>
+          <div class="qa">— Arnold Schwarzenegger</div>
+        </div>
+        <!-- routine -->
+        <div style="padding:0 8px;font-size:.48rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;margin:5px 0 3px">Mi rutina de hoy</div>
+        <div class="pcard" style="display:flex;align-items:center;gap:5px">
+          <div style="width:5px;height:5px;border-radius:50%;background:#7c6fff;flex-shrink:0"></div>
+          <div><div class="ptitle">Full Body Principiante</div><div class="psub">45 min · Gym · Principiante</div></div>
+          <div style="margin-left:auto;font-size:.55rem;color:#a78bfa;font-weight:700">▶</div>
+        </div>
+        <!-- tip -->
+        <div style="padding:3px 8px;font-size:.48rem;color:#6b7280;line-height:1.4">💡 <em>Bebe 500ml de agua antes de entrenar.</em></div>
+      </div>
+      <!-- bottom nav -->
+      <div style="height:10px"></div>
+      <div class="bnav">
+        <div class="bni"><div class="i on">🏠</div><div class="t on">Inicio</div></div>
+        <div class="bni"><div class="i">📋</div><div class="t">Rutinas</div></div>
+        <div class="bni"><div class="i">🤖</div><div class="t">Coach</div></div>
+        <div class="bni"><div class="i">👤</div><div class="t">Perfil</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="expl">
+    <p>El <strong>Home</strong> es tu punto de partida cada día. De un vistazo tienes todo lo que necesitas.</p>
+    <ul class="bullets">
+      <li data-icon="🔥"><strong>Racha</strong> — días consecutivos que has entrenado. ¡No la rompas!</li>
+      <li data-icon="⚡"><strong>Esta semana</strong> — sesiones completadas en los últimos 7 días.</li>
+      <li data-icon="⏱️"><strong>Minutos</strong> — tiempo total de entrenamiento acumulado esta semana.</li>
+      <li data-icon="📅"><strong>Semáforo semanal</strong> — los 7 días de la semana con puntito morado cuando has entrenado ese día.</li>
+      <li data-icon="💬"><strong>Frase del día</strong> — rota cada día para mantenerte motivado.</li>
+      <li data-icon="🏋️"><strong>Rutina de hoy</strong> — acceso directo a tu entrenamiento asignado.</li>
+      <li data-icon="💡"><strong>Consejo del día</strong> — tip de nutrición o entrenamiento que cambia cada día.</li>
+    </ul>
+    <div class="tip">Tira hacia abajo en la pantalla para actualizar tus estadísticas en tiempo real.</div>
+  </div>
+</div>
+
+<hr class="sep"/>
+
+<!-- ══════════════════════════════════════ -->
+<h2>4. Rutinas de entrenamiento</h2>
+
+<div class="screen-section flip">
+  <div class="phone">
+    <div class="pscreen pgrad">
+      <div class="pbar"><span>9:41</span><span>⚡100%</span></div>
+      <div style="padding:10px 0 0">
+        <div style="padding:0 8px;font-size:.8rem;font-weight:800;color:#fff;margin-bottom:8px">Rutinas 📋</div>
+        <!-- filter chips -->
+        <div style="display:flex;gap:4px;padding:0 6px;margin-bottom:7px;flex-wrap:wrap">
+          <div style="background:#7c6fff;color:#fff;border-radius:10px;padding:2px 7px;font-size:.48rem;font-weight:700">Todas</div>
+          <div style="border:1px solid rgba(255,255,255,.12);color:#6b7280;border-radius:10px;padding:2px 7px;font-size:.48rem;font-weight:700">Gym</div>
+          <div style="border:1px solid rgba(255,255,255,.12);color:#6b7280;border-radius:10px;padding:2px 7px;font-size:.48rem;font-weight:700">Yoga</div>
+          <div style="border:1px solid rgba(255,255,255,.12);color:#6b7280;border-radius:10px;padding:2px 7px;font-size:.48rem;font-weight:700">Pilates</div>
+        </div>
+        <!-- routine card 1 -->
+        <div style="margin:0 6px 5px;border-radius:8px;overflow:hidden;position:relative;height:52px">
+          <div style="position:absolute;inset:0;background-image:url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=350&q=70');background-size:cover;background-position:center"></div>
+          <div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(0,0,0,.85),rgba(0,0,0,.25))"></div>
+          <div style="position:absolute;inset:0;padding:6px 8px;display:flex;flex-direction:column;justify-content:center">
+            <div style="font-size:.42rem;background:rgba(124,111,255,.3);color:#a78bfa;border-radius:3px;padding:1px 4px;width:fit-content;margin-bottom:2px;font-weight:700">GYM · PRINCIPIANTE</div>
+            <div style="font-size:.6rem;font-weight:700;color:#fff">Full Body Principiante</div>
+            <div style="font-size:.45rem;color:rgba(255,255,255,.5)">45 min · 8 ejercicios</div>
+          </div>
+        </div>
+        <!-- routine card 2 -->
+        <div style="margin:0 6px 5px;border-radius:8px;overflow:hidden;position:relative;height:52px">
+          <div style="position:absolute;inset:0;background-image:url('https://images.unsplash.com/photo-1545389336-cf090694435e?w=350&q=70');background-size:cover;background-position:center"></div>
+          <div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(0,0,0,.85),rgba(0,0,0,.25))"></div>
+          <div style="position:absolute;inset:0;padding:6px 8px;display:flex;flex-direction:column;justify-content:center">
+            <div style="font-size:.42rem;background:rgba(0,200,150,.2);color:#00d4aa;border-radius:3px;padding:1px 4px;width:fit-content;margin-bottom:2px;font-weight:700">YOGA · INTERMEDIO</div>
+            <div style="font-size:.6rem;font-weight:700;color:#fff">Yoga Matutino</div>
+            <div style="font-size:.45rem;color:rgba(255,255,255,.5)">30 min · 12 posturas</div>
+          </div>
+        </div>
+        <!-- build btn -->
+        <div style="margin:4px 6px;background:rgba(124,111,255,.1);border:1px dashed rgba(124,111,255,.4);border-radius:8px;padding:6px 8px;text-align:center">
+          <div style="font-size:.58rem;color:#a78bfa;font-weight:700">⚡ Haz tu rutina</div>
+          <div style="font-size:.45rem;color:#6b7280">Elige grupo muscular</div>
+        </div>
+      </div>
+      <div style="height:8px"></div>
+      <div class="bnav">
+        <div class="bni"><div class="i">🏠</div><div class="t">Inicio</div></div>
+        <div class="bni"><div class="i on">📋</div><div class="t on">Rutinas</div></div>
+        <div class="bni"><div class="i">🤖</div><div class="t">Coach</div></div>
+        <div class="bni"><div class="i">👤</div><div class="t">Perfil</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="expl">
+    <p>La sección <strong>Rutinas</strong> contiene el catálogo completo de entrenamientos disponibles.</p>
+
+    <h3>Filtrar por categoría</h3>
+    <p>Usa los botones de filtro en la parte superior para ver solo rutinas de <strong>Gym</strong>, <strong>Yoga</strong> o <strong>Pilates</strong>.</p>
+
+    <h3>Seleccionar una rutina</h3>
+    <ol class="steps">
+      <li>Pulsa sobre la tarjeta de cualquier rutina para ver sus detalles.</li>
+      <li>En la pantalla de detalle verás todos los ejercicios, series y repeticiones.</li>
+      <li>Pulsa <strong>"Iniciar entrenamiento"</strong> para comenzar.</li>
+    </ol>
+
+    <h3>⚡ Crear tu propia rutina</h3>
+    <ol class="steps">
+      <li>Pulsa el botón <strong>"Haz tu rutina"</strong> al final de la lista.</li>
+      <li>Elige el grupo muscular que quieres trabajar (Pecho, Piernas, Espalda…).</li>
+      <li>MOVO genera automáticamente una rutina con ejercicios de ese grupo.</li>
+    </ol>
+
+    <div class="tip">Puedes tener varias rutinas activas a la vez. La del día aparece directamente en el Home.</div>
+  </div>
+</div>
+
+<hr class="sep"/>
+
+<!-- ══════════════════════════════════════ -->
+<h2>5. Iniciar un entrenamiento</h2>
+
+<div class="screen-section">
+  <div class="phone">
+    <div class="pscreen pgrad">
+      <div class="pbar"><span>9:41</span><span>⚡100%</span></div>
+      <div style="padding:10px 0 0">
+        <!-- header -->
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:0 8px 4px">
+          <div><div style="font-size:.65rem;font-weight:800;color:#fff">Full Body</div><div style="font-size:.45rem;color:#6b7280">Ejercicio 2 de 8</div></div>
+          <div style="background:rgba(255,201,71,.12);border:1px solid rgba(255,201,71,.3);padding:3px 7px;border-radius:6px;font-size:.58rem;font-weight:800;color:#ffc947">⏱ 12:34</div>
+        </div>
+        <!-- progress -->
+        <div style="height:3px;background:rgba(255,255,255,.07);margin:0 8px 1px;border-radius:2px"><div style="height:100%;background:linear-gradient(90deg,#7c6fff,#00d4aa);width:25%;border-radius:2px"></div></div>
+        <div style="display:flex;justify-content:space-between;padding:0 8px;font-size:.43rem;color:#6b7280;margin-bottom:5px"><span>Progreso</span><span>2/8</span></div>
+        <!-- exercise card -->
+        <div style="margin:0 6px;border-radius:8px;overflow:hidden">
+          <div style="height:44px;background-image:url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=350&q=70');background-size:cover;background-position:center;position:relative">
+            <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.7),transparent)"></div>
+            <div style="position:absolute;bottom:4px;left:7px;font-size:.48rem;font-weight:700;color:#fff">Pecho · Tríceps</div>
+          </div>
+          <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);padding:6px 7px;border-top:none">
+            <div style="font-size:.6rem;font-weight:700;color:#fff;margin-bottom:4px">Press de banca</div>
+            <!-- sets -->
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px">
+              <div style="background:rgba(0,212,170,.1);border:1px solid rgba(0,212,170,.3);border-radius:5px;padding:3px;text-align:center"><div style="font-size:.4rem;color:#6b7280">S1</div><div style="font-size:.55rem;font-weight:700;color:#fff">60kg</div><div style="font-size:.42rem;color:#6b7280">10 ✓</div></div>
+              <div style="background:rgba(0,212,170,.1);border:1px solid rgba(0,212,170,.3);border-radius:5px;padding:3px;text-align:center"><div style="font-size:.4rem;color:#6b7280">S2</div><div style="font-size:.55rem;font-weight:700;color:#fff">60kg</div><div style="font-size:.42rem;color:#6b7280">10 ✓</div></div>
+              <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:5px;padding:3px;text-align:center"><div style="font-size:.4rem;color:#6b7280">S3</div><div style="font-size:.55rem;font-weight:700;color:#fff">—</div><div style="font-size:.42rem;color:#6b7280">10 reps</div></div>
+              <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:5px;padding:3px;text-align:center"><div style="font-size:.4rem;color:#6b7280">S4</div><div style="font-size:.55rem;font-weight:700;color:#fff">—</div><div style="font-size:.42rem;color:#6b7280">10 reps</div></div>
+            </div>
+          </div>
+        </div>
+        <!-- next exercise -->
+        <div style="margin:4px 6px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:5px 7px;opacity:.6">
+          <div style="font-size:.52rem;color:#fff;font-weight:600">Siguiente: Sentadilla con barra</div>
+          <div style="font-size:.44rem;color:#6b7280">4 series × 12 reps</div>
+        </div>
+        <!-- finish -->
+        <div style="margin:5px 6px;background:linear-gradient(135deg,#7c6fff,#00d4aa);border-radius:8px;padding:6px;text-align:center;font-size:.55rem;font-weight:700;color:#fff">✅ Finalizar entrenamiento</div>
+      </div>
+    </div>
+  </div>
+  <div class="expl">
+    <p>La pantalla de <strong>entrenamiento activo</strong> te guía ejercicio por ejercicio con un timer en marcha.</p>
+
+    <h3>Cómo registrar una serie</h3>
+    <ol class="steps">
+      <li>Pulsa sobre el campo de <strong>peso</strong> (ej. "—") e introduce los kilos.</li>
+      <li>Pulsa sobre el campo de <strong>repeticiones</strong> e introduce el número.</li>
+      <li>Cuando completes la serie pulsa el botón de <strong>✓ hecho</strong>. La celda se pone en verde.</li>
+      <li>Repite para las siguientes series.</li>
+    </ol>
+
+    <h3>Historial de sesiones anteriores</h3>
+    <p>Debajo de cada ejercicio puedes ver los pesos y repeticiones que usaste en sesiones anteriores para que siempre sepas cuánto subir.</p>
+
+    <h3>Finalizar el entrenamiento</h3>
+    <ol class="steps">
+      <li>Cuando hayas completado todos los ejercicios, pulsa <strong>"Finalizar entrenamiento"</strong>.</li>
+      <li>La sesión se guarda automáticamente y tus estadísticas se actualizan en el Home.</li>
+    </ol>
+
+    <div class="warn">Si sales de la pantalla sin finalizar, perderás el registro de esa sesión. Termina siempre con el botón de finalizar.</div>
+    <div class="tip">El móvil vibra brevemente cuando pasas al siguiente ejercicio para llamar tu atención.</div>
+  </div>
+</div>
+
+<hr class="sep"/>
+
+<!-- ══════════════════════════════════════ -->
+<h2>6. MOVO Coach — Tu entrenador con IA</h2>
+
+<div class="screen-section flip">
+  <div class="phone">
+    <div class="pscreen pgrad">
+      <div class="pbar"><span>9:41</span><span>⚡100%</span></div>
+      <div style="display:flex;flex-direction:column;height:calc(100% - 16px);padding-top:2px">
+        <!-- header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;border-bottom:1px solid rgba(255,255,255,.06)">
+          <div style="display:flex;align-items:center;gap:5px">
+            <div class="pav">🤖</div>
+            <div><div style="font-size:.58rem;font-weight:700;color:#fff">MOVO Coach</div><div style="font-size:.46rem;color:#00d4aa">● Disponible</div></div>
+          </div>
+          <span style="font-size:.6rem;opacity:.3">🗑️</span>
+        </div>
+        <!-- messages -->
+        <div style="flex:1;padding:6px 0;overflow:hidden;display:flex;flex-direction:column;gap:3px">
+          <div class="bubble-a">¡Hola Ernesto! Llevas 7 días de racha 🔥 ¿En qué puedo ayudarte hoy?</div>
+          <div class="bubble-u">¿Qué debo comer antes de entrenar?</div>
+          <div class="bubble-a">2h antes: carbohidratos + proteína (avena, arroz con pollo). 30min antes: fruta. Hidratación: 500ml 💧</div>
+          <!-- suggestion chips -->
+          <div style="padding:4px 6px">
+            <div style="font-size:.46rem;color:#6b7280;margin-bottom:3px">Sugerencias:</div>
+            <div>
+              <div class="pchip">¿Cómo mejoro mi técnica?</div>
+              <div class="pchip">Dame motivación 💪</div>
+              <div class="pchip">¿Cuántos días descansar?</div>
+            </div>
+          </div>
+        </div>
+        <!-- input -->
+        <div style="display:flex;gap:4px;padding:4px 6px;border-top:1px solid rgba(255,255,255,.06)">
+          <div style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:4px 7px;font-size:.52rem;color:rgba(255,255,255,.3)">Escribe tu pregunta...</div>
+          <div style="width:22px;height:22px;border-radius:7px;background:linear-gradient(135deg,#7c6fff,#00d4aa);display:flex;align-items:center;justify-content:center;font-size:.55rem;flex-shrink:0">➤</div>
+        </div>
+      </div>
+      <div class="bnav">
+        <div class="bni"><div class="i">🏠</div><div class="t">Inicio</div></div>
+        <div class="bni"><div class="i">📋</div><div class="t">Rutinas</div></div>
+        <div class="bni"><div class="i on">🤖</div><div class="t on">Coach</div></div>
+        <div class="bni"><div class="i">👤</div><div class="t">Perfil</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="expl">
+    <p>MOVO Coach es un asistente de inteligencia artificial que conoce tu historial de entrenamiento y te da consejos 100% personalizados.</p>
+    <ul class="bullets">
+      <li data-icon="🤖">Potenciado por <strong>Meta Llama 3.3-70B</strong>, uno de los modelos de IA más avanzados.</li>
+      <li data-icon="📊">Conoce tu racha, tus sesiones recientes y tus objetivos para darte respuestas personalizadas.</li>
+      <li data-icon="💬">Puedes preguntarle cualquier cosa sobre entrenamiento, nutrición, descanso o técnica.</li>
+      <li data-icon="⚡">Usa los chips de sugerencia si no sabes por dónde empezar.</li>
+      <li data-icon="🗑️">Pulsa el icono de papelera para borrar el historial del chat y empezar de nuevo.</li>
+    </ul>
+
+    <h3>Ejemplos de preguntas que puedes hacer</h3>
+    <table>
+      <tr><th>Tema</th><th>Ejemplo</th></tr>
+      <tr><td>Técnica</td><td>"¿Cómo hago bien una sentadilla?"</td></tr>
+      <tr><td>Nutrición</td><td>"¿Qué como después de entrenar?"</td></tr>
+      <tr><td>Planificación</td><td>"¿Cuántos días debo descansar?"</td></tr>
+      <tr><td>Motivación</td><td>"Dame motivación para hoy 💪"</td></tr>
+      <tr><td>Lesiones</td><td>"Me duele el hombro, ¿puedo entrenar?"</td></tr>
+    </table>
+
+    <div class="info">El Coach recuerda los últimos 20 mensajes del chat para mantener el contexto de la conversación.</div>
+  </div>
+</div>
+
+<hr class="sep"/>
+
+<!-- ══════════════════════════════════════ -->
+<h2>7. Perfil y estadísticas</h2>
+
+<div class="screen-section">
+  <div class="phone">
+    <div class="pscreen pgrad">
+      <div class="pbar"><span>9:41</span><span>⚡100%</span></div>
+      <div style="padding:10px 0 0">
+        <!-- cover -->
+        <div style="height:44px;margin:0 8px;background:linear-gradient(135deg,rgba(124,111,255,.25),rgba(0,212,170,.15));border-radius:8px;position:relative;margin-bottom:0">
+          <div style="position:absolute;bottom:-14px;left:8px;width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#7c6fff,#00d4aa);border:2.5px solid #0a0a0a;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:#fff">E</div>
+        </div>
+        <div style="padding:18px 8px 4px">
+          <div style="font-size:.72rem;font-weight:800;color:#fff">Ernesto Martínez</div>
+          <div style="font-size:.5rem;color:#7c6fff;font-weight:700;text-transform:uppercase;letter-spacing:.5px">💪 Usuario · Principiante</div>
+        </div>
+        <!-- goals -->
+        <div style="display:flex;gap:3px;flex-wrap:wrap;padding:0 6px;margin-bottom:6px">
+          <div style="background:rgba(124,111,255,.1);border:1px solid rgba(124,111,255,.25);border-radius:8px;padding:2px 6px;font-size:.46rem;color:#a78bfa;font-weight:600">🔥 Perder peso</div>
+          <div style="background:rgba(124,111,255,.1);border:1px solid rgba(124,111,255,.25);border-radius:8px;padding:2px 6px;font-size:.46rem;color:#a78bfa;font-weight:600">💪 Ganar músculo</div>
+        </div>
+        <!-- tabs -->
+        <div style="display:flex;border-bottom:1px solid rgba(255,255,255,.07);margin:0 6px">
+          <div style="flex:1;text-align:center;padding:4px 0;font-size:.48rem;font-weight:700;color:#a78bfa;border-bottom:2px solid #7c6fff;text-transform:uppercase">Estadísticas</div>
+          <div style="flex:1;text-align:center;padding:4px 0;font-size:.48rem;font-weight:700;color:#6b7280;text-transform:uppercase">Posts</div>
+          <div style="flex:1;text-align:center;padding:4px 0;font-size:.48rem;font-weight:700;color:#6b7280;text-transform:uppercase">Ajustes</div>
+        </div>
+        <!-- stats grid -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:6px 6px 0">
+          <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:7px;padding:6px 7px"><div style="font-size:.8rem;font-weight:800;color:#a78bfa">42</div><div style="font-size:.44rem;color:#6b7280;text-transform:uppercase">🏋️ Entrenamientos</div></div>
+          <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:7px;padding:6px 7px"><div style="font-size:.8rem;font-weight:800;color:#a78bfa">7</div><div style="font-size:.44rem;color:#6b7280;text-transform:uppercase">🔥 Racha actual</div></div>
+          <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:7px;padding:6px 7px"><div style="font-size:.8rem;font-weight:800;color:#a78bfa">2.1k</div><div style="font-size:.44rem;color:#6b7280;text-transform:uppercase">⏱️ Minutos totales</div></div>
+          <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:7px;padding:6px 7px"><div style="font-size:.8rem;font-weight:800;color:#a78bfa">5</div><div style="font-size:.44rem;color:#6b7280;text-transform:uppercase">📋 Rutinas activas</div></div>
+        </div>
+      </div>
+      <div style="height:8px"></div>
+      <div class="bnav">
+        <div class="bni"><div class="i">🏠</div><div class="t">Inicio</div></div>
+        <div class="bni"><div class="i">📋</div><div class="t">Rutinas</div></div>
+        <div class="bni"><div class="i">🤖</div><div class="t">Coach</div></div>
+        <div class="bni"><div class="i on">👤</div><div class="t on">Perfil</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="expl">
+    <p>El <strong>Perfil</strong> muestra un resumen completo de toda tu actividad en MOVO.</p>
+
+    <h3>Pestaña Estadísticas</h3>
+    <ul class="bullets">
+      <li data-icon="🏋️"><strong>Entrenamientos</strong> — total de sesiones completadas desde que te registraste.</li>
+      <li data-icon="🔥"><strong>Racha actual</strong> — días consecutivos con al menos una sesión.</li>
+      <li data-icon="⏱️"><strong>Minutos totales</strong> — tiempo total acumulado en todos tus entrenamientos.</li>
+      <li data-icon="📋"><strong>Rutinas activas</strong> — cuántas rutinas tienes asignadas.</li>
+    </ul>
+
+    <h3>Pestaña Posts</h3>
+    <p>Aquí aparecen las fotos e historias que has publicado en la comunidad MOVO, organizadas en una cuadrícula.</p>
+
+    <h3>Pestaña Ajustes</h3>
+    <ul class="bullets">
+      <li data-icon="✏️">Editar nombre, foto de perfil y descripción.</li>
+      <li data-icon="📊">Actualizar datos físicos: peso, altura, edad.</li>
+      <li data-icon="🎯">Cambiar objetivos fitness (perder peso, ganar músculo…).</li>
+      <li data-icon="🎨">Cambiar el color del tema de la app.</li>
+    </ul>
+
+    <div class="tip">Mantener actualizados tu peso y tus objetivos ayuda al MOVO Coach a darte mejores consejos.</div>
+  </div>
+</div>
+
+<hr class="sep"/>
+
+<!-- ══════════════════════════════════════ -->
+<h2>8. Ajustes</h2>
+
+<div class="screen-section flip">
+  <div class="phone">
+    <div class="pscreen pgrad">
+      <div class="pbar"><span>9:41</span><span>⚡100%</span></div>
+      <div style="padding:10px 0 0">
+        <div style="padding:0 8px;font-size:.8rem;font-weight:800;color:#fff;margin-bottom:10px">⚙️ Ajustes</div>
+        <!-- settings items -->
+        <div style="padding:0 6px;font-size:.46rem;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;font-weight:700;margin-bottom:4px">Perfil</div>
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:7px;padding:6px 8px;margin:0 6px 4px;display:flex;align-items:center;gap:6px">
+          <div style="width:20px;height:20px;border-radius:6px;background:rgba(124,111,255,.2);display:flex;align-items:center;justify-content:center;font-size:.55rem">✏️</div>
+          <div><div style="font-size:.58rem;font-weight:600;color:#fff">Editar perfil</div><div style="font-size:.46rem;color:#6b7280">Nombre, foto, objetivos</div></div>
+          <div style="margin-left:auto;font-size:.5rem;color:#6b7280">›</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:7px;padding:6px 8px;margin:0 6px 8px;display:flex;align-items:center;gap:6px">
+          <div style="width:20px;height:20px;border-radius:6px;background:rgba(0,200,150,.2);display:flex;align-items:center;justify-content:center;font-size:.55rem">📊</div>
+          <div><div style="font-size:.58rem;font-weight:600;color:#fff">Datos físicos</div><div style="font-size:.46rem;color:#6b7280">Peso, altura, edad</div></div>
+          <div style="margin-left:auto;font-size:.5rem;color:#6b7280">›</div>
+        </div>
+        <div style="padding:0 6px;font-size:.46rem;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;font-weight:700;margin-bottom:4px">Notificaciones</div>
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:7px;padding:6px 8px;margin:0 6px 8px;display:flex;align-items:center;gap:6px">
+          <div style="width:20px;height:20px;border-radius:6px;background:rgba(255,200,71,.2);display:flex;align-items:center;justify-content:center;font-size:.55rem">🔔</div>
+          <div><div style="font-size:.58rem;font-weight:600;color:#fff">Recordatorio entreno</div><div style="font-size:.46rem;color:#6b7280">Cada día a las 08:00</div></div>
+          <div style="margin-left:auto;width:22px;height:12px;border-radius:6px;background:#7c6fff;position:relative"><div style="position:absolute;top:2px;right:2px;width:8px;height:8px;border-radius:50%;background:#fff"></div></div>
+        </div>
+        <div style="padding:0 6px;font-size:.46rem;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;font-weight:700;margin-bottom:4px">Cuenta</div>
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:7px;padding:6px 8px;margin:0 6px;display:flex;align-items:center;gap:6px">
+          <div style="width:20px;height:20px;border-radius:6px;background:rgba(255,80,80,.2);display:flex;align-items:center;justify-content:center;font-size:.55rem">🚪</div>
+          <div style="font-size:.58rem;font-weight:600;color:#ff5252">Cerrar sesión</div>
+          <div style="margin-left:auto;font-size:.5rem;color:#6b7280">›</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="expl">
+    <p>Accede a los ajustes desde el icono ⚙️ en el Home o desde la pestaña <strong>Ajustes</strong> en el Perfil.</p>
+
+    <table>
+      <tr><th>Opción</th><th>Qué hace</th></tr>
+      <tr><td>✏️ Editar perfil</td><td>Cambia tu nombre, foto de perfil y objetivos fitness</td></tr>
+      <tr><td>📊 Datos físicos</td><td>Actualiza peso, altura y edad para recomendaciones más precisas</td></tr>
+      <tr><td>🎨 Color del tema</td><td>Personaliza el color principal de la app</td></tr>
+      <tr><td>🔔 Recordatorio</td><td>Activa/desactiva la notificación diaria de entrenamiento</td></tr>
+      <tr><td>🚪 Cerrar sesión</td><td>Cierra tu sesión de forma segura</td></tr>
+    </table>
+
+    <div class="warn">Al cerrar sesión, deberás iniciar sesión de nuevo la próxima vez que abras MOVO.</div>
+  </div>
+</div>
+
+<hr class="sep"/>
+
+<!-- ══════════════════════════════════════ -->
+<h2>9. Panel de Entrenador</h2>
+
+<p style="color:var(--muted);font-size:.9rem">Esta sección sólo está disponible para cuentas con rol <strong>Entrenador</strong>. Si eres usuario normal, esta sección no aparece.</p>
+
+<div class="screen-section">
+  <div class="phone">
+    <div class="pscreen pgrad">
+      <div class="pbar"><span>9:41</span><span>⚡100%</span></div>
+      <div style="padding:10px 0 0">
+        <div style="padding:0 8px;font-size:.8rem;font-weight:800;color:#fff;margin-bottom:8px">Mis clientes 🏆</div>
+        <!-- clients -->
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:7px;padding:6px 8px;margin:0 6px 4px;display:flex;align-items:center;gap:6px">
+          <div class="pav" style="font-size:.6rem">M</div>
+          <div><div style="font-size:.58rem;font-weight:700;color:#fff">María García</div><div style="font-size:.45rem;color:#6b7280">Full Body · 5 días 🔥</div></div>
+          <div style="margin-left:auto;background:rgba(0,200,150,.15);color:#00d4aa;font-size:.44rem;font-weight:700;padding:2px 6px;border-radius:5px">Activa</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:7px;padding:6px 8px;margin:0 6px 4px;display:flex;align-items:center;gap:6px">
+          <div class="pav" style="font-size:.6rem">J</div>
+          <div><div style="font-size:.58rem;font-weight:700;color:#fff">Juan López</div><div style="font-size:.45rem;color:#6b7280">Yoga · 2 días</div></div>
+          <div style="margin-left:auto;background:rgba(0,200,150,.15);color:#00d4aa;font-size:.44rem;font-weight:700;padding:2px 6px;border-radius:5px">Activo</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:7px;padding:6px 8px;margin:0 6px 8px;display:flex;align-items:center;gap:6px;opacity:.6">
+          <div class="pav" style="background:linear-gradient(135deg,#555,#333);font-size:.6rem">A</div>
+          <div><div style="font-size:.58rem;font-weight:700;color:#fff">Ana Sánchez</div><div style="font-size:.45rem;color:#6b7280">Sin entrenar 4 días ⚠️</div></div>
+          <div style="margin-left:auto;background:rgba(255,80,80,.15);color:#ff5252;font-size:.44rem;font-weight:700;padding:2px 6px;border-radius:5px">Inactiva</div>
+        </div>
+        <!-- messages -->
+        <div style="padding:0 6px;font-size:.46rem;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;font-weight:700;margin-bottom:4px">Mensajes recientes</div>
+        <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:7px;padding:5px 7px;margin:0 6px 4px;display:flex;gap:5px;align-items:flex-start">
+          <div class="pav" style="width:20px;height:20px;border-radius:6px;font-size:.5rem">M</div>
+          <div style="flex:1"><div style="font-size:.52rem;color:rgba(255,255,255,.8)">Profe, ¿puedo entrenar si me duele el hombro?</div><div style="font-size:.44rem;color:#6b7280;margin-top:2px">hace 2h</div></div>
+          <div style="width:5px;height:5px;border-radius:50%;background:#7c6fff;flex-shrink:0;margin-top:3px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="expl">
+    <p>Los <strong>entrenadores</strong> tienen acceso a un panel exclusivo para gestionar sus clientes.</p>
+    <ul class="bullets">
+      <li data-icon="👥">Ver la lista de todos sus clientes con su racha y estado de actividad.</li>
+      <li data-icon="⚠️">Los clientes que llevan más de 3 días sin entrenar aparecen marcados como <em>"Inactiva/o"</em> para que el entrenador pueda contactarles.</li>
+      <li data-icon="📋">Asignar rutinas a cada cliente directamente desde la app.</li>
+      <li data-icon="💬">Sistema de mensajería integrado para comunicarse con los clientes.</li>
+    </ul>
+    <div class="info">Si eres cliente, puedes enviar mensajes a tu entrenador desde la sección de Mensajes en tu perfil.</div>
+  </div>
+</div>
+
+<hr class="sep"/>
+
+<!-- ══════════════════════════════════════ -->
+<h2>10. Preguntas frecuentes</h2>
+
+<table>
+  <tr>
+    <th>Pregunta</th>
+    <th>Respuesta</th>
+  </tr>
+  <tr>
+    <td>¿Puedo usar MOVO sin conexión a internet?</td>
+    <td>No. MOVO requiere conexión para cargar rutinas, guardar sesiones y usar el Coach de IA.</td>
+  </tr>
+  <tr>
+    <td>¿Cómo cambio mi contraseña?</td>
+    <td>En la pantalla de Login pulsa "¿Olvidaste tu contraseña?" e introduce tu email. Recibirás un enlace por correo.</td>
+  </tr>
+  <tr>
+    <td>¿Mis datos de entrenamiento se pierden si desinstalo la app?</td>
+    <td>No. Todas las sesiones se guardan en la nube (PostgreSQL + Supabase). Al reinstalar e iniciar sesión recuperas todo.</td>
+  </tr>
+  <tr>
+    <td>¿Puedo tener más de un entrenador?</td>
+    <td>No, cada usuario puede tener asignado un único entrenador a la vez.</td>
+  </tr>
+  <tr>
+    <td>¿El Coach de IA recuerda conversaciones anteriores?</td>
+    <td>Sólo recuerda los últimos 20 mensajes de la sesión actual. Al pulsar el borrar 🗑️ se reinicia.</td>
+  </tr>
+  <tr>
+    <td>¿Cómo actualizo mis estadísticas?</td>
+    <td>Tira hacia abajo en el Home (pull-to-refresh) para actualizar en tiempo real.</td>
+  </tr>
+  <tr>
+    <td>La app va lenta o no carga</td>
+    <td>Comprueba tu conexión a internet. Si usas Expo Go, el servidor debe estar activo — contacta al desarrollador.</td>
+  </tr>
+  <tr>
+    <td>¿Qué hago si una serie queda mal registrada?</td>
+    <td>Puedes editar los campos de peso y repeticiones directamente durante el entrenamiento antes de finalizar.</td>
+  </tr>
+</table>
+
+<div class="pie">
+  <strong>MOVO</strong> — Manual de Usuario v1.0 &nbsp;·&nbsp; Marzo 2026<br/>
+  Documento generado para presentación académica (TFG) · React Native + Spring Boot + PostgreSQL + Groq AI
+</div>
+
+</div><!-- /container -->
+</body>
+</html>

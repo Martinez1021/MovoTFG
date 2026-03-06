@@ -1,7 +1,9 @@
 ﻿import { create } from 'zustand';
 import { ChatMessage } from '../types';
 
-const GROQ_KEY = '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';
+// CRITERIO 5 — SEGURIDAD: la clave nunca se hardcodea en el código.
+// Se lee de la variable de entorno EXPO_PUBLIC_GROQ_KEY (definida en movo-app/.env)
+const GROQ_KEY = process.env.EXPO_PUBLIC_GROQ_KEY ?? '';
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const SYSTEM_PROMPT = `Eres MOVO Coach, un entrenador personal virtual experto en fitness, nutrición y bienestar. 
 Responde SIEMPRE en español, de forma motivadora, práctica y concisa. 

@@ -1,3 +1,23 @@
+// ╔══════════════════════════════════════════════════════════════════════════════╗
+// ║  api.ts — Cliente HTTP Axios para el backend Spring Boot                    ║
+// ║                                                                              ║
+// ║  CRITERIO 3 — CONEXIÓN:                                                      ║
+// ║   • Axios: librería HTTP para React Native (equivalente a fetch, pero       ║
+// ║     con interceptores, timeout automático y manejo de errores)              ║
+// ║   • baseURL = URL del backend Spring Boot (localhost:8080 en desarrollo,    ║
+// ║     Railway/Render en producción)                                           ║
+// ║   • Interceptor de request: añade el JWT de Supabase a cada petición       ║
+// ║                                                                              ║
+// ║  CRITERIO 4 — APIs (la API propia de MOVO):                                 ║
+// ║   • authApi, userApi, routineApi, exerciseApi, sessionApi, aiApi,           ║
+// ║     trainerApi → cada uno agrupa los endpoints de su dominio                ║
+// ║                                                                              ║
+// ║  CRITERIO 5 — SEGURIDAD:                                                     ║
+// ║   • El interceptor de request inyecta "Authorization: Bearer <JWT>"        ║
+// ║   • La API de Groq se llama DESDE EL BACKEND (no desde aquí), para que     ║
+// ║     la GROQ_API_KEY nunca esté expuesta en el código de la app móvil        ║
+// ╚══════════════════════════════════════════════════════════════════════════════╝
+
 import axios from 'axios';
 import { getAccessToken } from './supabase';
 import { API_BASE_URL } from '../utils/constants';
@@ -6,25 +26,35 @@ import {
     UserProfile, User, AIChatResponse, TrainerMessage
 } from '../types';
 
+/**
+ * CRITERIO 3 — CONEXIÓN: Instancia Axios configurada para el backend MOVO.
+ * API_BASE_URL = 'http://localhost:8080/api' (dev) ó URL de Railway (prod)
+ */
 const api = axios.create({
     baseURL: API_BASE_URL,
-    timeout: 5000,
+    timeout: 5000,  // 5 segundos: si el backend no responde, falla sin bloquear
     headers: { 'Content-Type': 'application/json' },
 });
 
-// Attach JWT to every request
+/**
+ * CRITERIO 5 — SEGURIDAD: Interceptor de request.
+ * Antes de CADA petición HTTP, obtiene el JWT de Supabase (AsyncStorage)
+ * y lo añade al header Authorization.
+ * El backend Spring Boot (JwtAuthFilter.java) validará este token.
+ */
 api.interceptors.request.use(async (config) => {
-    const token = await getAccessToken();
+    const token = await getAccessToken(); // JWT de la sesión activa en AsyncStorage
     if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
 });
 
-// Silence network errors when backend is offline — they are expected in dev
+// Interceptor de respuesta: si el backend está offline (ERR_NETWORK),
+// fallamos silenciosamente (la app usa datos de Supabase como fallback)
 api.interceptors.response.use(
     (res) => res,
     (error) => {
         if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
-            // Backend not running — fail silently so Expo console stays clean
+            // Backend no disponible en desarrollo — la app degrada elegantemente
             return Promise.reject(error);
         }
         return Promise.reject(error);

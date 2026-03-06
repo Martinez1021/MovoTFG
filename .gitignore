@@ -46,6 +46,10 @@ yarn-error.*
 .env.test.local
 .env.production.local
 
+# Spring Boot local secrets (never commit)
+application-local.yml
+application-local.yaml
+
 # typescript
 *.tsbuildinfo
 

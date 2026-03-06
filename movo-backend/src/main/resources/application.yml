@@ -1,31 +1,62 @@
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║  application.yml — Configuración centralizada del backend Spring Boot       ║
+# ║                                                                              ║
+# ║  CRITERIO 3 — CONEXIÓN A LA BASE DE DATOS:                                  ║
+# ║   • JDBC URL apunta a PostgreSQL de Supabase (cloud)                        ║
+# ║   • HikariCP: pool de conexiones (máx 5) para reutilizar conexiones TCP     ║
+# ║   • JPA/Hibernate: ORM que mapea clases Java ↔ tablas PostgreSQL            ║
+# ║   • ddl-auto: none → Hibernate NUNCA modifica el esquema (lo mantenemos     ║
+# ║     manualmente con supabase-schema.sql)                                    ║
+# ║                                                                              ║
+# ║  CRITERIO 4 — APIs EXTERNAS:                                                 ║
+# ║   • app.groq.api-key → clave para la API de Groq (IA Llama 3.3-70B)        ║
+# ║   • app.groq.model   → modelo LLM: llama-3.3-70b-versatile                 ║
+# ║                                                                              ║
+# ║  CRITERIO 5 — SEGURIDAD:                                                     ║
+# ║   • Todas las claves se leen de variables de entorno (${VAR:fallback})      ║
+# ║   • En producción (Railway/Render) se configuran como env vars del servidor ║
+# ║   • Nunca se hardcodean en producción — el fallback sólo es para desarrollo ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
 spring:
   datasource:
-    url: ${SUPABASE_DB_URL:jdbc:postgresql://db.uyxysrodgxxduzyekgjo.supabase.co:5432/postgres}
+    # CRITERIO 3 — CONEXIÓN: URL de PostgreSQL en Supabase (puerto 5432)
+    # Lee de variable de entorno SUPABASE_DB_URL (obligatoria — ver application-local.yml)
+    url: ${SUPABASE_DB_URL}
     username: ${SUPABASE_DB_USER:postgres}
-    password: ${SUPABASE_DB_PASSWORD:E962405860mm}
-    driver-class-name: org.postgresql.Driver
+    password: ${SUPABASE_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver  # driver JDBC para PostgreSQL
     hikari:
+      # CRITERIO 3 — CONEXIÓN: Pool de conexiones HikariCP
+      # initialization-fail-timeout: -1 → no falla si la BD no está disponible al arrancar
       initialization-fail-timeout: -1
+      # Tiempo máximo de espera para obtener una conexión del pool (30 segundos)
       connection-timeout: 30000
+      # Máximo 5 conexiones simultáneas (límite del plan gratuito de Supabase)
       maximum-pool-size: 5
   jpa:
     hibernate:
+      # none → Hibernate NO modifica el esquema de la BD en ningún caso
+      # El esquema se gestiona con supabase-schema.sql aplicado manualmente
       ddl-auto: none
-    show-sql: false
+    show-sql: false  # true en desarrollo para ver las queries SQL generadas
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
       hibernate:
-        default_schema: public
+        default_schema: public  # esquema de PostgreSQL donde están las tablas
         temp:
-          use_jdbc_metadata_defaults: false
+          use_jdbc_metadata_defaults: false  # evita advertencias de metadata en Supabase
   jackson:
+    # Transforma camelCase Java ↔ snake_case JSON automáticamente
+    # Ejemplo: durationMinutes ↔ duration_minutes
     property-naming-strategy: SNAKE_CASE
 
 server:
-  port: ${PORT:8080}
+  port: ${PORT:8080}  # Railway/Render inyectan PORT automáticamente
   tomcat:
-    max-http-header-size: 65536
+    max-http-header-size: 65536  # aumentado para JWTs largos en el header Authorization
 
+# Actuator: sólo exponemos /actuator/health (para verificar que el servidor está vivo)
 management:
   endpoints:
     web:
@@ -33,19 +64,25 @@ management:
         include: health
   endpoint:
     health:
-      show-details: never
+      show-details: never  # no revelar detalles internos al público
 
 app:
   jwt:
-    secret: ${JWT_SECRET:BRI+F/E+/aVp0YzBtT+0Hpd2c3RaWITFBgpcwbJ50ufxuGdAobjPEhK0q41v0iQfiauB1iIKXwsam6q8Spacag==}
+    # CRITERIO 5 — SEGURIDAD: secret para firma HMAC (no usado en producción, usamos ES256)
+    secret: ${JWT_SECRET}
   groq:
-    api-key: ${GROQ_API_KEY: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}
-    base-url: https://api.groq.com/openai/v1
-    model: llama-3.3-70b-versatile
+    # CRITERIO 4 — API EXTERNA: Groq (Llama 3.3-70B) para el AI Coach
+    # La API key se lee de la variable de entorno GROQ_API_KEY (obligatoria — ver application-local.yml)
+    api-key: ${GROQ_API_KEY}
+    base-url: https://api.groq.com/openai/v1  # endpoint compatible con OpenAI
+    model: llama-3.3-70b-versatile            # modelo LLM: Meta Llama 3.3 (70B parámetros)
   supabase:
-    jwt-secret: ${SUPABASE_JWT_SECRET:cce250d6-ff31-412a-8aa3-0e895ce3abf2}
-    url: ${SUPABASE_URL:https://uyxysrodgxxduzyekgjo.supabase.co}
+    # CRITERIO 5 — SEGURIDAD: La clave pública de Supabase para verificar JWTs ES256
+    # se obtiene del endpoint JWKS (hardcodeada en JwtAuthFilter.java como coordenadas EC)
+    jwt-secret: ${SUPABASE_JWT_SECRET}
+    url: ${SUPABASE_URL}
 
+# Swagger UI: documentación interactiva de todos los endpoints REST
 springdoc:
   api-docs:
     path: /api-docs
@@ -54,5 +91,5 @@ springdoc:
 
 logging:
   level:
-    com.movo: DEBUG
-    org.springframework.security: WARN
+    com.movo: DEBUG       # logs detallados de nuestra app en desarrollo
+    org.springframework.security: WARN  # sólo warnings de Spring Security

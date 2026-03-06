@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MOVO — Pantallas de la App</title>
+<style>
+:root {
+  --bg:#0a0c14; --surface:#12151f; --surface2:#1a1e2e; --border:#252a3d;
+  --primary:#7c6fff; --primary2:#a78bfa; --green:#00d4aa; --yellow:#ffc947;
+  --red:#ff6584; --text:#e2e8f0; --muted:#6b7280;
+  --phone-w:240px; --phone-h:480px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.5}
+
+/* HEADER */
+header{background:linear-gradient(160deg,#12151f,#0a0c14);border-bottom:1px solid var(--border);padding:40px 32px 32px;text-align:center}
+.logo-txt{font-size:2.8rem;font-weight:900;background:linear-gradient(135deg,var(--primary),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-1px}
+header p{color:var(--muted);margin-top:6px;font-size:.9rem;text-transform:uppercase;letter-spacing:2px}
+
+/* LAYOUT */
+.container{max-width:1300px;margin:0 auto;padding:48px 24px 80px}
+
+/* SECTION */
+section{margin-bottom:72px}
+.sec-hdr{display:flex;align-items:center;gap:12px;margin-bottom:32px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.sec-num{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;flex-shrink:0}
+.sec-title{font-size:1.3rem;font-weight:700}
+.sec-sub{color:var(--muted);font-size:.85rem;margin-top:3px}
+
+/* SCREEN CARD */
+.screen-card{display:flex;gap:40px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px;flex-wrap:wrap}
+.screen-card + .screen-card{margin-top:24px}
+.screen-card.reverse{flex-direction:row-reverse}
+
+/* PHONE SHELL */
+.phone{flex-shrink:0;width:var(--phone-w);height:var(--phone-h);background:#0a0a0a;border-radius:36px;border:6px solid #1e2235;box-shadow:0 0 0 1px #2e3560, 0 30px 60px rgba(0,0,0,.7);position:relative;overflow:hidden}
+.phone::before{content:'';position:absolute;top:12px;left:50%;transform:translateX(-50%);width:60px;height:6px;background:#1e2235;border-radius:4px;z-index:10}
+.phone-screen{width:100%;height:100%;overflow:hidden;position:relative}
+
+/* ── SCREEN CONTENTS ────────────────────────────────── */
+
+/* STATUS BAR */
+.status-bar{height:20px;padding:0 12px;display:flex;align-items:center;justify-content:space-between;font-size:.55rem;color:rgba(255,255,255,.5);background:rgba(0,0,0,.5);position:absolute;top:0;left:0;right:0;z-index:5}
+
+/* GRADIENT BG */
+.grad-bg{position:absolute;inset:0;background:linear-gradient(160deg,#0a0a0a 0%,#0d0a18 100%)}
+
+/* ── LOGIN SCREEN ── */
+.login-screen{position:relative;height:100%;display:flex;flex-direction:column;align-items:center;padding:28px 16px 16px}
+.login-logo{margin-top:20px;margin-bottom:10px;display:flex;flex-direction:column;align-items:center}
+.logo-circle{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#7c6fff,#00d4aa);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:900;color:#fff;margin-bottom:4px;box-shadow:0 8px 24px rgba(124,111,255,.4)}
+.login-title{font-size:.85rem;font-weight:700;color:#fff;margin-bottom:2px}
+.login-sub{font-size:.6rem;color:var(--muted);margin-bottom:14px}
+.inp-lbl{font-size:.55rem;color:var(--muted);align-self:flex-start;margin-bottom:2px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.inp-field{width:100%;height:28px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:0 8px;font-size:.6rem;color:rgba(255,255,255,.9);display:flex;align-items:center;margin-bottom:10px;gap:5px}
+.inp-field .ico{font-size:.65rem;opacity:.5}
+.inp-placeholder{color:rgba(255,255,255,.25);font-size:.58rem}
+.btn-grad{width:100%;height:30px;background:linear-gradient(135deg,#7c6fff,#a78bfa);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.65rem;font-weight:700;margin-top:4px;box-shadow:0 4px 16px rgba(124,111,255,.4)}
+.link-txt{font-size:.58rem;color:var(--primary2);margin-top:10px}
+.divider{display:flex;align-items:center;gap:6px;width:100%;margin:10px 0}
+.divider-line{flex:1;height:1px;background:rgba(255,255,255,.08)}
+.divider-txt{font-size:.55rem;color:var(--muted)}
+.forgot{font-size:.55rem;color:var(--muted);align-self:flex-end;margin-top:-8px;margin-bottom:8px}
+
+/* ── HOME SCREEN ── */
+.home-screen{position:relative;height:100%;padding:22px 10px 56px;overflow:hidden}
+.home-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.home-logo{font-size:.75rem;font-weight:900;background:linear-gradient(135deg,#7c6fff,#00d4aa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.greeting{font-size:.7rem;color:var(--muted);margin-bottom:1px}
+.user-name{font-size:.9rem;font-weight:800;color:#fff}
+.stats-row{display:flex;gap:5px;margin:10px 0}
+.stat-card{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px 4px;text-align:center}
+.stat-icon{font-size:.75rem}
+.stat-val{font-size:.8rem;font-weight:800;color:var(--primary2)}
+.stat-lbl{font-size:.45rem;color:var(--muted);text-transform:uppercase}
+.quote-card{background:rgba(124,111,255,.1);border:1px solid rgba(124,111,255,.2);border-radius:10px;padding:8px 10px;margin:8px 0}
+.quote-txt{font-size:.55rem;color:rgba(255,255,255,.85);font-style:italic;line-height:1.5}
+.quote-author{font-size:.5rem;color:var(--primary2);margin-top:2px}
+.sec-label{font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:8px 0 5px}
+.workout-card-mini{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:8px}
+.wc-dot{width:6px;height:6px;border-radius:50%;background:var(--primary);flex-shrink:0}
+.wc-title{font-size:.62rem;font-weight:700;color:#fff}
+.wc-meta{font-size:.5rem;color:var(--muted)}
+.week-dots{display:flex;gap:4px;margin:8px 0}
+.week-dot{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.wd-lbl{font-size:.45rem;color:var(--muted)}
+.wd-circle{width:10px;height:10px;border-radius:50%;border:1.5px solid rgba(255,255,255,.15)}
+.wd-circle.done{background:var(--primary);border-color:var(--primary)}
+.wd-circle.today{border-color:var(--green);background:rgba(0,212,170,.2)}
+
+/* BOTTOM NAV */
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:48px;background:rgba(12,10,20,.95);border-top:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-around;padding-bottom:4px}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px}
+.nav-ico{font-size:.95rem;opacity:.35}
+.nav-ico.active{opacity:1}
+.nav-lbl{font-size:.42rem;color:var(--muted);font-weight:600}
+.nav-lbl.active{color:var(--primary2)}
+
+/* ── ROUTINES SCREEN ── */
+.routines-screen{position:relative;height:100%;padding:22px 10px 56px;overflow:hidden}
+.routines-hdr{font-size:.9rem;font-weight:800;color:#fff;margin-bottom:10px}
+.filter-chips{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap}
+.chip{padding:3px 8px;border-radius:12px;font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border:1px solid rgba(255,255,255,.1);color:var(--muted)}
+.chip.active{background:var(--primary);border-color:var(--primary);color:#fff}
+.routine-card{border-radius:10px;overflow:hidden;margin-bottom:8px;position:relative;height:65px}
+.rc-img{position:absolute;inset:0;background-size:cover;background-position:center}
+.rc-overlay{position:absolute;inset:0;background:linear-gradient(to right,rgba(0,0,0,.85) 0%,rgba(0,0,0,.3) 100%)}
+.rc-content{position:absolute;inset:0;padding:8px 10px;display:flex;flex-direction:column;justify-content:center}
+.rc-badge{font-size:.45rem;text-transform:uppercase;letter-spacing:.5px;font-weight:700;padding:1px 5px;border-radius:4px;width:fit-content;margin-bottom:3px}
+.rc-badge.gym{background:rgba(124,111,255,.3);color:var(--primary2)}
+.rc-badge.yoga{background:rgba(0,212,170,.2);color:var(--green)}
+.rc-badge.pilates{background:rgba(255,201,71,.2);color:var(--yellow)}
+.rc-title{font-size:.68rem;font-weight:700;color:#fff}
+.rc-meta{font-size:.5rem;color:rgba(255,255,255,.5)}
+.build-btn{background:linear-gradient(135deg,rgba(124,111,255,.2),rgba(0,212,170,.1));border:1px dashed rgba(124,111,255,.4);border-radius:10px;padding:8px;text-align:center;margin-top:4px}
+.build-label{font-size:.58rem;color:var(--primary2);font-weight:700}
+.build-sub{font-size:.48rem;color:var(--muted)}
+
+/* ── AI COACH SCREEN ── */
+.ai-screen{position:relative;height:100%;display:flex;flex-direction:column;padding-top:20px}
+.ai-hdr{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-bottom:1px solid rgba(255,255,255,.06)}
+.ai-avatar{width:28px;height:28px;border-radius:10px;background:linear-gradient(135deg,#7c6fff,#00d4aa);display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0}
+.ai-name{font-size:.65rem;font-weight:700;color:#fff}
+.ai-status{font-size:.48rem;color:var(--green)}
+.ai-msgs{flex:1;padding:8px 10px;overflow:hidden;display:flex;flex-direction:column;gap:5px}
+.ai-welcome{text-align:center;padding:8px}
+.ai-welcome-icon{font-size:1.3rem;margin-bottom:4px}
+.ai-welcome-title{font-size:.65rem;font-weight:700;color:#fff;margin-bottom:3px}
+.ai-welcome-txt{font-size:.52rem;color:var(--muted);line-height:1.4}
+.suggestion-chips{display:flex;flex-direction:column;gap:3px;margin-top:7px}
+.sug-chip{background:rgba(124,111,255,.1);border:1px solid rgba(124,111,255,.2);border-radius:8px;padding:4px 7px;font-size:.52rem;color:var(--primary2)}
+.bubble{max-width:80%;border-radius:12px;padding:6px 9px;font-size:.56rem;line-height:1.5}
+.bubble.user{background:linear-gradient(135deg,#7c6fff,#a78bfa);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.bubble.ai{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.09);color:rgba(255,255,255,.9);align-self:flex-start;border-bottom-left-radius:4px}
+.ai-input-row{display:flex;align-items:center;gap:5px;padding:6px 8px;border-top:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.3)}
+.ai-input{flex:1;height:24px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:0 8px;font-size:.55rem;color:rgba(255,255,255,.6)}
+.ai-send{width:24px;height:24px;border-radius:8px;background:linear-gradient(135deg,#7c6fff,#00d4aa);display:flex;align-items:center;justify-content:center;font-size:.6rem;flex-shrink:0}
+
+/* ── ACTIVE WORKOUT SCREEN ── */
+.workout-screen{position:relative;height:100%;padding:22px 10px 10px;overflow:hidden}
+.wo-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.wo-title{font-size:.75rem;font-weight:800;color:#fff}
+.timer-badge{background:rgba(255,201,71,.15);border:1px solid rgba(255,201,71,.3);padding:3px 8px;border-radius:8px;font-size:.65rem;font-weight:800;color:var(--yellow);font-variant-numeric:tabular-nums}
+.wo-progress{height:4px;background:rgba(255,255,255,.08);border-radius:2px;margin-bottom:10px}
+.wo-progress-fill{height:100%;background:linear-gradient(90deg,#7c6fff,#00d4aa);border-radius:2px;width:45%}
+.wo-progress-lbl{font-size:.5rem;color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between}
+.ex-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;margin-bottom:6px}
+.ex-img-mini{height:50px;background-size:cover;background-position:center;position:relative}
+.ex-img-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.7),transparent)}
+.ex-img-lbl{position:absolute;bottom:5px;left:8px;font-size:.55rem;font-weight:700;color:#fff}
+.ex-body{padding:7px 9px}
+.ex-name{font-size:.65rem;font-weight:700;color:#fff;margin-bottom:5px}
+.sets-row{display:flex;gap:4px}
+.set-item{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px;text-align:center}
+.set-item.done{background:rgba(0,212,170,.1);border-color:rgba(0,212,170,.3)}
+.set-num{font-size:.48rem;color:var(--muted);text-transform:uppercase}
+.set-weight{font-size:.62rem;font-weight:700;color:#fff}
+.set-reps{font-size:.5rem;color:var(--muted)}
+.wo-finish-btn{width:100%;height:28px;background:linear-gradient(135deg,#7c6fff,#00d4aa);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#fff;margin-top:6px}
+
+/* ── PROFILE SCREEN ── */
+.profile-screen{position:relative;height:100%;padding:22px 10px 56px;overflow:hidden}
+.prof-cover{height:60px;background:linear-gradient(135deg,#7c6fff33,#00d4aa22);border-radius:10px;margin-bottom:-16px;position:relative}
+.prof-avatar{width:40px;height:40px;border-radius:14px;background:linear-gradient(135deg,#7c6fff,#00d4aa);border:3px solid #12151f;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:800;color:#fff;position:absolute;bottom:-16px;left:10px}
+.prof-info{padding:20px 0 6px}
+.prof-name{font-size:.8rem;font-weight:800;color:#fff}
+.prof-role{font-size:.52rem;color:var(--primary2);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.prof-tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.07);margin:8px 0}
+.prof-tab{flex:1;text-align:center;padding:5px 0;font-size:.52rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.prof-tab.active{color:var(--primary2);border-bottom:2px solid var(--primary)}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px}
+.stat-box{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:7px 8px}
+.stat-box-val{font-size:.85rem;font-weight:800;color:var(--primary2)}
+.stat-box-lbl{font-size:.48rem;color:var(--muted);text-transform:uppercase}
+.goals-row{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
+.goal-pill{background:rgba(124,111,255,.12);border:1px solid rgba(124,111,255,.25);border-radius:10px;padding:2px 7px;font-size:.48rem;color:var(--primary2);font-weight:600}
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:4px;border-radius:6px;overflow:hidden}
+.photo-cell{height:38px;background:rgba(255,255,255,.06);background-size:cover;background-position:center}
+
+/* ── SPLASH SCREEN ── */
+.splash-screen{position:relative;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+.splash-gradient{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(124,111,255,.2) 0%,transparent 70%)}
+.splash-logo-big{width:70px;height:70px;border-radius:22px;background:linear-gradient(135deg,#7c6fff,#00d4aa);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:900;color:#fff;box-shadow:0 0 40px rgba(124,111,255,.5)}
+.splash-name{font-size:1.4rem;font-weight:900;color:#fff;letter-spacing:-1px}
+.splash-tagline{font-size:.6rem;color:var(--muted);text-align:center;letter-spacing:1px;text-transform:uppercase}
+.splash-spinner{width:20px;height:20px;border-radius:50%;border:2px solid rgba(124,111,255,.2);border-top-color:#7c6fff;margin-top:16px;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── REGISTER SCREEN ── */
+.register-screen{position:relative;height:100%;display:flex;flex-direction:column;align-items:center;padding:24px 14px 16px}
+.back-btn{align-self:flex-start;font-size:.7rem;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:4px}
+.reg-title{font-size:.95rem;font-weight:800;color:#fff;margin-bottom:2px}
+.reg-sub{font-size:.58rem;color:var(--muted);margin-bottom:14px}
+
+/* ── SETTINGS SCREEN ── */
+.settings-screen{position:relative;height:100%;padding:22px 10px 56px}
+.settings-hdr{font-size:.9rem;font-weight:800;color:#fff;margin-bottom:14px}
+.settings-section{margin-bottom:10px}
+.settings-sec-lbl{font-size:.5rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700;margin-bottom:5px}
+.settings-item{display:flex;align-items:center;justify-content:space-between;padding:7px 9px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:8px;margin-bottom:4px}
+.si-left{display:flex;align-items:center;gap:7px}
+.si-icon{width:22px;height:22px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.65rem}
+.si-icon.purple{background:rgba(124,111,255,.2)}
+.si-icon.green{background:rgba(0,212,170,.2)}
+.si-icon.red{background:rgba(255,101,132,.2)}
+.si-icon.yellow{background:rgba(255,201,71,.2)}
+.si-text{font-size:.6rem;font-weight:600;color:#fff}
+.si-sub{font-size:.48rem;color:var(--muted)}
+.toggle{width:24px;height:14px;border-radius:7px;background:rgba(255,255,255,.1);position:relative}
+.toggle.on{background:var(--primary)}
+.toggle::after{content:'';position:absolute;top:2px;width:10px;height:10px;border-radius:50%;background:#fff;transition:.2s}
+.toggle.on::after{left:12px}
+.toggle.off::after{left:2px}
+.si-arrow{font-size:.55rem;color:var(--muted)}
+
+/* EXPLANATION */
+.explanation{flex:1;min-width:280px}
+.explanation h3{font-size:1.1rem;font-weight:700;margin-bottom:12px;color:var(--text)}
+.explanation p{font-size:.88rem;color:var(--muted);margin-bottom:10px;line-height:1.7}
+.feature-list{list-style:none;padding:0;display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
+.feature-list li{display:flex;align-items:flex-start;gap:8px;font-size:.85rem;color:var(--muted)}
+.feature-list li::before{content:attr(data-icon);flex-shrink:0;margin-top:1px}
+.tech-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.tch{padding:3px 10px;border-radius:8px;font-size:.72rem;font-weight:700;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--muted)}
+.tch.purple{background:rgba(124,111,255,.12);border-color:rgba(124,111,255,.3);color:var(--primary2)}
+.tch.green{background:rgba(0,212,170,.1);border-color:rgba(0,212,170,.25);color:var(--green)}
+.tch.yellow{background:rgba(255,201,71,.1);border-color:rgba(255,201,71,.25);color:var(--yellow)}
+.criterio-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:8px;font-size:.75rem;font-weight:700;margin-bottom:12px}
+.criterio-tag.c3{background:rgba(0,212,170,.1);border:1px solid rgba(0,212,170,.25);color:var(--green)}
+.criterio-tag.c4{background:rgba(255,201,71,.1);border:1px solid rgba(255,201,71,.25);color:var(--yellow)}
+.criterio-tag.c5{background:rgba(124,111,255,.1);border:1px solid rgba(124,111,255,.25);color:var(--primary2)}
+.criterio-tag.c1{background:rgba(255,101,132,.1);border:1px solid rgba(255,101,132,.25);color:var(--red)}
+.criterio-tag.c2{background:rgba(124,99,255,.1);border:1px solid rgba(124,99,255,.25);color:#b39dff}
+.criterio-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+
+/* FLOW */
+.mini-flow{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin:10px 0;padding:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px}
+.mf-step{padding:3px 8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;font-size:.72rem;color:var(--muted)}
+.mf-step.hl{border-color:var(--primary);color:var(--primary2);background:rgba(124,111,255,.1)}
+.mf-arr{color:var(--primary);font-size:.7rem}
+
+footer{border-top:1px solid var(--border);text-align:center;padding:24px;color:var(--muted);font-size:.8rem}
+
+/* TRAINER */
+.trainer-screen{position:relative;height:100%;padding:22px 10px 56px;overflow:hidden}
+.trainer-hdr{font-size:.9rem;font-weight:800;color:#fff;margin-bottom:8px}
+.client-card{display:flex;align-items:center;gap:8px;padding:7px 9px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;margin-bottom:5px}
+.client-ava{width:28px;height:28px;border-radius:10px;background:linear-gradient(135deg,#7c6fff,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:800;color:#fff;flex-shrink:0}
+.client-name{font-size:.62rem;font-weight:700;color:#fff}
+.client-meta{font-size:.5rem;color:var(--muted)}
+.client-badge{margin-left:auto;padding:2px 7px;border-radius:6px;font-size:.48rem;font-weight:700}
+.cb-active{background:rgba(0,212,170,.15);color:var(--green)}
+.msg-bubble{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:7px 9px;margin-bottom:5px;display:flex;gap:7px;align-items:flex-start}
+.msg-ava{width:22px;height:22px;border-radius:8px;background:linear-gradient(135deg,#7c6fff,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:.5rem;font-weight:800;color:#fff;flex-shrink:0}
+.msg-text{font-size:.55rem;color:rgba(255,255,255,.8);line-height:1.4}
+.msg-time{font-size:.45rem;color:var(--muted);margin-top:3px}
+.unread-dot{width:6px;height:6px;border-radius:50%;background:var(--primary);flex-shrink:0;margin-top:2px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-txt">MOVO</div>
+  <p>Pantallas de la aplicación — Documentación de interfaz</p>
+</header>
+
+<div class="container">
+
+<!-- ═══════════ 1. SPLASH ═══════════ -->
+<section>
+  <div class="sec-hdr">
+    <div class="sec-num" style="background:rgba(124,111,255,.15);color:var(--primary2)">1</div>
+    <div>
+      <div class="sec-title">Pantalla de Carga (Splash)</div>
+      <div class="sec-sub">Primera pantalla que ve el usuario al abrir la app</div>
+    </div>
+  </div>
+  <div class="screen-card">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="grad-bg"></div>
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="splash-screen">
+          <div class="splash-gradient"></div>
+          <div class="splash-logo-big">M</div>
+          <div class="splash-name">MOVO</div>
+          <div class="splash-tagline">Tu entrenamiento, tu camino</div>
+          <div class="splash-spinner"></div>
+        </div>
+      </div>
+    </div>
+    <div class="explanation">
+      <div class="criterio-tags">
+        <span class="criterio-tag c3">📡 Criterio 3</span>
+        <span class="criterio-tag c5">🔒 Criterio 5</span>
+      </div>
+      <h3>Pantalla de Carga</h3>
+      <p>Es la primera pantalla que aparece al abrir la app. Mientras se muestra, el sistema lee en segundo plano la sesión guardada en <strong>AsyncStorage</strong>.</p>
+      <ul class="feature-list">
+        <li data-icon="🔑">Llama a <code>authStore.initialize()</code> para recuperar el JWT de sesión</li>
+        <li data-icon="🔄">Si hay sesión activa → navega directamente a <strong>Home</strong> sin login</li>
+        <li data-icon="🔐">Si no hay sesión → navega a <strong>Login</strong></li>
+        <li data-icon="⏱️">Implementa <code>withTimeout()</code> para no quedarse bloqueada si Supabase no responde</li>
+      </ul>
+      <div class="mini-flow">
+        <div class="mf-step">App arranca</div><div class="mf-arr">→</div>
+        <div class="mf-step hl">AsyncStorage</div><div class="mf-arr">→</div>
+        <div class="mf-step">¿JWT válido?</div><div class="mf-arr">→</div>
+        <div class="mf-step hl">Home / Login</div>
+      </div>
+      <div class="tech-chips">
+        <span class="tch purple">authStore.ts</span>
+        <span class="tch green">AsyncStorage</span>
+        <span class="tch">SplashScreen.tsx</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 2. LOGIN ═══════════ -->
+<section>
+  <div class="sec-hdr">
+    <div class="sec-num" style="background:rgba(255,101,132,.15);color:var(--red)">2</div>
+    <div>
+      <div class="sec-title">Pantalla de Login</div>
+      <div class="sec-sub">Autenticación con Supabase Auth</div>
+    </div>
+  </div>
+  <div class="screen-card reverse">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="grad-bg" style="background:linear-gradient(160deg,#0a0a0a,#0f0a1e)"></div>
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="login-screen">
+          <div class="login-logo">
+            <div class="logo-circle">M</div>
+            <div style="font-size:.8rem;font-weight:900;background:linear-gradient(135deg,#7c6fff,#00d4aa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">MOVO</div>
+          </div>
+          <div class="login-title">Bienvenido de vuelta</div>
+          <div class="login-sub">Accede a tu entrenamiento personalizado</div>
+          <div class="inp-lbl">Email</div>
+          <div class="inp-field"><span class="ico">✉️</span><span class="inp-placeholder">tu@email.com</span></div>
+          <div class="inp-lbl">Contraseña</div>
+          <div class="inp-field"><span class="ico">🔒</span><span class="inp-placeholder">••••••••</span></div>
+          <div class="forgot">¿Olvidaste tu contraseña?</div>
+          <div class="btn-grad">Iniciar sesión</div>
+          <div class="divider"><div class="divider-line"></div><div class="divider-txt">o</div><div class="divider-line"></div></div>
+          <div class="link-txt">¿No tienes cuenta? <strong>Regístrate</strong></div>
+        </div>
+      </div>
+    </div>
+    <div class="explanation">
+      <div class="criterio-tags">
+        <span class="criterio-tag c4">🌐 Criterio 4</span>
+        <span class="criterio-tag c5">🔒 Criterio 5</span>
+        <span class="criterio-tag c3">📡 Criterio 3</span>
+      </div>
+      <h3>Login con Supabase Auth</h3>
+      <p>El usuario introduce email y contraseña. La app llama a la <strong>API de Supabase Auth</strong> que devuelve un <strong>JWT firmado con ES256</strong>.</p>
+      <ul class="feature-list">
+        <li data-icon="🌐">Llama a <code>supabase.auth.signInWithPassword()</code> → API externa Supabase (Criterio 4)</li>
+        <li data-icon="🔑">Supabase devuelve JWT firmado con clave privada EC P-256</li>
+        <li data-icon="💾">JWT se guarda en <strong>AsyncStorage</strong> automáticamente mediante <code>persistSession: true</code></li>
+        <li data-icon="🔄">Después del login → POST /api/auth/sync al backend para sincronizar el usuario en la BD Java</li>
+        <li data-icon="✅">Validación con <code>react-hook-form</code>: email válido, contraseña mínimo 6 caracteres</li>
+      </ul>
+      <div class="tech-chips">
+        <span class="tch purple">authStore.ts</span>
+        <span class="tch green">supabase.ts</span>
+        <span class="tch">LoginScreen.tsx</span>
+        <span class="tch yellow">Supabase Auth API</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 3. REGISTER ═══════════ -->
+<section>
+  <div class="sec-hdr">
+    <div class="sec-num" style="background:rgba(0,212,170,.15);color:var(--green)">3</div>
+    <div>
+      <div class="sec-title">Pantalla de Registro</div>
+      <div class="sec-sub">Creación de cuenta nueva</div>
+    </div>
+  </div>
+  <div class="screen-card">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="grad-bg" style="background:linear-gradient(160deg,#0a0a0a,#0a130f)"></div>
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="register-screen">
+          <div class="back-btn">← Volver</div>
+          <div class="reg-title">Crea tu cuenta</div>
+          <div class="reg-sub">Empieza tu camino fitness hoy</div>
+          <div class="inp-lbl">Nombre completo</div>
+          <div class="inp-field"><span class="ico">👤</span><span class="inp-placeholder">Tu nombre</span></div>
+          <div class="inp-lbl">Email</div>
+          <div class="inp-field"><span class="ico">✉️</span><span class="inp-placeholder">tu@email.com</span></div>
+          <div class="inp-lbl">Contraseña</div>
+          <div class="inp-field"><span class="ico">🔒</span><span class="inp-placeholder">Mín. 6 caracteres</span></div>
+          <div class="inp-lbl">Confirmar contraseña</div>
+          <div class="inp-field"><span class="ico">🔒</span><span class="inp-placeholder">Repite la contraseña</span></div>
+          <div class="btn-grad" style="background:linear-gradient(135deg,#00d4aa,#7c6fff)">Crear cuenta</div>
+          <div class="link-txt" style="margin-top:8px">¿Ya tienes cuenta? <strong>Iniciar sesión</strong></div>
+        </div>
+      </div>
+    </div>
+    <div class="explanation">
+      <div class="criterio-tags">
+        <span class="criterio-tag c4">🌐 Criterio 4</span>
+        <span class="criterio-tag c3">📡 Criterio 3</span>
+        <span class="criterio-tag c2">🗂️ Criterio 2</span>
+      </div>
+      <h3>Registro de nuevo usuario</h3>
+      <p>El registro crea una cuenta en <strong>Supabase Auth</strong> y sincroniza los datos en la tabla <code>users</code> de PostgreSQL.</p>
+      <ul class="feature-list">
+        <li data-icon="🌐">Llama a <code>supabase.auth.signUp()</code> → crea usuario en Supabase Auth</li>
+        <li data-icon="🗄️">POST /api/auth/sync → crea fila en tabla <code>users</code> de PostgreSQL con el <code>supabase_id</code></li>
+        <li data-icon="🔒">La contraseña <strong>nunca llega</strong> al backend Java — la gestiona Supabase directamente</li>
+        <li data-icon="✅">Validación doble: frontend (react-hook-form) + BD (CHECK constraints + UNIQUE email)</li>
+      </ul>
+      <div class="tech-chips">
+        <span class="tch purple">authStore.ts</span>
+        <span class="tch green">AuthController.java</span>
+        <span class="tch">RegisterScreen.tsx</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 4. HOME ═══════════ -->
+<section>
+  <div class="sec-hdr">
+    <div class="sec-num" style="background:rgba(124,111,255,.15);color:var(--primary2)">4</div>
+    <div>
+      <div class="sec-title">Pantalla Principal (Home)</div>
+      <div class="sec-sub">Dashboard con estadísticas, rutina y motivación del día</div>
+    </div>
+  </div>
+  <div class="screen-card reverse">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="grad-bg"></div>
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="home-screen">
+          <div class="home-hdr">
+            <div class="home-logo">MOVO</div>
+            <span style="font-size:.75rem;opacity:.5">⚙️</span>
+          </div>
+          <div class="greeting">Buenas tardes 🌤️</div>
+          <div class="user-name">Ernesto 💪</div>
+          <div class="stats-row">
+            <div class="stat-card"><div class="stat-icon">🔥</div><div class="stat-val" style="color:#ff6b35">7</div><div class="stat-lbl">Racha</div></div>
+            <div class="stat-card"><div class="stat-icon">⚡</div><div class="stat-val">3</div><div class="stat-lbl">Semana</div></div>
+            <div class="stat-card"><div class="stat-icon">⏱️</div><div class="stat-val" style="color:var(--yellow)">145</div><div class="stat-lbl">Minutos</div></div>
+          </div>
+          <div class="week-dots">
+            <div class="week-dot"><div class="wd-lbl">L</div><div class="wd-circle done"></div></div>
+            <div class="week-dot"><div class="wd-lbl">M</div><div class="wd-circle done"></div></div>
+            <div class="week-dot"><div class="wd-lbl">X</div><div class="wd-circle"></div></div>
+            <div class="week-dot"><div class="wd-lbl">J</div><div class="wd-circle done"></div></div>
+            <div class="week-dot"><div class="wd-lbl">V</div><div class="wd-circle today"></div></div>
+            <div class="week-dot"><div class="wd-lbl">S</div><div class="wd-circle"></div></div>
+            <div class="week-dot"><div class="wd-lbl">D</div><div class="wd-circle"></div></div>
+          </div>
+          <div class="quote-card">
+            <div class="quote-txt">"El dolor de hoy es la fuerza de mañana."</div>
+            <div class="quote-author">— Arnold Schwarzenegger</div>
+          </div>
+          <div class="sec-label">Mi rutina de hoy</div>
+          <div class="workout-card-mini">
+            <div class="wc-dot"></div>
+            <div>
+              <div class="wc-title">Full Body Principiante</div>
+              <div class="wc-meta">45 min · Gym · Principiante</div>
+            </div>
+            <div style="margin-left:auto;font-size:.6rem;color:var(--primary2);font-weight:700">▶</div>
+          </div>
+          <div class="sec-label" style="margin-top:6px">💡 Consejo del día</div>
+          <div style="font-size:.52rem;color:var(--muted);padding:0 1px;line-height:1.4">💧 Bebe 500ml de agua antes de entrenar para un rendimiento óptimo.</div>
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-item"><div class="nav-ico active">🏠</div><div class="nav-lbl active">Inicio</div></div>
+          <div class="nav-item"><div class="nav-ico">📋</div><div class="nav-lbl">Rutinas</div></div>
+          <div class="nav-item"><div class="nav-ico">🤖</div><div class="nav-lbl">Coach</div></div>
+          <div class="nav-item"><div class="nav-ico">👤</div><div class="nav-lbl">Perfil</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="explanation">
+      <div class="criterio-tags">
+        <span class="criterio-tag c3">📡 Criterio 3</span>
+        <span class="criterio-tag c5">🔒 Criterio 5</span>
+      </div>
+      <h3>Dashboard principal</h3>
+      <p>Pantalla central de la app. Al cargar hace 3 llamadas paralelas a la BD para obtener estadísticas, rutina asignada y sesiones recientes.</p>
+      <ul class="feature-list">
+        <li data-icon="📊">Estadísticas en tiempo real: racha de días, sesiones semanales, minutos totales</li>
+        <li data-icon="📅">Semáforo visual de la semana: días con entrenamiento marcados en morado/verde</li>
+        <li data-icon="💬">Frase motivacional que rota cada día (14 frases distintas, índice = día del año)</li>
+        <li data-icon="🏋️">Tarjeta de la rutina activa asignada con acceso directo al entrenamiento</li>
+        <li data-icon="💡">Consejo nutricional o de entrenamiento del día</li>
+        <li data-icon="🔄">Pull-to-refresh para recargar todos los datos en tiempo real</li>
+      </ul>
+      <div class="tech-chips">
+        <span class="tch purple">routineStore.ts</span>
+        <span class="tch green">RoutineController.java</span>
+        <span class="tch">HomeScreen.tsx</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 5. ROUTINES ═══════════ -->
+<section>
+  <div class="sec-hdr">
+    <div class="sec-num" style="background:rgba(255,201,71,.15);color:var(--yellow)">5</div>
+    <div>
+      <div class="sec-title">Pantalla de Rutinas</div>
+      <div class="sec-sub">Catálogo de rutinas + creador personalizado</div>
+    </div>
+  </div>
+  <div class="screen-card">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="grad-bg"></div>
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="routines-screen">
+          <div class="routines-hdr">Rutinas 📋</div>
+          <div class="filter-chips">
+            <div class="chip active">Todas</div>
+            <div class="chip">Gym</div>
+            <div class="chip">Yoga</div>
+            <div class="chip">Pilates</div>
+          </div>
+          <div class="routine-card">
+            <div class="rc-img" style="background-image:url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=75');"><div class="rc-overlay"></div></div>
+            <div class="rc-content">
+              <div class="rc-badge gym">Gym · Principiante</div>
+              <div class="rc-title">Full Body Principiante</div>
+              <div class="rc-meta">45 min · 8 ejercicios</div>
+            </div>
+          </div>
+          <div class="routine-card">
+            <div class="rc-img" style="background-image:url('https://images.unsplash.com/photo-1545389336-cf090694435e?w=400&q=75');"><div class="rc-overlay"></div></div>
+            <div class="rc-content">
+              <div class="rc-badge yoga">Yoga · Intermedio</div>
+              <div class="rc-title">Yoga Matutino</div>
+              <div class="rc-meta">30 min · 12 posturas</div>
+            </div>
+          </div>
+          <div class="routine-card">
+            <div class="rc-img" style="background-image:url('https://images.unsplash.com/photo-1593810450967-f9c42742e326?w=400&q=75');"><div class="rc-overlay"></div></div>
+            <div class="rc-content">
+              <div class="rc-badge pilates">Pilates · Principiante</div>
+              <div class="rc-title">Pilates Core Básico</div>
+              <div class="rc-meta">40 min · 10 ejercicios</div>
+            </div>
+          </div>
+          <div class="build-btn">
+            <div class="build-label">⚡ Haz tu rutina</div>
+            <div class="build-sub">Elige grupo muscular y genera ejercicios</div>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-item"><div class="nav-ico">🏠</div><div class="nav-lbl">Inicio</div></div>
+          <div class="nav-item"><div class="nav-ico active">📋</div><div class="nav-lbl active">Rutinas</div></div>
+          <div class="nav-item"><div class="nav-ico">🤖</div><div class="nav-lbl">Coach</div></div>
+          <div class="nav-item"><div class="nav-ico">👤</div><div class="nav-lbl">Perfil</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="explanation">
+      <div class="criterio-tags">
+        <span class="criterio-tag c3">📡 Criterio 3</span>
+        <span class="criterio-tag c2">🗂️ Criterio 2</span>
+      </div>
+      <h3>Catálogo de Rutinas</h3>
+      <p>Muestra todas las rutinas disponibles filtradas por categoría (Gym, Yoga, Pilates). Las rutinas se cargan desde la tabla <code>routines</code> de PostgreSQL.</p>
+      <ul class="feature-list">
+        <li data-icon="🔍">Filtros por categoría: consulta la BD con WHERE category = 'gym'|'yoga'|'pilates'</li>
+        <li data-icon="📸">Fotos reales de Unsplash por grupo muscular y ejercicio</li>
+        <li data-icon="⚡">Sección <strong>"Haz tu rutina"</strong>: elige grupo muscular y genera una rutina personalizada con ejercicios del catálogo local</li>
+        <li data-icon="➕">Botón de asignar rutina → tabla <code>user_routines</code> (relación N:M del Criterio 2)</li>
+        <li data-icon="▶️">Tap en rutina → RoutineDetailScreen → ActiveWorkoutScreen</li>
+      </ul>
+      <div class="tech-chips">
+        <span class="tch purple">routineStore.ts</span>
+        <span class="tch green">RoutineController.java</span>
+        <span class="tch">RoutinesScreen.tsx</span>
+        <span class="tch yellow">tabla routines + user_routines</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 6. ACTIVE WORKOUT ═══════════ -->
+<section>
+  <div class="sec-hdr">
+    <div class="sec-num" style="background:rgba(0,212,170,.15);color:var(--green)">6</div>
+    <div>
+      <div class="sec-title">Entrenamiento Activo</div>
+      <div class="sec-sub">Timer, series y registro de la sesión en BD</div>
+    </div>
+  </div>
+  <div class="screen-card reverse">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="grad-bg"></div>
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="workout-screen">
+          <div class="wo-hdr">
+            <div>
+              <div class="wo-title">Full Body</div>
+              <div style="font-size:.5rem;color:var(--muted)">Ejercicio 3 de 8</div>
+            </div>
+            <div class="timer-badge">⏱ 23:41</div>
+          </div>
+          <div class="wo-progress"></div>
+          <div class="wo-progress-fill"></div>
+          <div class="wo-progress-lbl"><span>Progreso</span><span>3/8 completados</span></div>
+          <div class="ex-card">
+            <div class="ex-img-mini" style="background-image:url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=70')">
+              <div class="ex-img-overlay"></div>
+              <div class="ex-img-lbl">Pecho, Tríceps</div>
+            </div>
+            <div class="ex-body">
+              <div class="ex-name">Press de banca</div>
+              <div class="sets-row">
+                <div class="set-item done"><div class="set-num">Serie 1</div><div class="set-weight">60 kg</div><div class="set-reps">10 reps ✓</div></div>
+                <div class="set-item done"><div class="set-num">Serie 2</div><div class="set-weight">60 kg</div><div class="set-reps">10 reps ✓</div></div>
+                <div class="set-item"><div class="set-num">Serie 3</div><div class="set-weight">— kg</div><div class="set-reps">10 reps</div></div>
+                <div class="set-item"><div class="set-num">Serie 4</div><div class="set-weight">— kg</div><div class="set-reps">10 reps</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="ex-card" style="opacity:.5">
+            <div class="ex-body">
+              <div class="ex-name" style="font-size:.58rem">Siguiente: Sentadilla con barra</div>
+              <div style="font-size:.48rem;color:var(--muted)">4 series × 12 reps</div>
+            </div>
+          </div>
+          <div class="wo-finish-btn">✅ Finalizar entrenamiento</div>
+        </div>
+      </div>
+    </div>
+    <div class="explanation">
+      <div class="criterio-tags">
+        <span class="criterio-tag c3">📡 Criterio 3</span>
+        <span class="criterio-tag c2">🗂️ Criterio 2</span>
+      </div>
+      <h3>Entrenamiento en tiempo real</h3>
+      <p>El usuario completa cada serie marcando peso y repeticiones. El timer cuenta el tiempo desde el inicio.</p>
+      <ul class="feature-list">
+        <li data-icon="⏱️">Timer activo con vibración al cambiar de ejercicio</li>
+        <li data-icon="📝">Registro de kg y reps por serie, guardado localmente en <code>AsyncStorage</code></li>
+        <li data-icon="📸">Foto del grupo muscular de cada ejercicio (Unsplash)</li>
+        <li data-icon="📊">Al finalizar → POST /api/sessions → crea fila en tabla <code>workout_sessions</code></li>
+        <li data-icon="💾">Historial de sesiones anteriores por ejercicio (para ver progresión de cargas)</li>
+        <li data-icon="🔒">El <code>user_id</code> se obtiene del JWT → <code>@AuthenticationPrincipal</code> en el backend → imposible guardar sesión de otro usuario</li>
+      </ul>
+      <div class="tech-chips">
+        <span class="tch purple">sessionApi (api.ts)</span>
+        <span class="tch green">SessionController.java</span>
+        <span class="tch">ActiveWorkoutScreen.tsx</span>
+        <span class="tch yellow">tabla workout_sessions</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 7. AI COACH ═══════════ -->
+<section>
+  <div class="sec-hdr">
+    <div class="sec-num" style="background:rgba(255,101,132,.15);color:var(--red)">7</div>
+    <div>
+      <div class="sec-title">MOVO Coach — IA</div>
+      <div class="sec-sub">Chat con IA generativa Groq Llama 3.3-70B</div>
+    </div>
+  </div>
+  <div class="screen-card">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="grad-bg"></div>
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="ai-screen">
+          <div class="ai-hdr">
+            <div style="display:flex;align-items:center;gap:7px">
+              <div class="ai-avatar">🤖</div>
+              <div>
+                <div class="ai-name">MOVO Coach</div>
+                <div class="ai-status">● Disponible</div>
+              </div>
+            </div>
+            <span style="font-size:.7rem;opacity:.4">🗑️</span>
+          </div>
+          <div class="ai-msgs">
+            <div class="bubble ai">¡Hola! Soy MOVO Coach 🤖 Tu entrenador personal virtual. Veo que llevas 7 días de racha 🔥 ¡Increíble constancia!</div>
+            <div class="bubble user">¿Qué debo comer antes de entrenar?</div>
+            <div class="bubble ai">Perfecto 💪 2h antes del entreno come carbohidratos complejos + proteína moderada: avena con plátano o arroz con pollo. 30min antes una fruta de rápida absorción para energía inmediata. ¡Hidratación clave: 500ml de agua! 💧</div>
+          </div>
+          <div class="ai-input-row">
+            <div class="ai-input">Escribe tu pregunta...</div>
+            <div class="ai-send">➤</div>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-item"><div class="nav-ico">🏠</div><div class="nav-lbl">Inicio</div></div>
+          <div class="nav-item"><div class="nav-ico">📋</div><div class="nav-lbl">Rutinas</div></div>
+          <div class="nav-item"><div class="nav-ico active">🤖</div><div class="nav-lbl active">Coach</div></div>
+          <div class="nav-item"><div class="nav-ico">👤</div><div class="nav-lbl">Perfil</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="explanation">
+      <div class="criterio-tags">
+        <span class="criterio-tag c4">🌐 Criterio 4</span>
+        <span class="criterio-tag c3">📡 Criterio 3</span>
+        <span class="criterio-tag c5">🔒 Criterio 5</span>
+      </div>
+      <h3>AI Coach con Groq / Llama 3.3</h3>
+      <p>Chat con un entrenador personal virtual potenciado por <strong>Meta Llama 3.3-70B</strong> via la API de Groq, personalizado con los datos del usuario de la BD.</p>
+      <ul class="feature-list">
+        <li data-icon="🤖">Modelo: <strong>Llama 3.3-70B-Versatile</strong> — 70.000 millones de parámetros</li>
+        <li data-icon="🌐">Flujo: App → POST /api/ai/chat → GroqAIService → API Groq → respuesta (Criterio 4)</li>
+        <li data-icon="📊">El system prompt incluye datos reales del usuario consultando la BD: nombre, racha, últimas sesiones (Criterio 3)</li>
+        <li data-icon="⚡">Si el usuario lleva más de 3 días sin entrenar → el AI lo detecta y añade motivación extra</li>
+        <li data-icon="🔑">La GROQ_API_KEY nunca sale del backend — la app solo habla con /api/ai/chat (Criterio 5)</li>
+        <li data-icon="💬">Historial de los últimos 20 mensajes para contexto conversacional</li>
+      </ul>
+      <div class="mini-flow">
+        <div class="mf-step">App</div><div class="mf-arr">→</div>
+        <div class="mf-step hl">/api/ai/chat</div><div class="mf-arr">→</div>
+        <div class="mf-step">Consulta BD</div><div class="mf-arr">→</div>
+        <div class="mf-step hl">Groq API</div><div class="mf-arr">→</div>
+        <div class="mf-step">Respuesta</div>
+      </div>
+      <div class="tech-chips">
+        <span class="tch purple">GroqAIService.java</span>
+        <span class="tch green">AIController.java</span>
+        <span class="tch">AICoachScreen.tsx</span>
+        <span class="tch yellow">Groq Llama 3.3</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 8. PROFILE ═══════════ -->
+<section>
+  <div class="sec-hdr">
+    <div class="sec-num" style="background:rgba(124,111,255,.15);color:var(--primary2)">8</div>
+    <div>
+      <div class="sec-title">Perfil de Usuario</div>
+      <div class="sec-sub">Estadísticas, posts, ajustes y progresión</div>
+    </div>
+  </div>
+  <div class="screen-card reverse">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="grad-bg"></div>
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="profile-screen">
+          <div class="prof-cover"></div>
+          <div style="position:relative;height:24px">
+            <div class="prof-avatar">E</div>
+          </div>
+          <div class="prof-info">
+            <div class="prof-name">Ernesto Martínez</div>
+            <div class="prof-role">💪 Usuario · Principiante</div>
+          </div>
+          <div class="goals-row">
+            <div class="goal-pill">🔥 Perder peso</div>
+            <div class="goal-pill">💪 Ganar músculo</div>
+            <div class="goal-pill">🧘 Flexibilidad</div>
+          </div>
+          <div class="prof-tabs">
+            <div class="prof-tab active">Estadísticas</div>
+            <div class="prof-tab">Posts</div>
+            <div class="prof-tab">Ajustes</div>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-box"><div class="stat-box-val">42</div><div class="stat-box-lbl">🏋️ Entrenamientos</div></div>
+            <div class="stat-box"><div class="stat-box-val">7</div><div class="stat-box-lbl">🔥 Racha actual</div></div>
+            <div class="stat-box"><div class="stat-box-val">2.1k</div><div class="stat-box-lbl">⏱️ Minutos totales</div></div>
+            <div class="stat-box"><div class="stat-box-val">5</div><div class="stat-box-lbl">📋 Rutinas activas</div></div>
+          </div>
+          <div class="photo-grid">
+            <div class="photo-cell" style="background-image:url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=200&q=70');background-size:cover"></div>
+            <div class="photo-cell" style="background-image:url('https://images.unsplash.com/photo-1545389336-cf090694435e?w=200&q=70');background-size:cover"></div>
+            <div class="photo-cell" style="background-image:url('https://images.unsplash.com/photo-1593810450967-f9c42742e326?w=200&q=70');background-size:cover"></div>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-item"><div class="nav-ico">🏠</div><div class="nav-lbl">Inicio</div></div>
+          <div class="nav-item"><div class="nav-ico">📋</div><div class="nav-lbl">Rutinas</div></div>
+          <div class="nav-item"><div class="nav-ico">🤖</div><div class="nav-lbl">Coach</div></div>
+          <div class="nav-item"><div class="nav-ico active">👤</div><div class="nav-lbl active">Perfil</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="explanation">
+      <div class="criterio-tags">
+        <span class="criterio-tag c3">📡 Criterio 3</span>
+        <span class="criterio-tag c2">🗂️ Criterio 2</span>
+      </div>
+      <h3>Perfil completo del usuario</h3>
+      <p>Vista consolidada de toda la actividad del usuario. Datos de 3 tablas de BD: <code>users</code>, <code>user_profiles</code> y <code>workout_sessions</code>.</p>
+      <ul class="feature-list">
+        <li data-icon="📊">Estadísticas calculadas desde la tabla <code>workout_sessions</code>: total entrenamientos, racha, minutos</li>
+        <li data-icon="🏷️">Objetivos fitness leídos de <code>user_profiles.goals</code> (TEXT[] de PostgreSQL, Criterio 1)</li>
+        <li data-icon="📸">Grid de posts de entrenamientos publicados (tabla <code>posts</code>)</li>
+        <li data-icon="✏️">Pestaña Ajustes: editar peso, altura, objetivos → UPDATE en <code>user_profiles</code></li>
+        <li data-icon="🖼️">Subida de foto de perfil con <code>expo-image-picker</code> → Supabase Storage</li>
+      </ul>
+      <div class="tech-chips">
+        <span class="tch purple">UserController.java</span>
+        <span class="tch green">tabla user_profiles</span>
+        <span class="tch">ProfileScreen.tsx</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 9. TRAINER ═══════════ -->
+<section>
+  <div class="sec-hdr">
+    <div class="sec-num" style="background:rgba(255,201,71,.15);color:var(--yellow)">9</div>
+    <div>
+      <div class="sec-title">Panel de Entrenador</div>
+      <div class="sec-sub">Vista exclusiva para usuarios con rol trainer</div>
+    </div>
+  </div>
+  <div class="screen-card">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="grad-bg"></div>
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="trainer-screen">
+          <div class="trainer-hdr">Mis clientes 🏆</div>
+          <div class="client-card">
+            <div class="client-ava">M</div>
+            <div>
+              <div class="client-name">María García</div>
+              <div class="client-meta">Full Body · 5 días racha 🔥</div>
+            </div>
+            <div class="client-badge cb-active">Activa</div>
+          </div>
+          <div class="client-card">
+            <div class="client-ava">J</div>
+            <div>
+              <div class="client-name">Juan López</div>
+              <div class="client-meta">Yoga · 2 días racha</div>
+            </div>
+            <div class="client-badge cb-active">Activo</div>
+          </div>
+          <div class="client-card" style="opacity:.6">
+            <div class="client-ava" style="background:linear-gradient(135deg,#555,#333)">A</div>
+            <div>
+              <div class="client-name">Ana Sánchez</div>
+              <div class="client-meta">Sin entrenar 4 días ⚠️</div>
+            </div>
+            <div class="client-badge" style="background:rgba(255,101,132,.15);color:var(--red)">Inactiva</div>
+          </div>
+          <div style="font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:8px 0 5px">Mensajes recientes</div>
+          <div class="msg-bubble">
+            <div class="msg-ava">M</div>
+            <div style="flex:1">
+              <div class="msg-text">Profe, ¿puedo hacer el entreno de hoy aunque me duela el hombro?</div>
+              <div class="msg-time">hace 2h</div>
+            </div>
+            <div class="unread-dot"></div>
+          </div>
+          <div class="msg-bubble">
+            <div class="msg-ava">J</div>
+            <div>
+              <div class="msg-text">¡Completé la rutina! 💪 Subí 5kg en press de banca</div>
+              <div class="msg-time">hace 5h</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="explanation">
+      <div class="criterio-tags">
+        <span class="criterio-tag c5">🔒 Criterio 5</span>
+        <span class="criterio-tag c3">📡 Criterio 3</span>
+        <span class="criterio-tag c2">🗂️ Criterio 2</span>
+      </div>
+      <h3>Panel exclusivo del Entrenador</h3>
+      <p>Solo accesible para usuarios con <code>role = 'trainer'</code> en la BD. Control de acceso a doble capa.</p>
+      <ul class="feature-list">
+        <li data-icon="🔒">Seguridad: <code>@PreAuthorize("hasRole('TRAINER')")</code> en TrainerController.java → solo entrenadores (Criterio 5)</li>
+        <li data-icon="👥">Lista de clientes: query a <code>users WHERE trainer_id = :id</code> — auto-referencia del Criterio 2</li>
+        <li data-icon="💬">Sistema de mensajería: tabla <code>trainer_messages</code> con dos FKs a la tabla <code>users</code></li>
+        <li data-icon="⚠️">Alerta visual cuando un cliente lleva más de 3 días sin entrenar</li>
+        <li data-icon="📋">Puede asignar rutinas a sus clientes → tabla <code>user_routines.assigned_by</code></li>
+      </ul>
+      <div class="tech-chips">
+        <span class="tch purple">TrainerController.java</span>
+        <span class="tch green">tabla trainer_messages</span>
+        <span class="tch">TrainerScreens.tsx</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 10. SETTINGS ═══════════ -->
+<section>
+  <div class="sec-hdr">
+    <div class="sec-num" style="background:rgba(0,212,170,.15);color:var(--green)">10</div>
+    <div>
+      <div class="sec-title">Ajustes</div>
+      <div class="sec-sub">Configuración de la cuenta y preferencias</div>
+    </div>
+  </div>
+  <div class="screen-card reverse">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="grad-bg"></div>
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="settings-screen">
+          <div class="settings-hdr">⚙️ Ajustes</div>
+          <div class="settings-section">
+            <div class="settings-sec-lbl">Perfil</div>
+            <div class="settings-item">
+              <div class="si-left"><div class="si-icon purple">✏️</div><div><div class="si-text">Editar perfil</div><div class="si-sub">Nombre, foto, objetivos</div></div></div>
+              <div class="si-arrow">›</div>
+            </div>
+            <div class="settings-item">
+              <div class="si-left"><div class="si-icon green">📊</div><div><div class="si-text">Datos físicos</div><div class="si-sub">Peso, altura, edad</div></div></div>
+              <div class="si-arrow">›</div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-sec-lbl">Apariencia</div>
+            <div class="settings-item">
+              <div class="si-left"><div class="si-icon purple">🎨</div><div><div class="si-text">Color del tema</div><div class="si-sub">Morado activo</div></div></div>
+              <div class="si-arrow">›</div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-sec-lbl">Notificaciones</div>
+            <div class="settings-item">
+              <div class="si-left"><div class="si-icon yellow">🔔</div><div><div class="si-text">Recordatorio entreno</div><div class="si-sub">Cada día a las 08:00</div></div></div>
+              <div class="toggle on"></div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-sec-lbl">Cuenta</div>
+            <div class="settings-item">
+              <div class="si-left"><div class="si-icon red">🚪</div><div><div class="si-text" style="color:var(--red)">Cerrar sesión</div></div></div>
+              <div class="si-arrow">›</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="explanation">
+      <div class="criterio-tags">
+        <span class="criterio-tag c3">📡 Criterio 3</span>
+        <span class="criterio-tag c5">🔒 Criterio 5</span>
+      </div>
+      <h3>Pantalla de Ajustes</h3>
+      <p>Permite al usuario gestionar su cuenta, editar datos personales y configurar preferencias visuales.</p>
+      <ul class="feature-list">
+        <li data-icon="✏️">Editar datos físicos → PATCH /api/users/:id → UPDATE en <code>user_profiles</code></li>
+        <li data-icon="🎨">Selector de color del tema (themeStore.ts con Zustand) — el color del gradiente cambia globalmente</li>
+        <li data-icon="🔔">Notificaciones push programadas con <code>expo-notifications</code> → recordatorio diario de entrenamiento</li>
+        <li data-icon="🚪">Cerrar sesión → <code>supabase.auth.signOut()</code> + limpieza de todos los stores + AsyncStorage</li>
+      </ul>
+      <div class="tech-chips">
+        <span class="tch purple">authStore.ts</span>
+        <span class="tch green">UserController.java</span>
+        <span class="tch">SettingsScreen.tsx</span>
+        <span class="tch yellow">notifications.ts</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<!-- ═══════════ JUSTIFICACIÓN ═══════════ -->
+<div style="background:linear-gradient(160deg,#0d1020,#0a0c14);border-top:1px solid var(--border);padding:64px 0 80px">
+<div class="container" style="padding-top:0;padding-bottom:0">
+
+  <div style="text-align:center;margin-bottom:56px">
+    <div style="display:inline-block;padding:6px 16px;border-radius:20px;background:rgba(124,111,255,.12);border:1px solid rgba(124,111,255,.25);color:var(--primary2);font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:16px">Justificación técnica</div>
+    <div style="font-size:2rem;font-weight:900;color:var(--text);letter-spacing:-1px;margin-bottom:8px">Criterios del Proyecto</div>
+    <div style="color:var(--muted);font-size:.95rem;max-width:600px;margin:0 auto">Justificación detallada de cómo cada criterio de evaluación está implementado en la aplicación con fragmentos de código real.</div>
+  </div>
+
+  <!-- OVERVIEW CARDS -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:64px">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;border-top:3px solid var(--red)">
+      <div style="font-size:1.5rem;margin-bottom:8px">🗃️</div>
+      <div style="font-weight:800;color:var(--text);margin-bottom:4px">Criterio 1</div>
+      <div style="font-size:.8rem;color:var(--muted)">Tipos de datos avanzados de PostgreSQL: UUID, JSONB, TEXT[], ENUM, TIMESTAMP, tipos propios</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;border-top:3px solid #b39dff">
+      <div style="font-size:1.5rem;margin-bottom:8px">🗂️</div>
+      <div style="font-weight:800;color:var(--text);margin-bottom:4px">Criterio 2</div>
+      <div style="font-size:.8rem;color:var(--muted)">8 tablas relacionadas: FK, relaciones N:M, auto-referencia, herencia de roles</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;border-top:3px solid var(--green)">
+      <div style="font-size:1.5rem;margin-bottom:8px">📡</div>
+      <div style="font-weight:800;color:var(--text);margin-bottom:4px">Criterio 3</div>
+      <div style="font-size:.8rem;color:var(--muted)">HikariCP, JPA/Hibernate, queries JPQL, Spring Data Repository, Supabase via JDBC</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;border-top:3px solid var(--yellow)">
+      <div style="font-size:1.5rem;margin-bottom:8px">🌐</div>
+      <div style="font-weight:800;color:var(--text);margin-bottom:4px">Criterio 4</div>
+      <div style="font-size:.8rem;color:var(--muted)">APIs externas: Supabase Auth, Groq/Llama 3.3-70B, Unsplash, Expo Notifications</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;border-top:3px solid var(--primary)">
+      <div style="font-size:1.5rem;margin-bottom:8px">🔒</div>
+      <div style="font-weight:800;color:var(--text);margin-bottom:4px">Criterio 5</div>
+      <div style="font-size:.8rem;color:var(--muted)">JWT ES256, Spring Security, RLS en PostgreSQL, variables de entorno, roles (USER/TRAINER)</div>
+    </div>
+  </div>
+
+  <!-- CRITERIO 1 -->
+  <div style="margin-bottom:48px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+      <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,101,132,.15);color:var(--red);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0">C1</div>
+      <div>
+        <div style="font-size:1.15rem;font-weight:700">Criterio 1 — Tipos de datos avanzados de PostgreSQL</div>
+        <div style="color:var(--muted);font-size:.85rem">Uso de tipos nativos más allá de VARCHAR e INTEGER</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px">
+        <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--red);font-weight:700;margin-bottom:12px">Fragmento SQL — supabase-schema.sql</div>
+        <pre style="background:#0a0c14;border:1px solid var(--border);border-radius:10px;padding:16px;font-size:.75rem;color:#c9d1d9;overflow-x:auto;line-height:1.6"><code><span style="color:#ff7b72">CREATE TABLE</span> users (
+  id        <span style="color:#79c0ff">UUID</span> PRIMARY KEY
+            DEFAULT gen_random_uuid(),
+  email     TEXT UNIQUE NOT NULL,
+  role      <span style="color:#79c0ff">user_role</span>   -- ENUM personalizado
+            DEFAULT 'user',
+  goals     <span style="color:#79c0ff">TEXT[]</span>,    -- array nativo
+  metadata  <span style="color:#79c0ff">JSONB</span>,     -- JSON binario
+  created_at <span style="color:#79c0ff">TIMESTAMPTZ</span>
+             DEFAULT NOW()
+);</code></pre>
+      </div>
+      <div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="background:var(--surface);border:1px solid rgba(255,101,132,.2);border-radius:12px;padding:16px">
+            <div style="font-weight:700;color:var(--red);margin-bottom:6px;font-size:.9rem">🔑 UUID como clave primaria</div>
+            <div style="font-size:.82rem;color:var(--muted);line-height:1.6">Se usa <code>gen_random_uuid()</code> en lugar de SERIAL. Ventaja: el ID es único globalmente — permite federar datos entre Supabase Auth y la base de datos propia sin colisiones.</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid rgba(255,101,132,.2);border-radius:12px;padding:16px">
+            <div style="font-weight:700;color:var(--red);margin-bottom:6px;font-size:.9rem">📋 TEXT[] — Array nativo</div>
+            <div style="font-size:.82rem;color:var(--muted);line-height:1.6">La columna <code>goals TEXT[]</code> almacena múltiples objetivos fitness sin tabla auxiliar. Consultable con operadores de array: <code>WHERE 'Perder peso' = ANY(goals)</code>.</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid rgba(255,101,132,.2);border-radius:12px;padding:16px">
+            <div style="font-weight:700;color:var(--red);margin-bottom:6px;font-size:.9rem">🗃️ JSONB — Datos semiestructurados</div>
+            <div style="font-size:.82rem;color:var(--muted);line-height:1.6"><code>metadata JSONB</code> y <code>exercises JSONB</code> en la tabla <code>workout_sessions</code> guardan el detalle de cada serie (peso/reps) sin necesidad de tabla adicional. Con índice GIN para búsquedas eficientes.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CRITERIO 2 -->
+  <div style="margin-bottom:48px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+      <div style="width:36px;height:36px;border-radius:10px;background:rgba(124,99,255,.15);color:#b39dff;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0">C2</div>
+      <div>
+        <div style="font-size:1.15rem;font-weight:700">Criterio 2 — Diseño relacional complejo</div>
+        <div style="color:var(--muted);font-size:.85rem">8 tablas, claves foráneas, relaciones N:M, auto-referencia</div>
+      </div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:16px">
+      <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:1px;color:#b39dff;font-weight:700;margin-bottom:16px">Mapa de relaciones entre tablas</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
+        <div style="background:#0a0c14;border:1px solid var(--border);border-radius:10px;padding:12px">
+          <div style="font-weight:700;color:#fff;font-size:.8rem;margin-bottom:6px">👤 users</div>
+          <div style="font-size:.7rem;color:var(--muted)">PK: UUID<br/>role: ENUM<br/>trainer_id → self FK<br/>goals: TEXT[]</div>
+        </div>
+        <div style="background:#0a0c14;border:1px solid var(--border);border-radius:10px;padding:12px">
+          <div style="font-weight:700;color:#fff;font-size:.8rem;margin-bottom:6px">📋 routines</div>
+          <div style="font-size:.7rem;color:var(--muted)">PK: UUID<br/>created_by → users<br/>category: ENUM<br/>level: ENUM</div>
+        </div>
+        <div style="background:#0a0c14;border:1px solid rgba(124,99,255,.3);border-radius:10px;padding:12px;border-style:dashed">
+          <div style="font-weight:700;color:#b39dff;font-size:.8rem;margin-bottom:6px">🔗 user_routines</div>
+          <div style="font-size:.7rem;color:var(--muted)">N:M pivot<br/>user_id → users<br/>routine_id → routines<br/>assigned_by → users</div>
+        </div>
+        <div style="background:#0a0c14;border:1px solid var(--border);border-radius:10px;padding:12px">
+          <div style="font-weight:700;color:#fff;font-size:.8rem;margin-bottom:6px">🏋️ exercises</div>
+          <div style="font-size:.7rem;color:var(--muted)">PK: UUID<br/>routine_id → routines<br/>muscle_group: TEXT<br/>sets, reps: INT</div>
+        </div>
+        <div style="background:#0a0c14;border:1px solid var(--border);border-radius:10px;padding:12px">
+          <div style="font-weight:700;color:#fff;font-size:.8rem;margin-bottom:6px">📊 workout_sessions</div>
+          <div style="font-size:.7rem;color:var(--muted)">PK: UUID<br/>user_id → users<br/>routine_id → routines<br/>exercises: JSONB</div>
+        </div>
+        <div style="background:#0a0c14;border:1px solid var(--border);border-radius:10px;padding:12px">
+          <div style="font-weight:700;color:#fff;font-size:.8rem;margin-bottom:6px">💬 trainer_messages</div>
+          <div style="font-size:.7rem;color:var(--muted)">PK: UUID<br/>sender_id → users<br/>receiver_id → users<br/>2 FK a misma tabla</div>
+        </div>
+        <div style="background:#0a0c14;border:1px solid var(--border);border-radius:10px;padding:12px">
+          <div style="font-weight:700;color:#fff;font-size:.8rem;margin-bottom:6px">🖼️ posts</div>
+          <div style="font-size:.7rem;color:var(--muted)">PK: UUID<br/>user_id → users<br/>session_id → sessions<br/>image_url: TEXT</div>
+        </div>
+        <div style="background:#0a0c14;border:1px solid var(--border);border-radius:10px;padding:12px">
+          <div style="font-weight:700;color:#fff;font-size:.8rem;margin-bottom:6px">👤 user_profiles</div>
+          <div style="font-size:.7rem;color:var(--muted)">PK = FK → users<br/>1:1 con users<br/>weight, height<br/>metadata: JSONB</div>
+        </div>
+      </div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px">
+      <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:1px;color:#b39dff;font-weight:700;margin-bottom:12px">Auto-referencia en users (relación Entrenador → Clientes)</div>
+      <pre style="background:#0a0c14;border:1px solid var(--border);border-radius:10px;padding:16px;font-size:.75rem;color:#c9d1d9;overflow-x:auto;line-height:1.6"><code><span style="color:#ff7b72">CREATE TABLE</span> users (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  trainer_id UUID <span style="color:#ff7b72">REFERENCES</span> users(id) -- auto-referencia
+             <span style="color:#79c0ff">ON DELETE SET NULL</span>,
+  role       user_role DEFAULT 'user'
+  -- Un trainer puede tener N clientes
+  -- Un cliente tiene como mucho 1 trainer
+);</code></pre>
+    </div>
+  </div>
+
+  <!-- CRITERIO 3 -->
+  <div style="margin-bottom:48px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+      <div style="width:36px;height:36px;border-radius:10px;background:rgba(0,212,170,.12);color:var(--green);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0">C3</div>
+      <div>
+        <div style="font-size:1.15rem;font-weight:700">Criterio 3 — Acceso a la BD desde el backend</div>
+        <div style="color:var(--muted);font-size:.85rem">Spring Boot + JPA/Hibernate + HikariCP + Supabase PostgreSQL</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px">
+        <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--green);font-weight:700;margin-bottom:12px">application.yml — HikariCP Pool</div>
+        <pre style="background:#0a0c14;border:1px solid var(--border);border-radius:10px;padding:16px;font-size:.75rem;color:#c9d1d9;overflow-x:auto;line-height:1.6"><code>spring:
+  datasource:
+    url: <span style="color:#a5d6ff">${SUPABASE_DB_URL}</span>
+    hikari:
+      maximum-pool-size: <span style="color:#79c0ff">5</span>   <span style="color:#8b949e"># límite plan free</span>
+      minimum-idle: <span style="color:#79c0ff">2</span>
+      connection-timeout: <span style="color:#79c0ff">30000</span>
+      idle-timeout: <span style="color:#79c0ff">600000</span>
+
+  jpa:
+    hibernate:
+      ddl-auto: <span style="color:#a5d6ff">validate</span>
+    show-sql: <span style="color:#79c0ff">false</span></code></pre>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px">
+        <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--green);font-weight:700;margin-bottom:12px">RoutineRepository.java — JPQL personalizado</div>
+        <pre style="background:#0a0c14;border:1px solid var(--border);border-radius:10px;padding:16px;font-size:.75rem;color:#c9d1d9;overflow-x:auto;line-height:1.6"><code><span style="color:#ff7b72">@Repository</span>
+<span style="color:#ff7b72">public interface</span> <span style="color:#79c0ff">RoutineRepository</span>
+    <span style="color:#ff7b72">extends</span> JpaRepository&lt;Routine, UUID&gt; {
+
+  <span style="color:#ff7b72">@Query</span>(<span style="color:#a5d6ff">"SELECT r FROM Routine r
+    WHERE r.category = :cat
+    ORDER BY r.createdAt DESC"</span>)
+  List&lt;Routine&gt; findByCategory(
+    <span style="color:#ff7b72">@Param</span>(<span style="color:#a5d6ff">"cat"</span>) String category);
+
+  List&lt;Routine&gt; findByCreatedBy(UUID userId);
+}</code></pre>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px">
+        <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--green);font-weight:700;margin-bottom:12px">WorkoutSession.java — Entidad JPA con JSONB</div>
+        <pre style="background:#0a0c14;border:1px solid var(--border);border-radius:10px;padding:16px;font-size:.75rem;color:#c9d1d9;overflow-x:auto;line-height:1.6"><code><span style="color:#ff7b72">@Entity</span>
+<span style="color:#ff7b72">@Table</span>(name = <span style="color:#a5d6ff">"workout_sessions"</span>)
+<span style="color:#ff7b72">public class</span> <span style="color:#79c0ff">WorkoutSession</span> {
+
+  <span style="color:#ff7b72">@Id</span>
+  <span style="color:#ff7b72">@GeneratedValue</span>(strategy = AUTO)
+  <span style="color:#ff7b72">private</span> UUID id;
+
+  <span style="color:#ff7b72">@Column</span>(columnDefinition = <span style="color:#a5d6ff">"jsonb"</span>)
+  <span style="color:#ff7b72">private</span> String exercises;
+  <span style="color:#8b949e">// Almacena sets/reps/kg por ejercicio</span>
+}</code></pre>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px">
+        <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--green);font-weight:700;margin-bottom:12px">Flujo completo de petición</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:24px;height:24px;border-radius:8px;background:rgba(0,212,170,.15);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;flex-shrink:0">1</div>
+            <div style="font-size:.8rem;color:var(--muted)">App → <code>GET /api/routines?category=gym</code> con JWT</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:24px;height:24px;border-radius:8px;background:rgba(0,212,170,.15);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;flex-shrink:0">2</div>
+            <div style="font-size:.8rem;color:var(--muted)">JwtAuthFilter valida el token ES256 de Supabase</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:24px;height:24px;border-radius:8px;background:rgba(0,212,170,.15);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;flex-shrink:0">3</div>
+            <div style="font-size:.8rem;color:var(--muted)">RoutineController delega en RoutineService</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:24px;height:24px;border-radius:8px;background:rgba(0,212,170,.15);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;flex-shrink:0">4</div>
+            <div style="font-size:.8rem;color:var(--muted)">HikariCP saca conexión del pool → query JPQL</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:24px;height:24px;border-radius:8px;background:rgba(0,212,170,.15);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;flex-shrink:0">5</div>
+            <div style="font-size:.8rem;color:var(--muted)">Supabase PostgreSQL devuelve resultados → JSON al cliente</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CRITERIO 4 -->
+  <div style="margin-bottom:48px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+      <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,201,71,.12);color:var(--yellow);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0">C4</div>
+      <div>
+        <div style="font-size:1.15rem;font-weight:700">Criterio 4 — Integración con APIs externas</div>
+        <div style="color:var(--muted);font-size:.85rem">Supabase Auth · Groq / Llama 3.3-70B · Unsplash · Expo Push</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px">
+        <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--yellow);font-weight:700;margin-bottom:12px">GrokAIService.java — llamada a Groq API</div>
+        <pre style="background:#0a0c14;border:1px solid var(--border);border-radius:10px;padding:16px;font-size:.75rem;color:#c9d1d9;overflow-x:auto;line-height:1.6"><code><span style="color:#8b949e">// Construye system prompt con datos BD</span>
+String systemPrompt = <span style="color:#a5d6ff">"Eres MOVO Coach. "</span>
+  + <span style="color:#a5d6ff">"Usuario: "</span> + user.getName()
+  + <span style="color:#a5d6ff">". Racha: "</span> + streak + <span style="color:#a5d6ff">" días. "</span>
+  + <span style="color:#a5d6ff">"Última sesión: "</span> + lastSession;
+
+<span style="color:#8b949e">// Llamada a Groq REST API</span>
+Map&lt;String, Object&gt; body = Map.of(
+  <span style="color:#a5d6ff">"model"</span>, <span style="color:#a5d6ff">"llama-3.3-70b-versatile"</span>,
+  <span style="color:#a5d6ff">"messages"</span>, messages,
+  <span style="color:#a5d6ff">"max_tokens"</span>, <span style="color:#79c0ff">1024</span>
+);
+<span style="color:#ff7b72">return</span> webClient.post()
+  .uri(<span style="color:#a5d6ff">"https://api.groq.com/openai/v1/chat/completions"</span>)
+  .header(<span style="color:#a5d6ff">"Authorization"</span>, <span style="color:#a5d6ff">"Bearer "</span> + groqKey)
+  .bodyValue(body)
+  .retrieve()
+  .bodyToMono(String.class);</code></pre>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="background:var(--surface);border:1px solid rgba(255,201,71,.2);border-radius:12px;padding:16px">
+          <div style="font-weight:700;color:var(--yellow);margin-bottom:6px;font-size:.85rem">🌐 Supabase Auth API</div>
+          <div style="font-size:.8rem;color:var(--muted);line-height:1.6">Login/registro vía <code>supabase.auth.signInWithPassword()</code>. Retorna JWT firmado con clave EC privada de Supabase. La app guarda el token y lo envía en cada petición al backend.</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid rgba(255,201,71,.2);border-radius:12px;padding:16px">
+          <div style="font-weight:700;color:var(--yellow);margin-bottom:6px;font-size:.85rem">🤖 Groq — Llama 3.3-70B-Versatile</div>
+          <div style="font-size:.8rem;color:var(--muted);line-height:1.6">Modelo de 70.000M de parámetros con 128k tokens de contexto. El system prompt incluye datos reales del usuario consultados en la BD antes de la llamada.</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid rgba(255,201,71,.2);border-radius:12px;padding:16px">
+          <div style="font-weight:700;color:var(--yellow);margin-bottom:6px;font-size:.85rem">📸 Unsplash API + 🔔 Expo Push</div>
+          <div style="font-size:.8rem;color:var(--muted);line-height:1.6">Imágenes de ejercicios y grupos musculares. Expo Push Notifications para recordatorios diarios de entrenamiento via <code>notifications.ts</code>.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CRITERIO 5 -->
+  <div style="margin-bottom:48px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+      <div style="width:36px;height:36px;border-radius:10px;background:rgba(124,111,255,.15);color:var(--primary2);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0">C5</div>
+      <div>
+        <div style="font-size:1.15rem;font-weight:700">Criterio 5 — Seguridad</div>
+        <div style="color:var(--muted);font-size:.85rem">JWT ES256 · Spring Security · Row Level Security · Variables de entorno</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px">
+        <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--primary2);font-weight:700;margin-bottom:12px">JwtAuthFilter.java — validación ES256</div>
+        <pre style="background:#0a0c14;border:1px solid var(--border);border-radius:10px;padding:16px;font-size:.75rem;color:#c9d1d9;overflow-x:auto;line-height:1.6"><code><span style="color:#ff7b72">@Component</span>
+<span style="color:#ff7b72">public class</span> <span style="color:#79c0ff">JwtAuthFilter</span>
+    <span style="color:#ff7b72">extends</span> OncePerRequestFilter {
+
+  <span style="color:#ff7b72">protected void</span> doFilterInternal(...) {
+    String token = extractBearer(request);
+    <span style="color:#8b949e">// Verifica con clave pública EC P-256</span>
+    <span style="color:#8b949e">// de Supabase (no necesita llamada externa)</span>
+    Jws&lt;Claims&gt; claims =
+      Jwts.parserBuilder()
+        .setSigningKey(supabasePublicKey)
+        .build()
+        .parseClaimsJws(token);
+    <span style="color:#8b949e">// Extrae user_id y role del payload</span>
+    String userId = claims.getBody()
+                          .getSubject();
+  }
+}</code></pre>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px">
+        <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--primary2);font-weight:700;margin-bottom:12px">Row Level Security en PostgreSQL</div>
+        <pre style="background:#0a0c14;border:1px solid var(--border);border-radius:10px;padding:16px;font-size:.75rem;color:#c9d1d9;overflow-x:auto;line-height:1.6"><code><span style="color:#8b949e">-- Activar RLS en la tabla</span>
+<span style="color:#ff7b72">ALTER TABLE</span> workout_sessions
+  <span style="color:#ff7b72">ENABLE ROW LEVEL SECURITY</span>;
+
+<span style="color:#8b949e">-- Política: solo ves tus sesiones</span>
+<span style="color:#ff7b72">CREATE POLICY</span> sessions_isolation
+  <span style="color:#ff7b72">ON</span> workout_sessions
+  <span style="color:#ff7b72">USING</span> (user_id = <span style="color:#79c0ff">auth.uid()</span>);
+
+<span style="color:#8b949e">-- Entrenadores ven las de sus clientes</span>
+<span style="color:#ff7b72">CREATE POLICY</span> trainer_view
+  <span style="color:#ff7b72">ON</span> workout_sessions
+  <span style="color:#ff7b72">USING</span> (user_id <span style="color:#ff7b72">IN</span> (
+    <span style="color:#ff7b72">SELECT</span> id <span style="color:#ff7b72">FROM</span> users
+    <span style="color:#ff7b72">WHERE</span> trainer_id = <span style="color:#79c0ff">auth.uid()</span>
+  ));</code></pre>
+      </div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-top:16px">
+      <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--primary2);font-weight:700;margin-bottom:16px">Capas de seguridad — de fuera hacia dentro</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
+        <div style="background:#0a0c14;border:1px solid rgba(124,111,255,.25);border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:1.2rem;margin-bottom:6px">🌐</div>
+          <div style="font-weight:700;color:var(--primary2);font-size:.8rem;margin-bottom:4px">HTTPS / TLS</div>
+          <div style="font-size:.72rem;color:var(--muted)">Todo el tráfico cifrado en tránsito</div>
+        </div>
+        <div style="background:#0a0c14;border:1px solid rgba(124,111,255,.25);border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:1.2rem;margin-bottom:6px">🔑</div>
+          <div style="font-weight:700;color:var(--primary2);font-size:.8rem;margin-bottom:4px">JWT ES256</div>
+          <div style="font-size:.72rem;color:var(--muted)">Token firmado EC P-256, verificado sin BD</div>
+        </div>
+        <div style="background:#0a0c14;border:1px solid rgba(124,111,255,.25);border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:1.2rem;margin-bottom:6px">🛡️</div>
+          <div style="font-weight:700;color:var(--primary2);font-size:.8rem;margin-bottom:4px">Spring Security</div>
+          <div style="font-size:.72rem;color:var(--muted)">RBAC: USER / TRAINER con @PreAuthorize</div>
+        </div>
+        <div style="background:#0a0c14;border:1px solid rgba(124,111,255,.25);border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:1.2rem;margin-bottom:6px">🗄️</div>
+          <div style="font-weight:700;color:var(--primary2);font-size:.8rem;margin-bottom:4px">RLS PostgreSQL</div>
+          <div style="font-size:.72rem;color:var(--muted)">Aislamiento de filas a nivel de BD</div>
+        </div>
+        <div style="background:#0a0c14;border:1px solid rgba(124,111,255,.25);border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:1.2rem;margin-bottom:6px">🔐</div>
+          <div style="font-weight:700;color:var(--primary2);font-size:.8rem;margin-bottom:4px">Variables de entorno</div>
+          <div style="font-size:.72rem;color:var(--muted)">Cero secrets en el código fuente</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<footer>
+  MOVO — Aplicación de Fitness con IA &nbsp;·&nbsp; TFG &nbsp;·&nbsp;
+  React Native + Spring Boot + PostgreSQL (Supabase) + Groq Llama 3.3
+</footer>
+
+</body>
+</html>

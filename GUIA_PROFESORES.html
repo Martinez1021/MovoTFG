@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MOVO — Guía para la Presentación</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0d0d0d; color: #e0e0e0; line-height: 1.7; }
+  header { background: linear-gradient(135deg, #7c3aed, #2563eb); padding: 40px 32px; text-align: center; }
+  header h1 { font-size: 2.4rem; font-weight: 900; color: #fff; letter-spacing: 2px; }
+  header p  { color: rgba(255,255,255,0.8); margin-top: 8px; font-size: 1.1rem; }
+
+  .toc { background: #1a1a2e; border-left: 4px solid #7c3aed; margin: 32px auto; max-width: 860px; border-radius: 12px; padding: 24px 28px; }
+  .toc h2 { color: #a78bfa; margin-bottom: 14px; font-size: 1rem; text-transform: uppercase; letter-spacing: 2px; }
+  .toc ol { padding-left: 20px; }
+  .toc ol li { margin: 6px 0; }
+  .toc a { color: #60a5fa; text-decoration: none; font-weight: 600; }
+  .toc a:hover { text-decoration: underline; }
+
+  .section { max-width: 860px; margin: 0 auto 40px; background: #161625; border-radius: 16px; overflow: hidden; border: 1px solid #2a2a40; }
+  .section-header { padding: 20px 28px; display: flex; align-items: center; gap: 14px; }
+  .num { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 900; flex-shrink: 0; }
+  .section-header h2 { font-size: 1.25rem; font-weight: 800; }
+  .section-body { padding: 0 28px 28px; }
+
+  .c1 .section-header { background: linear-gradient(90deg, #7c3aed22, transparent); }
+  .c1 .num { background: #7c3aed; color: #fff; }
+  .c1 .section-header h2 { color: #a78bfa; }
+
+  .c2 .section-header { background: linear-gradient(90deg, #059669 22, transparent); }
+  .c2 .num { background: #059669; color: #fff; }
+  .c2 .section-header h2 { color: #34d399; }
+
+  .c3 .section-header { background: linear-gradient(90deg, #2563eb22, transparent); }
+  .c3 .num { background: #2563eb; color: #fff; }
+  .c3 .section-header h2 { color: #60a5fa; }
+
+  .c4 .section-header { background: linear-gradient(90deg, #d9770622, transparent); }
+  .c4 .num { background: #d97706; color: #fff; }
+  .c4 .section-header h2 { color: #fbbf24; }
+
+  .c5 .section-header { background: linear-gradient(90deg, #dc262622, transparent); }
+  .c5 .num { background: #dc2626; color: #fff; }
+  .c5 .section-header h2 { color: #f87171; }
+
+  .pregunta { background: #1e1e35; border-radius: 10px; padding: 16px 20px; margin: 16px 0; border-left: 3px solid #60a5fa; }
+  .pregunta .q { font-weight: 700; color: #60a5fa; margin-bottom: 8px; font-size: 0.92rem; text-transform: uppercase; letter-spacing: 1px; }
+  .pregunta .a { color: #d1d5db; font-size: 0.97rem; }
+
+  .code-ref { background: #0f0f1a; border: 1px solid #2a2a50; border-radius: 8px; padding: 14px 18px; margin: 14px 0; font-family: 'Consolas', monospace; font-size: 0.87rem; }
+  .code-ref .file { color: #a78bfa; font-weight: 700; margin-bottom: 6px; display: block; }
+  .code-ref .snippet { color: #86efac; line-height: 1.6; white-space: pre-wrap; }
+  .code-ref .comment { color: #6b7280; }
+
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; margin-right: 6px; margin-bottom: 4px; }
+  .badge-purple { background: #7c3aed33; color: #a78bfa; }
+  .badge-green  { background: #05966933; color: #34d399; }
+  .badge-blue   { background: #2563eb33; color: #60a5fa; }
+  .badge-orange { background: #d9770633; color: #fbbf24; }
+  .badge-red    { background: #dc262633; color: #f87171; }
+
+  .diagrama { background: #0f0f1a; border: 1px dashed #2a2a50; border-radius: 10px; padding: 20px; margin: 16px 0; font-family: monospace; font-size: 0.85rem; color: #94a3b8; white-space: pre; overflow-x: auto; }
+
+  .tip { background: #14532d22; border: 1px solid #16653444; border-radius: 8px; padding: 14px 18px; margin: 12px 0; }
+  .tip strong { color: #4ade80; }
+
+  h3 { color: #cbd5e1; margin: 20px 0 10px; font-size: 1rem; }
+  p  { margin: 10px 0; color: #9ca3af; }
+  ul, ol { padding-left: 20px; margin: 10px 0; }
+  li { margin: 6px 0; color: #9ca3af; }
+  strong { color: #e2e8f0; }
+
+  footer { text-align: center; padding: 32px; color: #4b5563; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🏋️ MOVO — Guía para la Presentación</h1>
+  <p>Todo lo que te van a preguntar los profesores + dónde está en el código</p>
+</header>
+
+<!-- ÍNDICE -->
+<div class="toc">
+  <h2>📋 Criterios de evaluación</h2>
+  <ol>
+    <li><a href="#c1">Justificación del motor de base de datos</a></li>
+    <li><a href="#c2">Diseño y estructura de la base de datos</a></li>
+    <li><a href="#c3">Conexión de la aplicación con la BBDD</a></li>
+    <li><a href="#c4">Integración y uso de APIs</a></li>
+    <li><a href="#c5">Seguridad en base de datos y APIs</a></li>
+  </ol>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- CRITERIO 1 — Motor de BBDD                                            -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="section c1" id="c1">
+  <div class="section-header">
+    <div class="num">1</div>
+    <h2>Justificación del motor de base de datos</h2>
+  </div>
+  <div class="section-body">
+
+    <p><span class="badge badge-purple">PostgreSQL</span><span class="badge badge-purple">Supabase</span><span class="badge badge-purple">Relacional</span></p>
+
+    <h3>¿Qué motor usas y por qué?</h3>
+    <p>Uso <strong>PostgreSQL</strong> como motor de base de datos, alojado en <strong>Supabase</strong> (PostgreSQL como servicio en la nube).</p>
+
+    <div class="pregunta">
+      <div class="q">❓ ¿Por qué elegiste PostgreSQL y no MySQL, MongoDB u otro?</div>
+      <div class="a">
+        <strong>PostgreSQL</strong> es el motor relacional más avanzado del mundo open source. Lo elegí por varias razones técnicas concretas:
+        <ul>
+          <li><strong>Soporte nativo de UUID:</strong> mis entidades usan UUID como clave primaria (<code>uuid_generate_v4()</code>), que PostgreSQL maneja de forma nativa.</li>
+          <li><strong>Array de texto nativo:</strong> la tabla <code>user_profiles</code> tiene columnas <code>goals TEXT[]</code> y <code>preferred_types TEXT[]</code> — esto en MySQL requeriría una tabla intermedia.</li>
+          <li><strong>JSONB:</strong> las conversaciones de IA se almacenan en columna <code>messages JSONB</code>, que PostgreSQL indexa y consulta eficientemente.</li>
+          <li><strong>Row Level Security (RLS):</strong> Supabase se basa en las políticas RLS de PostgreSQL para multitenancy — cada usuario solo ve sus datos, a nivel de base de datos, no solo de aplicación.</li>
+          <li><strong>Integridad referencial:</strong> la app tiene relaciones complejas (usuarios → rutinas → ejercicios → sesiones) que se benefician de las FK con CASCADE.</li>
+          <li><strong>Frente a MongoDB:</strong> mis datos son estructurados y relacionales. Un modelo documental perdería integridad referencial y complicaría las consultas JOIN que necesito.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="pregunta">
+      <div class="q">❓ ¿Qué es Supabase exactamente?</div>
+      <div class="a">
+        Supabase es una plataforma BaaS (<em>Backend as a Service</em>) que proporciona:
+        <ol>
+          <li><strong>PostgreSQL gestionado</strong> en la nube (AWS)</li>
+          <li><strong>API de autenticación</strong> (GoTrue) — registro, login, JWT</li>
+          <li><strong>API REST y Realtime</strong> autogenerada desde el esquema</li>
+          <li><strong>Storage</strong> para archivos</li>
+        </ol>
+        Es el equivalente open-source de Firebase pero con SQL real.
+      </div>
+    </div>
+
+    <div class="pregunta">
+      <div class="q">❓ ¿Tiene alguna limitación?</div>
+      <div class="a">
+        Sí, soy consciente de las limitaciones:
+        <ul>
+          <li><strong>Vendor lock-in parcial:</strong> el sistema de auth (GoTrue) y las políticas RLS están acopladas a Supabase, aunque al ser PostgreSQL puro migrar la BBDD sería viable.</li>
+          <li><strong>Plan gratuito:</strong> pausa el proyecto tras 7 días de inactividad y tiene límite de 500 MB.</li>
+          <li><strong>Latencia:</strong> al estar en AWS us-east-1, desde España hay ~100-150ms de latencia en la primera consulta.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="code-ref">
+      <span class="file">📄 movo-backend/src/main/resources/application.yml</span>
+      <span class="snippet">spring:
+  datasource:
+    url: jdbc:postgresql://db.uyxysrodgxxduzyekgjo.supabase.co:5432/postgres
+    driver-class-name: <strong>org.postgresql.Driver</strong>
+    hikari:
+      maximum-pool-size: 5       <span class="comment"># pool de conexiones</span>
+      connection-timeout: 30000  <span class="comment"># timeout 30s</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- CRITERIO 2 — Diseño y estructura                                       -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="section c2" id="c2">
+  <div class="section-header">
+    <div class="num">2</div>
+    <h2>Diseño y estructura de la base de datos</h2>
+  </div>
+  <div class="section-body">
+
+    <p><span class="badge badge-green">7 tablas</span><span class="badge badge-green">Normalizada 3FN</span><span class="badge badge-green">FK con CASCADE</span><span class="badge badge-green">RLS</span></p>
+
+    <h3>Diagrama de entidades</h3>
+    <div class="diagrama">┌─────────────┐       ┌──────────────────┐
+│    users    │──1:1──│  user_profiles   │
+│─────────────│       │──────────────────│
+│ id (UUID PK)│       │ user_id (FK)     │
+│ email       │       │ weight_kg        │
+│ full_name   │       │ height_cm, age   │
+│ role        │       │ goals TEXT[]     │
+│ trainer_id ─┼──┐    │ preferred_types  │
+│ supabase_id │  │    │ notes_from_train │
+└─────────────┘  │    └──────────────────┘
+       │         │
+       │ 1:N     └── (entrenador → clientes)
+       ▼
+┌──────────────┐     ┌─────────────┐
+│   routines   │─1:N─│  exercises  │
+│──────────────│     │─────────────│
+│ id (UUID PK) │     │ routine_id  │
+│ title        │     │ name        │
+│ category     │     │ sets, reps  │
+│ difficulty   │     │ order_index │
+│ is_public    │     └─────────────┘
+│ created_by──►users
+└──────────────┘
+       │
+       │ N:M (tabla intermedia)
+       ▼
+┌───────────────┐     ┌──────────────────┐
+│ user_routines │     │ workout_sessions  │
+│───────────────│     │──────────────────│
+│ user_id (FK)  │     │ user_id (FK)     │
+│ routine_id FK)│     │ routine_id (FK)  │
+│ assigned_by   │     │ duration_minutes │
+│ status        │     │ calories_burned  │
+└───────────────┘     │ rating (1-5)     │
+                      └──────────────────┘
+
+┌────────────────────┐    ┌──────────────────┐
+│  ai_conversations  │    │ trainer_messages │
+│────────────────────│    │──────────────────│
+│ user_id (FK)       │    │ trainer_id (FK)  │
+│ messages JSONB     │    │ user_id (FK)     │
+└────────────────────┘    │ is_read BOOLEAN  │
+                          └──────────────────┘</div>
+
+    <div class="pregunta">
+      <div class="q">❓ ¿Está normalizada la base de datos?</div>
+      <div class="a">
+        Sí, está en <strong>Tercera Forma Normal (3FN)</strong>:
+        <ul>
+          <li><strong>1FN:</strong> todos los campos son atómicos. Aunque <code>goals</code> es <code>TEXT[]</code>, es un tipo nativo de PostgreSQL, no valores separados por comas.</li>
+          <li><strong>2FN:</strong> no hay dependencias parciales. Cada tabla tiene su PK UUID y todos los atributos dependen completamente de ella.</li>
+          <li><strong>3FN:</strong> no hay dependencias transitivas. Los datos del entrenador están en su propia fila de <code>users</code>, no duplicados en <code>user_profiles</code>.</li>
+          <li><strong>Relación N:M</strong> entre usuarios y rutinas se resuelve con tabla intermedia <code>user_routines</code> con constraint <code>UNIQUE(user_id, routine_id)</code>.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="pregunta">
+      <div class="q">❓ ¿Por qué usas UUID como clave primaria y no un entero autoincremental?</div>
+      <div class="a">
+        Por tres motivos:
+        <ol>
+          <li><strong>Seguridad:</strong> los IDs numéricos son predecibles (<code>/users/1</code>, <code>/users/2</code>...). Un UUID es imposible de adivinar.</li>
+          <li><strong>Distribución:</strong> Supabase genera los UUIDs en el lado del cliente antes de insertar, lo que permite operaciones optimistas sin round-trip a la BBDD.</li>
+          <li><strong>Multitenancy:</strong> los UUIDs son únicos globalmente, no solo dentro de una tabla, lo que facilita migraciones y federación.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="pregunta">
+      <div class="q">❓ ¿Qué tipo de relaciones tienen tus tablas?</div>
+      <div class="a">
+        <ul>
+          <li><strong>1:1</strong> → <code>users</code> ↔ <code>user_profiles</code> (un usuario tiene un único perfil)</li>
+          <li><strong>1:N</strong> → <code>routines</code> → <code>exercises</code> (una rutina tiene varios ejercicios — con <code>ON DELETE CASCADE</code>)</li>
+          <li><strong>1:N</strong> → <code>users</code> (trainer) → <code>users</code> (clients) mediante <code>trainer_id</code> autorreferencial</li>
+          <li><strong>N:M</strong> → <code>users</code> ↔ <code>routines</code> a través de <code>user_routines</code></li>
+          <li><strong>1:N</strong> → <code>users</code> → <code>workout_sessions</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="code-ref">
+      <span class="file">📄 supabase-schema.sql — Ejemplo de FK con CASCADE</span>
+      <span class="snippet">CREATE TABLE exercises (
+  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  routine_id  UUID NOT NULL REFERENCES routines(id) <strong>ON DELETE CASCADE</strong>,
+  name        TEXT NOT NULL,
+  sets        INT,
+  reps        INT,
+  order_index INT NOT NULL DEFAULT 0  <span class="comment">-- para ordenar ejercicios</span>
+);
+
+<span class="comment">-- Relación N:M con constraint de unicidad</span>
+CREATE TABLE user_routines (
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  routine_id UUID NOT NULL REFERENCES routines(id) ON DELETE CASCADE,
+  assigned_by UUID REFERENCES users(id),
+  status     TEXT DEFAULT 'active',
+  <strong>UNIQUE(user_id, routine_id)</strong>  <span class="comment">-- un usuario no puede tener la misma rutina dos veces</span>
+);</span>
+    </div>
+
+    <div class="code-ref">
+      <span class="file">📄 movo-backend/src/main/java/com/movo/model/Routine.java — Entidad JPA</span>
+      <span class="snippet">@Entity
+@Table(name = "routines")
+public class Routine {
+    @Id @UuidGenerator
+    private UUID id;
+
+    @Enumerated(EnumType.STRING)    <span class="comment">// guarda el string, no número</span>
+    private Category category;      <span class="comment">// gym | yoga | pilates</span>
+
+    @Enumerated(EnumType.STRING)
+    private Difficulty difficulty;  <span class="comment">// beginner | intermediate | advanced</span>
+}</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- CRITERIO 3 — Conexión con la BBDD                                     -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="section c3" id="c3">
+  <div class="section-header">
+    <div class="num">3</div>
+    <h2>Conexión de la aplicación con la BBDD</h2>
+  </div>
+  <div class="section-body">
+
+    <p><span class="badge badge-blue">Spring Boot JPA</span><span class="badge badge-blue">HikariCP</span><span class="badge badge-blue">Supabase JS Client</span><span class="badge badge-blue">Pool de conexiones</span></p>
+
+    <h3>Hay DOS conexiones a la BBDD desde capas distintas</h3>
+
+    <div class="diagrama">  📱 App móvil (React Native)
+         │
+         ├──► Supabase JS Client ──► PostgreSQL (directo, para auth/datos)
+         │         (supabase.ts)
+         │
+         └──► Axios ──► Spring Boot Backend ──► HikariCP ──► PostgreSQL
+                (api.ts)      (puerto 8080)      (pool)       (para lógica IA)</div>
+
+    <div class="pregunta">
+      <div class="q">❓ ¿Cómo se conecta el backend Java a PostgreSQL?</div>
+      <div class="a">
+        El backend usa <strong>Spring Data JPA</strong> con <strong>HikariCP</strong> como pool de conexiones:
+        <ul>
+          <li><strong>HikariCP</strong> mantiene un pool de hasta 5 conexiones abiertas en paralelo, evitando el overhead de abrir/cerrar por cada petición.</li>
+          <li><strong>Spring Data JPA</strong> abstrae las queries SQL con repositorios: <code>UserRepository extends JpaRepository</code></li>
+          <li><strong>Hibernate</strong> es el ORM que mapea objetos Java ↔ filas SQL</li>
+          <li><code>ddl-auto: none</code> — Hibernate NO modifica el esquema en producción, solo leo/escribo.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="pregunta">
+      <div class="q">❓ ¿Cómo se conecta la app móvil a la BBDD?</div>
+      <div class="a">
+        La app usa el <strong>cliente oficial de Supabase para JavaScript</strong>:
+        <ul>
+          <li>Se conecta vía <strong>HTTPS/REST</strong> al endpoint de Supabase (<code>PostgREST</code>)</li>
+          <li>La sesión se persiste en <strong>AsyncStorage</strong> (almacenamiento local del móvil)</li>
+          <li>El token JWT se refresca automáticamente (<code>autoRefreshToken: true</code>)</li>
+          <li>Accede directamente a tablas como <code>supabase.from('routines').select('*')</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="pregunta">
+      <div class="q">❓ ¿Qué es un pool de conexiones y por qué lo usas?</div>
+      <div class="a">
+        Sin pool: cada petición HTTP abre una conexión TCP a PostgreSQL (~50ms) y la cierra al terminar. Con 100 peticiones/segundo = 5000 conexiones/segundo abriendo y cerrando.<br/><br/>
+        <strong>HikariCP</strong> mantiene un conjunto de conexiones ya abiertas y las reutiliza. Es el pool de conexiones más rápido para Java. Con <code>maximum-pool-size: 5</code> tenemos 5 conexiones permanentes que atienden todas las peticiones.
+      </div>
+    </div>
+
+    <div class="code-ref">
+      <span class="file">📄 movo-app/src/services/supabase.ts — Conexión desde la app</span>
+      <span class="snippet">import { createClient } from '@supabase/supabase-js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storage: AsyncStorage,          <span class="comment">// persiste sesión en el móvil</span>
+    autoRefreshToken: true,         <span class="comment">// renueva JWT automáticamente</span>
+    persistSession: true,
+    detectSessionInUrl: false,      <span class="comment">// no aplica en móvil</span>
+  },
+});</span>
+    </div>
+
+    <div class="code-ref">
+      <span class="file">📄 movo-backend/src/main/resources/application.yml — Configuración HikariCP</span>
+      <span class="snippet">datasource:
+  url: jdbc:postgresql://db.uyxysrodgxxduzyekgjo.supabase.co:5432/postgres
+  hikari:
+    initialization-fail-timeout: -1   <span class="comment"># no falla si BBDD no está al arrancar</span>
+    connection-timeout: 30000          <span class="comment"># timeout 30 segundos</span>
+    maximum-pool-size: 5               <span class="comment"># máximo 5 conexiones paralelas</span></span>
+    </div>
+
+    <div class="code-ref">
+      <span class="file">📄 movo-backend/src/main/java/com/movo/repository/UserRepository.java</span>
+      <span class="snippet">public interface UserRepository extends JpaRepository&lt;User, UUID&gt; {
+    Optional&lt;User&gt; findBySupabaseId(String supabaseId);
+    Optional&lt;User&gt; findByEmail(String email);
+    <span class="comment">// Spring genera el SQL automáticamente a partir del nombre del método</span>
+}</span>
+    </div>
+
+    <div class="tip"><strong>💡 Para contestar si preguntan sobre buenas prácticas:</strong> El connection timeout de 30s evita que el servidor se quede colgado si PostgreSQL no responde. El <code>initialization-fail-timeout: -1</code> permite arrancar el backend aunque la BBDD esté temporalmente caída.</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- CRITERIO 4 — APIs                                                      -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="section c4" id="c4">
+  <div class="section-header">
+    <div class="num">4</div>
+    <h2>Integración y uso de APIs</h2>
+  </div>
+  <div class="section-body">
+
+    <p><span class="badge badge-orange">REST API propia</span><span class="badge badge-orange">Supabase Auth API</span><span class="badge badge-orange">Groq AI API</span><span class="badge badge-orange">Unsplash</span></p>
+
+    <h3>Tienes 3 tipos de APIs integradas</h3>
+
+    <div class="diagrama">┌─────────────────── APIs EXTERNAS ────────────────────┐
+│                                                      │
+│  1. Supabase Auth API  ──► Login / Registro / JWT    │
+│     supabase.auth.signInWithPassword()               │
+│                                                      │
+│  2. Groq AI API (Llama 3.3-70B)                      │
+│     POST https://api.groq.com/openai/v1/chat/...     │
+│     → Coach IA personalizado con historial           │
+│                                                      │
+│  3. Unsplash Images API                              │
+│     https://images.unsplash.com/photo-{id}?w=300     │
+│     → Fotos fitness para rutinas y ejercicios        │
+│                                                      │
+└──────────────────────────────────────────────────────┘
+┌─────────────────── API PROPIA ───────────────────────┐
+│                                                      │
+│  Spring Boot REST API (puerto 8080)                  │
+│  POST /api/auth/sync      ← sincroniza usuario       │
+│  GET  /api/users/me       ← perfil autenticado       │
+│  GET  /api/routines       ← listado con filtros      │
+│  POST /api/ai/chat        ← IA coach                 │
+│  GET  /api/trainer/clients← clientes del entrenador  │
+│  POST /api/sessions       ← registrar sesión         │
+│                                                      │
+└──────────────────────────────────────────────────────┘</div>
+
+    <div class="pregunta">
+      <div class="q">❓ Explícame el flujo de login completo con las APIs</div>
+      <div class="a">
+        <ol>
+          <li>El usuario pulsa "Iniciar sesión" → la app llama a <strong>Supabase Auth API</strong> (<code>supabase.auth.signInWithPassword()</code>)</li>
+          <li>Supabase valida credenciales en PostgreSQL y devuelve un <strong>JWT firmado con ES256</strong> (algoritmo de curva elíptica)</li>
+          <li>La app guarda el JWT en <strong>AsyncStorage</strong> y lo incluye en todas las peticiones al backend: <code>Authorization: Bearer &lt;JWT&gt;</code></li>
+          <li>El backend Spring Boot tiene un filtro (<code>JwtAuthFilter</code>) que valida el JWT usando la <strong>clave pública EC de Supabase</strong></li>
+          <li>Si es válido, busca el usuario en la BBDD por <code>supabase_id</code> y lo inyecta como <code>@AuthenticationPrincipal</code></li>
+          <li>En paralelo, la app llama a <code>POST /api/auth/sync</code> para sincronizar el usuario en la BBDD del backend Java</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="pregunta">
+      <div class="q">❓ ¿Cómo funciona la integración con la IA?</div>
+      <div class="a">
+        El coach IA usa el modelo <strong>Llama 3.3-70B</strong> de Meta a través de la API de <strong>Groq</strong> (que es mucho más rápida que OpenAI):
+        <ol>
+          <li>El usuario escribe un mensaje en la pantalla de Coach IA</li>
+          <li>La app envía <code>POST /api/ai/chat</code> al backend Java con el mensaje y el <code>conversation_id</code></li>
+          <li>El backend construye un <strong>prompt de sistema</strong> personalizado con el perfil real del usuario (peso, altura, objetivos, historial de sesiones)</li>
+          <li>Llama a <code>POST https://api.groq.com/openai/v1/chat/completions</code> con el historial de conversación</li>
+          <li>Devuelve la respuesta a la app con el texto y los tokens usados</li>
+        </ol>
+        El historial se mantiene en memoria (últimos 20 mensajes) para que la IA tenga contexto.
+      </div>
+    </div>
+
+    <div class="pregunta">
+      <div class="q">❓ ¿Qué es REST? ¿Por qué no usaste GraphQL o WebSockets?</div>
+      <div class="a">
+        <strong>REST</strong> (Representational State Transfer) es un estilo arquitectónico donde cada recurso tiene una URL y se opera con verbos HTTP (GET, POST, PUT, DELETE).<br/><br/>
+        Usé REST porque:
+        <ul>
+          <li>Es el estándar más conocido y tiene amplio tooling (Swagger, Postman...)</li>
+          <li>Spring Boot tiene soporte nativo con <code>@RestController</code></li>
+          <li>Los datos de la app son principalmente CRUD, no necesito subscripciones en tiempo real (para los mensajes podría añadir Supabase Realtime en una mejora futura)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="code-ref">
+      <span class="file">📄 GroqAIService.java — Llamada a la API de Groq con WebClient</span>
+      <span class="snippet">WebClient client = WebClient.builder()
+    .baseUrl(groqBaseUrl)
+    .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + groqApiKey)
+    .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+    .build();
+
+<span class="comment">// Construye el contexto personalizado del usuario</span>
+String systemPrompt = """
+    Eres MOVO Coach, entrenador personal virtual.
+    Perfil del usuario: %s
+    Personaliza cada respuesta según sus objetivos.
+    """.formatted(userContext);  <span class="comment">// incluye peso, altura, objetivos, sesiones</span>
+
+<span class="comment">// Llama a Llama 3.3-70B vía Groq</span>
+String response = client.post()
+    .uri("/chat/completions")
+    .bodyValue(body)  <span class="comment">// { model, messages[], max_tokens }</span>
+    .retrieve()
+    .bodyToMono(String.class)
+    .block();</span>
+    </div>
+
+    <div class="code-ref">
+      <span class="file">📄 movo-app/src/services/api.ts — Llamadas al backend propio</span>
+      <span class="snippet">const api = axios.create({ baseURL: API_URL });
+
+<span class="comment">// Interceptor: añade el JWT de Supabase a CADA petición automáticamente</span>
+api.interceptors.request.use(async (config) => {
+  const token = await getAccessToken();  <span class="comment">// obtiene JWT de Supabase</span>
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- CRITERIO 5 — Seguridad                                                 -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="section c5" id="c5">
+  <div class="section-header">
+    <div class="num">5</div>
+    <h2>Seguridad en base de datos y APIs</h2>
+  </div>
+  <div class="section-body">
+
+    <p><span class="badge badge-red">JWT ES256</span><span class="badge badge-red">Row Level Security</span><span class="badge badge-red">Spring Security</span><span class="badge badge-red">HTTPS</span><span class="badge badge-red">Sin contraseñas en código</span></p>
+
+    <h3>Capas de seguridad implementadas</h3>
+
+    <div class="diagrama">CAPA 1 — Transporte:  HTTPS/TLS en todas las comunicaciones
+CAPA 2 — Auth:        JWT firmado ES256 (curva elíptica P-256)
+CAPA 3 — Backend:     Spring Security filtra TODA petición autenticada
+CAPA 4 — BBDD:        Row Level Security — cada usuario solo ve SUS datos
+CAPA 5 — Secrets:     Variables de entorno, nunca hardcodeados en git</div>
+
+    <div class="pregunta">
+      <div class="q">❓ ¿Cómo funciona la autenticación con JWT?</div>
+      <div class="a">
+        <strong>JWT</strong> (JSON Web Token) es un token firmado digitalmente que contiene la identidad del usuario:
+        <ul>
+          <li><strong>Header:</strong> algoritmo (ES256) y tipo</li>
+          <li><strong>Payload:</strong> <code>sub</code> (UUID del usuario), <code>email</code>, <code>role</code>, <code>exp</code> (expiración)</li>
+          <li><strong>Signature:</strong> firmado por Supabase con su <strong>clave privada EC P-256</strong></li>
+        </ul>
+        El backend valida la firma usando la <strong>clave pública EC de Supabase</strong> (coordenadas X,Y del punto en la curva). Si alguien modifica el payload, la firma no coincide → petición rechazada.<br/><br/>
+        Uso <strong>ES256</strong> (ECDSA) en lugar de HS256 porque es asimétrico: Supabase firma con la privada, el backend verifica con la pública. Más seguro para arquitectura distribuida.
+      </div>
+    </div>
+
+    <div class="pregunta">
+      <div class="q">❓ ¿Qué es Row Level Security y cómo lo usas?</div>
+      <div class="a">
+        RLS es una característica de PostgreSQL que permite definir <strong>políticas de acceso a nivel de fila</strong>, no solo de tabla. Aunque alguien consiga acceder a la BBDD, solo verá sus propios datos.
+        <br/><br/>
+        Ejemplo real en mi app: aunque la tabla <code>workout_sessions</code> tiene sesiones de todos los usuarios, la política RLS hace que cada consulta solo devuelva las filas donde <code>user_id</code> coincide con el usuario autenticado. Esto ocurre <strong>dentro de PostgreSQL</strong>, no en el código de la aplicación.
+      </div>
+    </div>
+
+    <div class="pregunta">
+      <div class="q">❓ ¿Cómo proteges los endpoints del backend?</div>
+      <div class="a">
+        Con <strong>Spring Security</strong> + filtro JWT personalizado:
+        <ol>
+          <li>Todos los endpoints <code>/api/**</code> requieren autenticación excepto <code>/api/auth/**</code></li>
+          <li>El <code>JwtAuthFilter</code> intercepta CADA petición, extrae el token del header <code>Authorization: Bearer ...</code></li>
+          <li>Valida la firma ES256, extrae el <code>supabaseId</code>, busca el usuario en la BBDD</li>
+          <li>Inyecta el usuario en <code>SecurityContextHolder</code> para que los controllers lo reciban via <code>@AuthenticationPrincipal</code></li>
+          <li>Si el JWT es inválido o está expirado, el filtro deja pasar la petición sin autenticar → Spring Security devuelve 401</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="pregunta">
+      <div class="q">❓ ¿Guardas contraseñas en el código o en git?</div>
+      <div class="a">
+        <strong>No.</strong> Las contraseñas y secretos se gestionan mediante <strong>variables de entorno</strong>:
+        <ul>
+          <li>La BBDD URL, usuario y contraseña están en <code>application.yml</code> con placeholders: <code>${SUPABASE_DB_PASSWORD}</code></li>
+          <li>La API key de Groq: <code>${GROQ_API_KEY}</code></li>
+          <li>El secreto JWT: <code>${JWT_SECRET}</code></li>
+          <li>En local se usan valores por defecto para desarrollo, pero en producción se inyectan como env vars del servidor</li>
+          <li>Las contraseñas de los usuarios las almacena Supabase hasheadas con <strong>bcrypt</strong> — mi aplicación nunca ve ni almacena contraseñas en texto plano</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="pregunta">
+      <div class="q">❓ ¿Qué es CORS y cómo lo configuras?</div>
+      <div class="a">
+        <strong>CORS</strong> (Cross-Origin Resource Sharing) es un mecanismo de seguridad del navegador que bloquea peticiones a dominios distintos al origen. En mi backend Spring Boot, configuro CORS para permitir peticiones desde la app móvil (Expo) y denegar el resto. En producción debería restringirse al dominio real en lugar de <code>*</code>.
+      </div>
+    </div>
+
+    <div class="code-ref">
+      <span class="file">📄 JwtAuthFilter.java — Validación ES256 con clave pública de Supabase</span>
+      <span class="snippet"><span class="comment">// Coordenadas de la clave pública EC (curva P-256) de Supabase</span>
+private static final String JWK_X = "qU87OhwUzO0YpKxSn2OBu_f7H976uFlYCTlzpt6xtYA";
+private static final String JWK_Y = "0B7ZiNwBvKL1n7n0D4OGDcfCnX-EJjD1JeX7P6yElpg";
+
+private PublicKey buildEcPublicKey() throws Exception {
+    byte[] xBytes = Base64.getUrlDecoder().decode(JWK_X);
+    byte[] yBytes = Base64.getUrlDecoder().decode(JWK_Y);
+    ECPoint point = new ECPoint(new BigInteger(1, xBytes), new BigInteger(1, yBytes));
+    <span class="comment">// Construye la clave pública EC para verificar la firma del JWT</span>
+    return KeyFactory.getInstance("EC").generatePublic(keySpec);
+}
+
+Claims claims = Jwts.parser()
+    .verifyWith(publicKey)  <span class="comment">// verifica que Supabase firmó este token</span>
+    .build()
+    .parseSignedClaims(token)
+    .getPayload();          <span class="comment">// si la firma es inválida → lanza excepción</span></span>
+    </div>
+
+    <div class="code-ref">
+      <span class="file">📄 supabase-schema.sql — Row Level Security</span>
+      <span class="snippet">ALTER TABLE workout_sessions ENABLE ROW LEVEL SECURITY;
+
+<span class="comment">-- Solo puedes ver TUS propias sesiones de entrenamiento</span>
+CREATE POLICY "sessions_own" ON workout_sessions
+  USING (user_id IN (
+    SELECT id FROM users WHERE supabase_id = auth.uid()::text
+  ));
+
+<span class="comment">-- Las rutinas públicas las puede ver cualquiera</span>
+CREATE POLICY "routines_public" ON routines
+  FOR SELECT USING (is_public = true);
+
+<span class="comment">-- Pero solo el creador puede modificarlas</span>
+CREATE POLICY "routines_own" ON routines
+  FOR ALL USING (created_by IN (
+    SELECT id FROM users WHERE supabase_id = auth.uid()::text
+  ));</span>
+    </div>
+
+    <div class="code-ref">
+      <span class="file">📄 SecurityConfig.java — Spring Security sin estado (STATELESS)</span>
+      <span class="snippet">http
+  .csrf(csrf -> csrf.disable())         <span class="comment">// no necesario en API REST</span>
+  .sessionManagement(sm -> sm
+    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)) <span class="comment">// sin sesión en servidor</span>
+  .authorizeHttpRequests(auth -> auth
+    .requestMatchers("/api/auth/**").permitAll()  <span class="comment">// login/registro: público</span>
+    .anyRequest().authenticated())               <span class="comment">// TODO lo demás requiere JWT</span>
+  .addFilterBefore(jwtAuthFilter,
+    UsernamePasswordAuthenticationFilter.class); <span class="comment">// JWT antes que auth por defecto</span></span>
+    </div>
+
+    <div class="tip">
+      <strong>💡 Punto extra a mencionar:</strong> Al ser STATELESS el backend no guarda sesiones en memoria. Cada petición lleva su propio JWT, lo que hace la arquitectura <strong>escalable horizontalmente</strong> — se pueden añadir más instancias del servidor sin problemas de sesión compartida.
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  MOVO App · Guía de presentación · Generada automáticamente desde el código fuente
+</footer>
+
+</body>
+</html>

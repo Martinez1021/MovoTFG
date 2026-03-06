@@ -21,15 +21,19 @@ export const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     const { login, isLoading } = useAuthStore();
     const [showPass, setShowPass] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const { control, handleSubmit, formState: { errors } } = useForm<LoginForm>();
 
     const onSubmit = async (data: LoginForm) => {
         setErrorMsg(null);
+        setIsSubmitting(true);
         try {
             await login(data.email, data.password);
         } catch (e: any) {
             setErrorMsg(e.message || 'Error al iniciar sesión. Inténtalo de nuevo.');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -99,7 +103,7 @@ export const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                         <Button
                             title="Iniciar sesión"
                             onPress={handleSubmit(onSubmit)}
-                            loading={isLoading}
+                            loading={isSubmitting || isLoading}
                             fullWidth
                             style={styles.btn}
                         />

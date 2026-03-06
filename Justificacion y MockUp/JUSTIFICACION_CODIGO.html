@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MOVO — Justificación Técnica del Código</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #222636;
+      --border: #2e3348;
+      --accent: #6c63ff;
+      --accent2: #00d4aa;
+      --accent3: #ff6584;
+      --accent4: #ffc947;
+      --text: #e2e8f0;
+      --text-muted: #8892a4;
+      --c1: #ff6584;
+      --c2: #6c63ff;
+      --c3: #00d4aa;
+      --c4: #ffc947;
+      --c5: #f06292;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      line-height: 1.7;
+    }
+
+    /* ── HEADER ───────────────────────────────────────────────────────────── */
+    header {
+      background: linear-gradient(135deg, #1a1d27 0%, #0f1117 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 48px 40px 40px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    header::before {
+      content: '';
+      position: absolute;
+      top: -60px; left: 50%; transform: translateX(-50%);
+      width: 600px; height: 300px;
+      background: radial-gradient(ellipse, rgba(108,99,255,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .logo {
+      font-size: 3rem;
+      font-weight: 900;
+      letter-spacing: -1px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .logo span { color: var(--accent2); }
+    header p {
+      color: var(--text-muted);
+      font-size: 1rem;
+      margin-top: 8px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .badges {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+    .badge {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* ── LAYOUT ───────────────────────────────────────────────────────────── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+
+    /* ── CRITERIOS OVERVIEW ───────────────────────────────────────────────── */
+    .criterios-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 14px;
+      margin-bottom: 56px;
+    }
+    .criterio-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 16px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s;
+    }
+    .criterio-card:hover { transform: translateY(-3px); }
+    .criterio-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .criterio-card.c1::before { background: var(--c1); }
+    .criterio-card.c2::before { background: var(--c2); }
+    .criterio-card.c3::before { background: var(--c3); }
+    .criterio-card.c4::before { background: var(--c4); }
+    .criterio-card.c5::before { background: var(--c5); }
+    .criterio-num {
+      font-size: 2rem;
+      font-weight: 900;
+      opacity: 0.15;
+      position: absolute;
+      top: 8px; right: 14px;
+    }
+    .criterio-card.c1 .criterio-num { color: var(--c1); }
+    .criterio-card.c2 .criterio-num { color: var(--c2); }
+    .criterio-card.c3 .criterio-num { color: var(--c3); }
+    .criterio-card.c4 .criterio-num { color: var(--c4); }
+    .criterio-card.c5 .criterio-num { color: var(--c5); }
+    .criterio-icon { font-size: 1.8rem; margin-bottom: 8px; }
+    .criterio-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+    }
+    .criterio-desc {
+      font-size: 0.88rem;
+      color: var(--text);
+      margin-top: 6px;
+      font-weight: 600;
+    }
+
+    /* ── SECTION ──────────────────────────────────────────────────────────── */
+    section { margin-bottom: 64px; }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-badge {
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+    .s1 { background: rgba(255,101,132,0.15); color: var(--c1); border: 1px solid rgba(255,101,132,0.3); }
+    .s2 { background: rgba(108,99,255,0.15); color: var(--c2); border: 1px solid rgba(108,99,255,0.3); }
+    .s3 { background: rgba(0,212,170,0.15); color: var(--c3); border: 1px solid rgba(0,212,170,0.3); }
+    .s4 { background: rgba(255,201,71,0.15); color: var(--c4); border: 1px solid rgba(255,201,71,0.3); }
+    .s5 { background: rgba(240,98,146,0.15); color: var(--c5); border: 1px solid rgba(240,98,146,0.3); }
+    .section-title { font-size: 1.4rem; font-weight: 700; }
+
+    /* ── CARDS / BLOCKS ───────────────────────────────────────────────────── */
+    .cards-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px;
+    }
+    .card h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card p, .card li {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .card ul { list-style: none; padding: 0; }
+    .card ul li::before { content: '→ '; color: var(--accent2); font-weight: 700; }
+
+    /* ── CODE BLOCK ───────────────────────────────────────────────────────── */
+    .code-block {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      font-family: 'Cascadia Code', 'Consolas', monospace;
+      font-size: 0.82rem;
+      line-height: 1.8;
+      overflow-x: auto;
+      margin: 14px 0;
+      position: relative;
+    }
+    .code-block .file-label {
+      position: absolute;
+      top: 10px; right: 14px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--surface2);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .kw  { color: #ff7b72; }   /* keywords */
+    .str { color: #a5d6ff; }   /* strings */
+    .cmt { color: #6e7681; font-style: italic; } /* comments */
+    .ann { color: #d2a8ff; }   /* annotations */
+    .cls { color: #ffa657; }   /* class names */
+    .num { color: #79c0ff; }   /* numbers */
+    .op  { color: #00d4aa; }   /* operators / special */
+    .yml-key { color: #79c0ff; } /* yaml keys */
+    .yml-val { color: #a5d6ff; } /* yaml values */
+    .sql-kw  { color: #ff7b72; } /* sql keywords */
+    .sql-str { color: #a5d6ff; } /* sql strings */
+    .sql-cmt { color: #6e7681; font-style: italic; }
+
+    /* ── FLOW DIAGRAM ─────────────────────────────────────────────────────── */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: wrap;
+      margin: 20px 0;
+      justify-content: center;
+    }
+    .flow-step {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-align: center;
+      min-width: 110px;
+    }
+    .flow-arrow {
+      color: var(--accent);
+      font-size: 1.2rem;
+      padding: 0 6px;
+    }
+    .flow-step.highlight {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .flow-step.green {
+      border-color: var(--accent2);
+      color: var(--accent2);
+    }
+
+    /* ── TABLE ────────────────────────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    th {
+      background: var(--surface2);
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 0.75rem;
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    .pill {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 0.74rem;
+      font-weight: 700;
+    }
+    .pill-green { background: rgba(0,212,170,0.15); color: var(--accent2); }
+    .pill-blue  { background: rgba(108,99,255,0.15); color: var(--c2); }
+    .pill-red   { background: rgba(255,101,132,0.15); color: var(--c1); }
+    .pill-yellow{ background: rgba(255,201,71,0.15);  color: var(--c4); }
+
+    /* ── ARCHITECTURE DIAGRAM ─────────────────────────────────────────────── */
+    .arch {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      margin: 20px 0;
+    }
+    .arch-row {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .arch-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 20px;
+      text-align: center;
+      min-width: 140px;
+    }
+    .arch-box .label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+    }
+    .arch-box .name {
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+    .arch-connector {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      margin: 4px 0;
+    }
+    .arch-box.accent { border-color: var(--accent); }
+    .arch-box.accent .name { color: var(--accent); }
+    .arch-box.green { border-color: var(--accent2); }
+    .arch-box.green .name { color: var(--accent2); }
+    .arch-box.yellow { border-color: var(--c4); }
+    .arch-box.yellow .name { color: var(--c4); }
+
+    /* ── HIGHLIGHT BLOCK ──────────────────────────────────────────────────── */
+    .highlight-block {
+      border-left: 3px solid var(--accent);
+      background: rgba(108,99,255,0.07);
+      border-radius: 0 10px 10px 0;
+      padding: 14px 18px;
+      margin: 14px 0;
+      font-size: 0.88rem;
+    }
+    .highlight-block.green { border-color: var(--accent2); background: rgba(0,212,170,0.07); }
+    .highlight-block.yellow { border-color: var(--c4); background: rgba(255,201,71,0.07); }
+    .highlight-block.red { border-color: var(--c1); background: rgba(255,101,132,0.07); }
+    .highlight-block strong { color: var(--text); }
+
+    /* ── FOOTER ───────────────────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 28px;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!--  HEADER                                                                 -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<header>
+  <div class="logo">MOVO<span>.</span></div>
+  <p>Justificación Técnica del Código — TFG</p>
+  <div class="badges">
+    <span class="badge">React Native + Expo</span>
+    <span class="badge">Spring Boot 3.2</span>
+    <span class="badge">PostgreSQL / Supabase</span>
+    <span class="badge">JWT ES256</span>
+    <span class="badge">Groq Llama 3.3-70B</span>
+    <span class="badge">HikariCP</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- ─── OVERVIEW DE CRITERIOS ─────────────────────────────────────────── -->
+  <div class="criterios-grid" style="margin-top:40px">
+    <div class="criterio-card c1">
+      <div class="criterio-num">1</div>
+      <div class="criterio-icon">🗄️</div>
+      <div class="criterio-title">Criterio 1</div>
+      <div class="criterio-desc">Justificación de PostgreSQL</div>
+    </div>
+    <div class="criterio-card c2">
+      <div class="criterio-num">2</div>
+      <div class="criterio-icon">📐</div>
+      <div class="criterio-title">Criterio 2</div>
+      <div class="criterio-desc">Diseño de la Base de Datos</div>
+    </div>
+    <div class="criterio-card c3">
+      <div class="criterio-num">3</div>
+      <div class="criterio-icon">🔌</div>
+      <div class="criterio-title">Criterio 3</div>
+      <div class="criterio-desc">Conexión a la BD</div>
+    </div>
+    <div class="criterio-card c4">
+      <div class="criterio-num">4</div>
+      <div class="criterio-icon">🌐</div>
+      <div class="criterio-title">Criterio 4</div>
+      <div class="criterio-desc">APIs Externas</div>
+    </div>
+    <div class="criterio-card c5">
+      <div class="criterio-num">5</div>
+      <div class="criterio-icon">🔒</div>
+      <div class="criterio-title">Criterio 5</div>
+      <div class="criterio-desc">Seguridad</div>
+    </div>
+  </div>
+
+  <!-- ─── ARQUITECTURA GENERAL ──────────────────────────────────────────── -->
+  <section>
+    <div class="section-header">
+      <span class="section-badge s3">Arquitectura</span>
+      <h2 class="section-title">Visión General del Sistema</h2>
+    </div>
+    <div class="arch">
+      <div class="arch-row">
+        <div class="arch-box accent">
+          <div class="label">Frontend</div>
+          <div class="name">React Native + Expo</div>
+        </div>
+        <div class="arch-box accent">
+          <div class="label">Estado global</div>
+          <div class="name">Zustand Stores</div>
+        </div>
+      </div>
+      <div class="arch-connector">↕ JWT Bearer (Axios) &nbsp;&nbsp;&nbsp;&nbsp; ↕ Supabase JS Client</div>
+      <div class="arch-row">
+        <div class="arch-box green">
+          <div class="label">Backend</div>
+          <div class="name">Spring Boot 3.2</div>
+        </div>
+        <div class="arch-box yellow">
+          <div class="label">Auth + BD</div>
+          <div class="name">Supabase (PostgreSQL)</div>
+        </div>
+        <div class="arch-box" style="border-color:var(--c1)">
+          <div class="label">IA Coach</div>
+          <div class="name" style="color:var(--c1)">Groq Llama 3.3</div>
+        </div>
+      </div>
+      <div class="arch-connector">↕ JDBC / HikariCP (pool 5 conexiones)</div>
+      <div class="arch-row">
+        <div class="arch-box yellow">
+          <div class="label">Base de datos</div>
+          <div class="name">PostgreSQL + RLS</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!--  CRITERIO 1 — JUSTIFICACIÓN POSTGRESQL                             -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="section-header">
+      <span class="section-badge s1">Criterio 1</span>
+      <h2 class="section-title">Justificación de PostgreSQL</h2>
+    </div>
+    <p style="color:var(--text-muted);margin-bottom:20px">
+      Se eligió PostgreSQL (vía Supabase) por sus características avanzadas que ninguna alternativa ofrece de forma nativa:
+    </p>
+    <div class="cards-row">
+      <div class="card">
+        <h4>🔑 UUID como Clave Primaria</h4>
+        <ul>
+          <li>Generado con <code style="color:var(--accent2)">uuid_generate_v4()</code></li>
+          <li>Imposible adivinar IDs de otros usuarios</li>
+          <li>Sin colisiones en entornos distribuidos</li>
+          <li>Seguridad por diseño vs. enteros secuenciales</li>
+        </ul>
+        <div class="code-block" style="margin-top:12px">
+<span class="file-label">supabase-schema.sql</span>
+<span class="sql-kw">id</span> UUID <span class="sql-kw">PRIMARY KEY DEFAULT</span>
+   uuid_generate_v4()
+        </div>
+      </div>
+      <div class="card">
+        <h4>📦 TEXT[] — Arrays Nativos</h4>
+        <ul>
+          <li>Almacena listas de strings directamente</li>
+          <li>Evita tabla intermedia para <em>goals</em> y <em>preferred_types</em></li>
+          <li>Único en PostgreSQL — MySQL/SQLite no lo soportan</li>
+        </ul>
+        <div class="code-block" style="margin-top:12px">
+<span class="file-label">supabase-schema.sql</span>
+<span class="sql-kw">goals</span>          TEXT[] <span class="sql-kw">DEFAULT</span> <span class="sql-str">'{}'</span>,
+<span class="sql-kw">preferred_types</span> TEXT[] <span class="sql-kw">DEFAULT</span> <span class="sql-str">'{}'</span>
+<span class="sql-cmt">-- ej: {'gym','yoga','pilates'}</span>
+        </div>
+      </div>
+      <div class="card">
+        <h4>🧩 JSONB — Historial de Chat IA</h4>
+        <ul>
+          <li>Guarda todo el historial en un solo campo</li>
+          <li>Búsqueda eficiente con operadores <code style="color:var(--accent2)">&lt;&lt;</code> y <code style="color:var(--accent2)">@&gt;</code></li>
+          <li>Sin JSONB necesitaríamos tabla <em>ai_messages</em> con joins costosos</li>
+        </ul>
+        <div class="code-block" style="margin-top:12px">
+<span class="file-label">supabase-schema.sql</span>
+<span class="sql-kw">messages</span> JSONB <span class="sql-kw">DEFAULT</span> <span class="sql-str">'[]'</span>
+<span class="sql-cmt">-- [{role:"user", content:"..."}, ...]</span>
+        </div>
+      </div>
+      <div class="card">
+        <h4>🕐 TIMESTAMPTZ + CHECK Constraints</h4>
+        <ul>
+          <li><strong>TIMESTAMPTZ</strong>: timestamps con zona horaria (usuarios globales)</li>
+          <li><strong>CHECK</strong>: validación a nivel de BD, última línea de defensa</li>
+          <li>Si la app envía un valor inválido, la BD lo rechaza</li>
+        </ul>
+        <div class="code-block" style="margin-top:12px">
+<span class="file-label">supabase-schema.sql</span>
+<span class="sql-kw">rating</span> INT <span class="sql-kw">CHECK</span> (rating <span class="sql-kw">BETWEEN</span> <span class="num">1</span> <span class="sql-kw">AND</span> <span class="num">5</span>)
+<span class="sql-kw">role</span>   TEXT <span class="sql-kw">CHECK</span> (role <span class="sql-kw">IN</span> (<span class="sql-str">'trainer'</span>, <span class="sql-str">'user'</span>))
+        </div>
+      </div>
+      <div class="card">
+        <h4>🛡️ Row Level Security (RLS)</h4>
+        <ul>
+          <li>Seguridad a nivel de fila nativa en PostgreSQL</li>
+          <li>Cada usuario solo puede ver/modificar sus propias filas</li>
+          <li>Imposible en MySQL, SQLite o MongoDB de forma nativa</li>
+          <li><code style="color:var(--accent2)">auth.uid()</code> = UUID del usuario autenticado con JWT</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!--  CRITERIO 2 — DISEÑO DE LA BASE DE DATOS                          -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="section-header">
+      <span class="section-badge s2">Criterio 2</span>
+      <h2 class="section-title">Diseño de la Base de Datos</h2>
+    </div>
+
+    <div class="highlight-block green">
+      <strong>8 tablas en 3FN</strong> — sin redundancia, cada campo depende únicamente de la clave primaria.
+      Relaciones 1:1, 1:N y N:M implementadas correctamente con claves foráneas y constraints.
+    </div>
+
+    <div class="table-wrap" style="margin-top:20px">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Tabla</th>
+            <th>Relación</th>
+            <th>FK / Constraint</th>
+            <th>Justificación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="pill pill-blue">1</span></td>
+            <td><strong>users</strong></td>
+            <td>Auto-referencia</td>
+            <td><code>trainer_id → users(id) SET NULL</code></td>
+            <td>Un User puede ser cliente de otro User (entrenador)</td>
+          </tr>
+          <tr>
+            <td><span class="pill pill-blue">2</span></td>
+            <td><strong>user_profiles</strong></td>
+            <td>1:1 con users</td>
+            <td><code>UNIQUE(user_id) + CASCADE</code></td>
+            <td>Datos físicos separados → 3FN (distintos atributos)</td>
+          </tr>
+          <tr>
+            <td><span class="pill pill-blue">3</span></td>
+            <td><strong>routines</strong></td>
+            <td>1:N con exercises</td>
+            <td><code>created_by → users (nullable)</code></td>
+            <td>NULL = rutina del sistema; FK a creador entrenador</td>
+          </tr>
+          <tr>
+            <td><span class="pill pill-blue">4</span></td>
+            <td><strong>exercises</strong></td>
+            <td>N:1 con routines</td>
+            <td><code>routine_id CASCADE</code></td>
+            <td>Al borrar rutina se borran sus ejercicios automáticamente</td>
+          </tr>
+          <tr>
+            <td><span class="pill pill-green">5</span></td>
+            <td><strong>user_routines</strong></td>
+            <td><strong>N:M</strong></td>
+            <td><code>UNIQUE(user_id, routine_id)</code></td>
+            <td>Tabla de unión. Usuario ↔ Rutina con restricción duplicados</td>
+          </tr>
+          <tr>
+            <td><span class="pill pill-blue">6</span></td>
+            <td><strong>workout_sessions</strong></td>
+            <td>N:1 con users</td>
+            <td><code>user_id CASCADE</code></td>
+            <td>Historial de entrenamientos. <code>completed_at NULL</code> = en progreso</td>
+          </tr>
+          <tr>
+            <td><span class="pill pill-yellow">7</span></td>
+            <td><strong>ai_conversations</strong></td>
+            <td>1:1 con users</td>
+            <td><code>CASCADE + JSONB</code></td>
+            <td>Historial chat IA en JSONB. Sin tabla mensajes separada</td>
+          </tr>
+          <tr>
+            <td><span class="pill pill-blue">8</span></td>
+            <td><strong>trainer_messages</strong></td>
+            <td>2 FKs a users</td>
+            <td><code>trainer_id + user_id → users</code></td>
+            <td>Mensajería entrenador ↔ cliente, ambos son filas de users</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="cards-row" style="margin-top:20px">
+      <div class="card">
+        <h4>🔗 CASCADE vs SET NULL</h4>
+        <p><strong>ON DELETE CASCADE</strong>: al borrar un usuario, se borran todos sus perfiles, sesiones, conversaciones → integridad referencial total.</p>
+        <p style="margin-top:8px"><strong>ON DELETE SET NULL</strong>: al borrar un entrenador, sus clientes no se borran — solo pierden la referencia al entrenador (<code>trainer_id = NULL</code>).</p>
+      </div>
+      <div class="card">
+        <h4>🎯 Enums Java ↔ CHECK SQL</h4>
+        <p>Los enums Java <code>Category</code> y <code>Difficulty</code> en <code>Routine.java</code> están sincronizados con los CHECK constraints del SQL.</p>
+        <div class="code-block" style="margin-top:10px">
+<span class="ann">@Enumerated</span>(<span class="cls">EnumType</span>.STRING)
+<span class="kw">private</span> <span class="cls">Category</span> category;
+<span class="cmt">// → CHECK(category IN ('gym','yoga','pilates'))</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!--  CRITERIO 3 — CONEXIÓN A LA BASE DE DATOS                         -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="section-header">
+      <span class="section-badge s3">Criterio 3</span>
+      <h2 class="section-title">Conexión a la Base de Datos</h2>
+    </div>
+
+    <div class="cards-row">
+      <div class="card">
+        <h4>⚡ HikariCP — Pool de Conexiones</h4>
+        <p>Abrir una conexión TCP a PostgreSQL cuesta ~50-100ms. Sin pool, cada petición HTTP abriría y cerraría su propia conexión.</p>
+        <p style="margin-top:8px">HikariCP mantiene 5 conexiones abiertas y listas para reutilizar. Límite de 5 = plan gratuito Supabase.</p>
+        <div class="code-block" style="margin-top:12px">
+<span class="file-label">application.yml</span>
+<span class="yml-key">hikari</span>:
+  <span class="yml-key">maximum-pool-size</span>: <span class="num">5</span>
+  <span class="yml-key">connection-timeout</span>: <span class="num">30000</span>
+  <span class="yml-key">initialization-fail-timeout</span>: <span class="num">-1</span>
+        </div>
+      </div>
+      <div class="card">
+        <h4>🗂️ JPA / Hibernate ORM</h4>
+        <p>Mapea clases Java ↔ tablas PostgreSQL sin escribir SQL manual. <code>@Entity</code>, <code>@Id</code>, <code>@Column</code> generan las queries CRUD automáticamente.</p>
+        <div class="code-block" style="margin-top:12px">
+<span class="file-label">Routine.java</span>
+<span class="ann">@Entity</span>
+<span class="ann">@Table</span>(name = <span class="str">"routines"</span>)
+<span class="kw">public class</span> <span class="cls">Routine</span> {
+  <span class="ann">@Id</span>
+  <span class="ann">@UuidGenerator</span>
+  <span class="kw">private</span> UUID id;
+
+  <span class="ann">@Enumerated</span>(<span class="cls">EnumType</span>.STRING)
+  <span class="kw">private</span> <span class="cls">Category</span> category;
+        </div>
+      </div>
+      <div class="card">
+        <h4>📱 React Native — Supabase JS Client</h4>
+        <p>La app accede directamente a Supabase para auth y operaciones de BD en tiempo real. El JWT se persiste en <code>AsyncStorage</code>.</p>
+        <div class="code-block" style="margin-top:12px">
+<span class="file-label">supabase.ts</span>
+<span class="kw">export const</span> supabase = createClient(
+  supabaseUrl, supabaseAnonKey, {
+    auth: {
+      storage: AsyncStorage,
+      autoRefreshToken: <span class="op">true</span>,
+      persistSession: <span class="op">true</span>,
+      detectSessionInUrl: <span class="op">false</span>
+    }
+  }
+);
+        </div>
+      </div>
+      <div class="card">
+        <h4>🔄 Backend — Repositorios JPA</h4>
+        <p>4 repositorios extienden <code>JpaRepository</code> para CRUD automático + queries personalizadas.</p>
+        <div class="code-block" style="margin-top:12px">
+<span class="file-label">GroqAIService.java</span>
+<span class="cmt">// CRITERIO 3: consultas JPA para</span>
+<span class="cmt">// personalizar el contexto del AI</span>
+<span class="kw">private final</span> <span class="cls">UserRepository</span> userRepository;
+<span class="kw">private final</span> <span class="cls">WorkoutSessionRepository</span>
+    sessionRepository;
+        </div>
+      </div>
+    </div>
+
+    <div class="highlight-block" style="margin-top:16px">
+      <strong>ddl-auto: none</strong> — Hibernate nunca modifica el esquema de la BD. El esquema se gestiona manualmente con <code>supabase-schema.sql</code>. Esto evita pérdidas accidentales de datos en producción.
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!--  CRITERIO 4 — APIS EXTERNAS                                        -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="section-header">
+      <span class="section-badge s4">Criterio 4</span>
+      <h2 class="section-title">APIs Externas Integradas</h2>
+    </div>
+
+    <div class="cards-row">
+      <div class="card" style="grid-column: span 2">
+        <h4>🤖 Groq API — AI Coach (Llama 3.3-70B)</h4>
+        <p>El backend integra la API de Groq para proporcionar un coach de fitness personalizado con IA generativa. El modelo es Meta Llama 3.3 con 70.000 millones de parámetros.</p>
+
+        <div class="flow" style="margin-top:16px">
+          <div class="flow-step">Usuario envía mensaje</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step highlight">POST /api/ai/chat</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">buildUserContext() consulta BD</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step green">Groq API (Llama 3.3)</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">Respuesta al usuario</div>
+        </div>
+
+        <div class="code-block" style="margin-top:16px">
+<span class="file-label">GroqAIService.java</span>
+<span class="ann">@Value</span>(<span class="str">"${app.groq.api-key}"</span>)      <span class="cmt">// desde variable de entorno</span>
+<span class="kw">private</span> String groqApiKey;
+
+<span class="cmt">// Llamada HTTP no-bloqueante al endpoint de Groq</span>
+webClient.post()
+  .uri(<span class="str">"/chat/completions"</span>)
+  .header(<span class="cls">HttpHeaders</span>.AUTHORIZATION,
+          <span class="str">"Bearer "</span> + groqApiKey)
+  .bodyValue(requestBody)
+  .retrieve()
+  .bodyToMono(<span class="cls">String</span>.class)
+  .block();
+        </div>
+      </div>
+    </div>
+
+    <div class="cards-row" style="margin-top:16px">
+      <div class="card">
+        <h4>🔐 Supabase Auth API</h4>
+        <p>La app usa el SDK de Supabase para autenticación. Gestiona:</p>
+        <ul>
+          <li>Login / Registro con email y password</li>
+          <li>Renovación automática del JWT cada ~55 min</li>
+          <li>Persistencia de sesión en AsyncStorage</li>
+          <li>Sync usuario → backend vía POST /api/auth/sync</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>🌍 Contexto personalizado del AI</h4>
+        <p>El system prompt se construye consultando la BD:</p>
+        <ul>
+          <li>Nombre y objetivo del usuario</li>
+          <li>Últimas sesiones de entrenamiento</li>
+          <li>Si lleva más de 3 días sin entrenar → alerta motivadora</li>
+          <li>Historial de últimos 20 mensajes del chat</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!--  CRITERIO 5 — SEGURIDAD                                            -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="section-header">
+      <span class="section-badge s5">Criterio 5</span>
+      <h2 class="section-title">Seguridad — Defensa en Profundidad</h2>
+    </div>
+
+    <div class="highlight-block red">
+      <strong>Doble capa de seguridad:</strong> Spring Security + JWT en el backend (Capa 1) y Row Level Security en PostgreSQL (Capa 2).
+      Aunque alguien bypasee el backend, la BD rechaza el acceso no autorizado.
+    </div>
+
+    <!-- JWT Flow -->
+    <h3 style="margin:24px 0 14px;font-size:1rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px">Flujo de autenticación JWT</h3>
+    <div class="flow">
+      <div class="flow-step">App envía<br>login</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step green">Supabase firma<br>JWT (ES256)</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">App guarda JWT<br>en AsyncStorage</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step highlight">Axios añade<br>Bearer header</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">JwtAuthFilter<br>verifica firma</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step green">Controller<br>@AuthPrincipal</div>
+    </div>
+
+    <div class="cards-row" style="margin-top:24px">
+      <div class="card">
+        <h4>🔑 ES256 vs HS256</h4>
+        <p><strong>ES256 (asimétrico)</strong>: Supabase firma con clave privada. El backend solo tiene la clave pública → imposible falsificar tokens aunque hackeen el backend.</p>
+        <p style="margin-top:8px"><strong>HS256 (simétrico)</strong>: ambos lados necesitan la misma clave. Si hackean el backend, pueden falsificar tokens.</p>
+        <div class="code-block" style="margin-top:12px">
+<span class="file-label">JwtAuthFilter.java</span>
+<span class="cmt">// Clave pública EC P-256 de Supabase</span>
+<span class="kw">private static final</span> String JWK_X =
+  <span class="str">"qU87OhwUzO0YpKxSn2OBu_f7H976uFlYCTlzpt6xtYA"</span>;
+<span class="kw">private static final</span> String JWK_Y =
+  <span class="str">"0B7ZiNwBvKL1n7n0D4OGDcfCnX-EJjD1JeX7P6yElpg"</span>;
+        </div>
+      </div>
+      <div class="card">
+        <h4>🚫 STATELESS + CSRF deshabilitado</h4>
+        <p><strong>STATELESS</strong>: el servidor no guarda ninguna sesión. Cada request lleva su JWT. Escalable horizontalmente.</p>
+        <p style="margin-top:8px"><strong>CSRF deshabilitado</strong>: CSRF ataca apps con cookies de sesión. Como usamos tokens Bearer en el header, no hay cookie que robar.</p>
+        <div class="code-block" style="margin-top:12px">
+<span class="file-label">SecurityConfig.java</span>
+.csrf(csrf -> csrf.disable())
+.sessionManagement(sm -> sm
+  .sessionCreationPolicy(
+    <span class="cls">SessionCreationPolicy</span>.STATELESS))
+        </div>
+      </div>
+      <div class="card">
+        <h4>🌍 Variables de Entorno</h4>
+        <p>Ningún secreto está hardcodeado en el código del repositorio. Todos se cargan desde variables de entorno:</p>
+        <div class="code-block" style="margin-top:12px">
+<span class="file-label">application.yml</span>
+<span class="yml-key">api-key</span>: <span class="yml-val">${GROQ_API_KEY}</span>
+<span class="yml-key">password</span>: <span class="yml-val">${SUPABASE_DB_PASSWORD}</span>
+<span class="yml-key">jwt-secret</span>: <span class="yml-val">${SUPABASE_JWT_SECRET}</span>
+
+<span class="cmt"># En producción: Railway/Render</span>
+<span class="cmt"># en local: application-local.yml</span>
+<span class="cmt"># (en .gitignore)</span>
+        </div>
+      </div>
+      <div class="card">
+        <h4>🛡️ Row Level Security</h4>
+        <p>Políticas RLS en PostgreSQL garantizan que cada usuario solo accede a sus propias filas, independientemente de quién haga la petición:</p>
+        <div class="code-block" style="margin-top:12px">
+<span class="file-label">supabase-schema.sql</span>
+<span class="sql-kw">CREATE POLICY</span> <span class="sql-str">"sessions_own"</span>
+  <span class="sql-kw">ON</span> workout_sessions
+  <span class="sql-kw">USING</span> (user_id <span class="sql-kw">IN</span> (
+    <span class="sql-kw">SELECT</span> id <span class="sql-kw">FROM</span> users
+    <span class="sql-kw">WHERE</span> supabase_id = auth.uid()::text
+  ));
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla resumen de seguridad -->
+    <div class="table-wrap" style="margin-top:24px">
+      <table>
+        <thead>
+          <tr>
+            <th>Capa</th>
+            <th>Mecanismo</th>
+            <th>Archivo</th>
+            <th>Protege contra</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="pill pill-blue">1</span></td>
+            <td>JWT ES256 (ECDSA P-256)</td>
+            <td><code>JwtAuthFilter.java</code></td>
+            <td>Tokens falsificados, expirados o manipulados</td>
+          </tr>
+          <tr>
+            <td><span class="pill pill-blue">1</span></td>
+            <td>Spring Security STATELESS</td>
+            <td><code>SecurityConfig.java</code></td>
+            <td>Acceso sin token, session hijacking, CSRF</td>
+          </tr>
+          <tr>
+            <td><span class="pill pill-blue">1</span></td>
+            <td>@AuthenticationPrincipal</td>
+            <td><code>MovoControllers.java</code></td>
+            <td>Acceso a datos de otro usuario desde la API</td>
+          </tr>
+          <tr>
+            <td><span class="pill pill-green">2</span></td>
+            <td>Row Level Security (RLS)</td>
+            <td><code>supabase-schema.sql</code></td>
+            <td>Acceso directo a la BD bypasseando el backend</td>
+          </tr>
+          <tr>
+            <td><span class="pill pill-green">2</span></td>
+            <td>CHECK Constraints</td>
+            <td><code>supabase-schema.sql</code></td>
+            <td>Datos inválidos o maliciosos a nivel de BD</td>
+          </tr>
+          <tr>
+            <td><span class="pill pill-yellow">3</span></td>
+            <td>Variables de entorno</td>
+            <td><code>application.yml</code> + <code>.gitignore</code></td>
+            <td>Exposición de secretos en repositorio público</td>
+          </tr>
+          <tr>
+            <td><span class="pill pill-yellow">3</span></td>
+            <td>UUID como PK</td>
+            <td><code>supabase-schema.sql</code></td>
+            <td>Enumeración de IDs de otros usuarios</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ─── MAPA FICHERO → CRITERIO ───────────────────────────────────── -->
+  <section>
+    <div class="section-header">
+      <span class="section-badge s3">Referencia</span>
+      <h2 class="section-title">Mapa Archivos → Criterios</h2>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Archivo</th>
+            <th>Criterio 1</th>
+            <th>Criterio 2</th>
+            <th>Criterio 3</th>
+            <th>Criterio 4</th>
+            <th>Criterio 5</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>supabase-schema.sql</code></td>
+            <td>✅ UUID, JSONB, TEXT[], RLS</td>
+            <td>✅ 8 tablas, FKs</td>
+            <td>—</td>
+            <td>—</td>
+            <td>✅ RLS policies</td>
+          </tr>
+          <tr>
+            <td><code>Routine.java</code></td>
+            <td>—</td>
+            <td>✅ Enums↔CHECK</td>
+            <td>✅ JPA @Entity</td>
+            <td>—</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><code>application.yml</code></td>
+            <td>—</td>
+            <td>—</td>
+            <td>✅ HikariCP, JDBC</td>
+            <td>✅ Groq config</td>
+            <td>✅ Env vars</td>
+          </tr>
+          <tr>
+            <td><code>JwtAuthFilter.java</code></td>
+            <td>—</td>
+            <td>—</td>
+            <td>✅ UserRepository</td>
+            <td>—</td>
+            <td>✅ ES256 EC P-256</td>
+          </tr>
+          <tr>
+            <td><code>SecurityConfig.java</code></td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>✅ STATELESS, CSRF, CORS</td>
+          </tr>
+          <tr>
+            <td><code>GroqAIService.java</code></td>
+            <td>—</td>
+            <td>—</td>
+            <td>✅ JPA queries</td>
+            <td>✅ Groq API WebClient</td>
+            <td>✅ @Value API key</td>
+          </tr>
+          <tr>
+            <td><code>MovoControllers.java</code></td>
+            <td>—</td>
+            <td>—</td>
+            <td>✅ JPA acceso BD</td>
+            <td>✅ API REST propia</td>
+            <td>✅ @AuthPrincipal</td>
+          </tr>
+          <tr>
+            <td><code>supabase.ts</code></td>
+            <td>—</td>
+            <td>—</td>
+            <td>✅ Supabase client</td>
+            <td>✅ Supabase API</td>
+            <td>✅ anon key env</td>
+          </tr>
+          <tr>
+            <td><code>authStore.ts</code></td>
+            <td>—</td>
+            <td>—</td>
+            <td>✅ Sync BD</td>
+            <td>✅ Supabase Auth</td>
+            <td>✅ JWT AsyncStorage</td>
+          </tr>
+          <tr>
+            <td><code>api.ts</code></td>
+            <td>—</td>
+            <td>—</td>
+            <td>✅ Axios baseURL</td>
+            <td>✅ API MOVO propia</td>
+            <td>✅ Interceptor JWT</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  MOVO — Aplicación de Fitness con IA &nbsp;·&nbsp; TFG &nbsp;·&nbsp;
+  React Native + Spring Boot + PostgreSQL (Supabase) + Groq Llama 3.3
+</footer>
+
+</body>
+</html>

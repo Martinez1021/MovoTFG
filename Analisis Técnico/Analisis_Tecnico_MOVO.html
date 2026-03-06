@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Análisis Técnico — MOVO App</title>
+<style>
+  :root {
+    --bg:       #0a0c14;
+    --bg2:      #0f1120;
+    --bg3:      #151828;
+    --card:     #1a1d2e;
+    --purple:   #7c6fff;
+    --purple2:  #a78bfa;
+    --green:    #00d4aa;
+    --yellow:   #ffc947;
+    --red:      #ff6584;
+    --text:     #e2e8f0;
+    --muted:    #8892a4;
+    --border:   #2a2d42;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    line-height: 1.65;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, #0f0a1e 0%, #1a0f3a 50%, #0a1530 100%);
+    border-bottom: 2px solid var(--purple);
+    padding: 3rem 2rem 2.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(124,111,255,.25) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  header .logo-pill {
+    display: inline-block;
+    background: linear-gradient(90deg, var(--purple), var(--green));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 3.5rem;
+    font-weight: 900;
+    letter-spacing: -1px;
+    margin-bottom: .5rem;
+  }
+  header h1 { font-size: 1.4rem; color: var(--muted); font-weight: 400; margin-bottom: .4rem; }
+  header .subtitle {
+    font-size: .85rem;
+    color: var(--muted);
+    background: rgba(124,111,255,.1);
+    border: 1px solid var(--border);
+    display: inline-block;
+    padding: .3rem 1rem;
+    border-radius: 99px;
+    margin-top: .5rem;
+  }
+
+  /* ── LAYOUT ── */
+  .page { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+  /* ── SECTION HEADERS ── */
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 2.5rem 0 1.25rem;
+    padding-bottom: .6rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-title .tag {
+    background: linear-gradient(135deg, var(--purple), var(--purple2));
+    color: #fff;
+    font-size: .7rem;
+    font-weight: 700;
+    padding: .2rem .6rem;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+  .section-title .tag.green  { background: linear-gradient(135deg, #00b89a, var(--green)); }
+  .section-title .tag.yellow { background: linear-gradient(135deg, #e6a800, var(--yellow)); }
+  .section-title .tag.red    { background: linear-gradient(135deg, #e04060, var(--red)); }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--purple2);
+    margin-bottom: .75rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+  .card-title.green  { color: var(--green); }
+  .card-title.yellow { color: var(--yellow); }
+  .card-title.red    { color: var(--red); }
+  .card p { color: var(--muted); font-size: .93rem; margin-bottom: .5rem; }
+  .card p:last-child { margin-bottom: 0; }
+  .card strong { color: var(--text); }
+
+  /* ── CODE BLOCKS ── */
+  pre {
+    background: #090b14;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--purple);
+    border-radius: 10px;
+    padding: 1.1rem 1.3rem;
+    overflow-x: auto;
+    font-size: .82rem;
+    line-height: 1.7;
+    margin: .85rem 0 1.1rem;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  }
+  pre.green  { border-left-color: var(--green); }
+  pre.yellow { border-left-color: var(--yellow); }
+  pre.red    { border-left-color: var(--red); }
+
+  /* Syntax highlight (declarative, CSS only) */
+  .kw  { color: #c792ea; font-weight: 600; }     /* keywords */
+  .ty  { color: #82aaff; }                        /* types/class names */
+  .fn  { color: #82aaff; }                        /* function names */
+  .st  { color: #c3e88d; }                        /* strings */
+  .cm  { color: #546e7a; font-style: italic; }    /* comments */
+  .an  { color: #ffcb6b; }                        /* annotations */
+  .num { color: var(--yellow); }                  /* numbers */
+  .kv  { color: var(--green); }                   /* JSON keys / field names */
+  .op  { color: #89ddff; }                        /* operators */
+  .ts  { color: #80cbc4; }                        /* TypeScript types */
+
+  /* ── ARCH DIAGRAM ── */
+  .arch {
+    display: grid;
+    gap: .6rem;
+    margin: 1.25rem 0;
+  }
+  .arch-row {
+    display: flex;
+    align-items: stretch;
+    gap: .6rem;
+  }
+  .arch-box {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: .9rem 1.1rem;
+    text-align: center;
+  }
+  .arch-box .arch-label {
+    font-size: .7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    margin-bottom: .25rem;
+  }
+  .arch-box .arch-name {
+    font-size: .92rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .arch-box .arch-sub {
+    font-size: .75rem;
+    color: var(--muted);
+    margin-top: .2rem;
+  }
+  .arch-box.purple { border-color: var(--purple); background: rgba(124,111,255,.08); }
+  .arch-box.green  { border-color: var(--green);  background: rgba(0,212,170,.06); }
+  .arch-box.yellow { border-color: var(--yellow); background: rgba(255,201,71,.06); }
+  .arch-box.red    { border-color: var(--red);    background: rgba(255,101,132,.06); }
+  .arch-box.blue   { border-color: #4fc3f7;       background: rgba(79,195,247,.06); }
+  .arch-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    color: var(--muted);
+    min-width: 24px;
+  }
+
+  /* ── FLOW STEPS ── */
+  .flow {
+    counter-reset: flow-c;
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+    margin: .85rem 0;
+  }
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: .85rem;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: .75rem 1rem;
+    counter-increment: flow-c;
+  }
+  .flow-step::before {
+    content: counter(flow-c);
+    background: var(--purple);
+    color: #fff;
+    border-radius: 50%;
+    min-width: 1.6rem;
+    height: 1.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .flow-step.green::before  { background: var(--green); color: #000; }
+  .flow-step.yellow::before { background: var(--yellow); color: #000; }
+  .flow-step p { color: var(--muted); font-size: .9rem; }
+  .flow-step p strong { color: var(--text); }
+
+  /* ── GRID 2 COL ── */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media(max-width:720px) { .grid2 { grid-template-columns: 1fr; } .arch-row { flex-direction: column; } }
+
+  /* ── BADGE LIST ── */
+  .badge-list { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .6rem; }
+  .badge {
+    background: rgba(124,111,255,.12);
+    border: 1px solid rgba(124,111,255,.3);
+    color: var(--purple2);
+    font-size: .75rem;
+    font-weight: 600;
+    padding: .2rem .65rem;
+    border-radius: 6px;
+  }
+  .badge.green  { background: rgba(0,212,170,.1); border-color: rgba(0,212,170,.3); color: var(--green); }
+  .badge.yellow { background: rgba(255,201,71,.1); border-color: rgba(255,201,71,.3); color: var(--yellow); }
+  .badge.red    { background: rgba(255,101,132,.1); border-color: rgba(255,101,132,.3); color: var(--red); }
+
+  /* ── TOC ── */
+  nav.toc {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+  }
+  nav.toc h2 { font-size: .85rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin-bottom: .75rem; }
+  nav.toc ol { padding-left: 1.4rem; }
+  nav.toc li { margin-bottom: .35rem; }
+  nav.toc a { color: var(--purple2); text-decoration: none; font-size: .9rem; }
+  nav.toc a:hover { color: var(--green); }
+
+  /* ── TABLE ── */
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; margin: .85rem 0; }
+  th { background: var(--bg3); color: var(--purple2); font-weight: 700; text-align: left; padding: .55rem .85rem; border: 1px solid var(--border); }
+  td { padding: .5rem .85rem; border: 1px solid var(--border); color: var(--muted); }
+  tr:nth-child(even) td { background: rgba(255,255,255,.015); }
+  td strong { color: var(--text); }
+
+  /* ── CRITERIO PILL ── */
+  .crit {
+    display: inline-block;
+    font-size: .7rem;
+    font-weight: 700;
+    padding: .15rem .5rem;
+    border-radius: 5px;
+    margin-left: .4rem;
+    background: rgba(124,111,255,.15);
+    color: var(--purple2);
+    border: 1px solid rgba(124,111,255,.3);
+    vertical-align: middle;
+  }
+  .crit.c3 { background: rgba(0,212,170,.1); color: var(--green); border-color: rgba(0,212,170,.3); }
+  .crit.c4 { background: rgba(255,201,71,.1); color: var(--yellow); border-color: rgba(255,201,71,.3); }
+  .crit.c5 { background: rgba(255,101,132,.1); color: var(--red); border-color: rgba(255,101,132,.3); }
+
+  hr.sep { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-pill">MOVO</div>
+  <h1>Análisis Técnico del Código Fuente</h1>
+  <div class="subtitle">Arquitectura completa · Spring Boot 3.2 · React Native · PostgreSQL · Groq AI</div>
+</header>
+
+<div class="page">
+
+  <!-- TOC -->
+  <nav class="toc">
+    <h2>Índice</h2>
+    <ol>
+      <li><a href="#s1">1. Visión general de la arquitectura</a></li>
+      <li><a href="#s2">2. Base de datos — Modelos JPA y esquema PostgreSQL</a></li>
+      <li><a href="#s3">3. Capa de conexión — Spring Boot ↔ PostgreSQL (Criterio 3)</a></li>
+      <li><a href="#s4">4. API REST — Controladores Spring Boot</a></li>
+      <li><a href="#s5">5. API Externa — Groq AI (Criterio 4)</a></li>
+      <li><a href="#s6">6. Seguridad — JWT ES256 + Spring Security (Criterio 5)</a></li>
+      <li><a href="#s7">7. Frontend React Native — Stores Zustand + Axios</a></li>
+      <li><a href="#s8">8. Flujos completos de extremo a extremo</a></li>
+      <li><a href="#s9">9. Resumen por criterios</a></li>
+    </ol>
+  </nav>
+
+  <!-- ═══════════════════════════════════ 1. ARQUITECTURA ═════════════════════════ -->
+  <div id="s1"></div>
+  <div class="section-title"><span class="tag">01</span>Visión general de la arquitectura</div>
+
+  <div class="card">
+    <div class="card-title">Stack tecnológico</div>
+    <p>MOVO sigue una arquitectura de <strong>tres capas desacopladas</strong>: un cliente móvil en React Native / Expo, un backend REST en Spring Boot y una base de datos PostgreSQL en la nube (Supabase). La autenticación la gestiona Supabase Auth y el AI Coach usa la API externa de Groq.</p>
+    <div class="badge-list">
+      <span class="badge">React Native 0.74</span>
+      <span class="badge">Expo SDK 51</span>
+      <span class="badge">TypeScript 5</span>
+      <span class="badge">Zustand 4</span>
+      <span class="badge">Axios 1.6</span>
+      <span class="badge green">Spring Boot 3.2</span>
+      <span class="badge green">Java 17</span>
+      <span class="badge green">JPA / Hibernate 6</span>
+      <span class="badge green">HikariCP</span>
+      <span class="badge yellow">PostgreSQL 15 (Supabase)</span>
+      <span class="badge yellow">Supabase Auth (ES256)</span>
+      <span class="badge red">Groq API (Llama 3.3-70B)</span>
+    </div>
+  </div>
+
+  <div class="arch">
+    <div class="arch-row">
+      <div class="arch-box purple">
+        <div class="arch-label">Capa UI</div>
+        <div class="arch-name">React Native + Expo</div>
+        <div class="arch-sub">Pantallas · Zustand Stores · Axios client</div>
+      </div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-arrow">↕</div>
+      <div class="arch-box" style="flex:4; text-align:left; padding:.6rem 1rem;">
+        <div style="color:var(--muted); font-size:.78rem;">HTTP/JSON · <code>Authorization: Bearer &lt;JWT&gt;</code> · baseURL = <code>localhost:8080/api</code></div>
+      </div>
+      <div class="arch-arrow">↕</div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-box green">
+        <div class="arch-label">Capa Backend</div>
+        <div class="arch-name">Spring Boot 3.2</div>
+        <div class="arch-sub">SecurityConfig · JwtAuthFilter · Controllers · GroqAIService</div>
+      </div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-arrow">↕</div>
+      <div class="arch-box" style="flex:4; text-align:left; padding:.6rem 1rem;">
+        <div style="color:var(--muted); font-size:.78rem;">JPA / HikariCP · <code>spring.datasource.url = jdbc:postgresql://supabase/postgres</code></div>
+      </div>
+      <div class="arch-arrow">↕</div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-box yellow">
+        <div class="arch-label">Capa Datos</div>
+        <div class="arch-name">PostgreSQL 15 (Supabase)</div>
+        <div class="arch-sub">users · routines · exercises · workout_sessions · RLS</div>
+      </div>
+      <div class="arch-box red">
+        <div class="arch-label">API Externa</div>
+        <div class="arch-name">Groq API</div>
+        <div class="arch-sub">Llama 3.3-70B · POST /chat/completions</div>
+      </div>
+      <div class="arch-box blue">
+        <div class="arch-label">Auth Provider</div>
+        <div class="arch-name">Supabase Auth</div>
+        <div class="arch-sub">JWT ES256 · JWKS public key</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="sep">
+
+  <!-- ═══════════════════════════════════ 2. MODELOS ════════════════════════════ -->
+  <div id="s2"></div>
+  <div class="section-title"><span class="tag yellow">02</span>Base de datos — Modelos JPA y esquema PostgreSQL</div>
+
+  <div class="card">
+    <div class="card-title">Diseño de entidades</div>
+    <p>Hay cuatro entidades principales, cada una mapeada a una tabla PostgreSQL mediante anotaciones JPA estándar. Todos los IDs son <strong>UUID v4</strong> (no INTEGER autoincremental), lo que facilita la distribución y evita colisiones entre entornos.</p>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">User.java <span class="crit c3">Criterio 3</span></div>
+      <pre>
+<span class="an">@Entity</span> <span class="an">@Table</span>(name = <span class="st">"users"</span>)
+<span class="an">@Data</span> <span class="an">@Builder</span>
+<span class="kw">public class</span> <span class="ty">User</span> {
+
+  <span class="an">@Id</span> <span class="an">@UuidGenerator</span>
+  <span class="kw">private</span> <span class="ty">UUID</span> id;
+
+  <span class="an">@Column</span>(nullable = <span class="kw">false</span>, unique = <span class="kw">true</span>)
+  <span class="kw">private</span> <span class="ty">String</span> email;
+
+  <span class="an">@Enumerated</span>(EnumType.STRING)
+  <span class="kw">private</span> <span class="ty">Role</span> role;      <span class="cm">// trainer | user</span>
+
+  <span class="kw">private</span> <span class="ty">UUID</span> trainerId; <span class="cm">// FK → entrenador asignado</span>
+  <span class="kw">private</span> <span class="ty">String</span> supabaseId; <span class="cm">// vínculo con Auth</span>
+
+  <span class="an">@PrePersist</span>
+  <span class="kw">void</span> <span class="fn">onCreate</span>() {
+    createdAt = <span class="ty">LocalDateTime</span>.now();
+  }
+
+  <span class="kw">public enum</span> <span class="ty">Role</span> { trainer, user }
+}</pre>
+      <p><strong>supabaseId</strong>: columna única que vincula cada fila de la tabla <code>users</code> del backend con el usuario en Supabase Auth. Se usa en <code>JwtAuthFilter</code> para resolver el JWT → usuario de BD.</p>
+      <p><strong>@PrePersist</strong>: hook de ciclo de vida JPA. No necesita lógica de negocio para rellenar <code>createdAt</code>; Hibernate lo llama automáticamente antes del INSERT.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Routine.java <span class="crit c3">Criterio 3</span></div>
+      <pre>
+<span class="an">@Entity</span> <span class="an">@Table</span>(name = <span class="st">"routines"</span>)
+<span class="kw">public class</span> <span class="ty">Routine</span> {
+
+  <span class="an">@Column</span>(nullable = <span class="kw">false</span>)
+  <span class="an">@Enumerated</span>(EnumType.STRING)
+  <span class="kw">private</span> <span class="ty">Category</span> category;
+  <span class="cm">// 'gym' | 'yoga' | 'pilates'</span>
+
+  <span class="an">@Enumerated</span>(EnumType.STRING)
+  <span class="kw">private</span> <span class="ty">Difficulty</span> difficulty;
+  <span class="cm">// 'beginner' | 'intermediate' | 'advanced'</span>
+
+  <span class="kw">private</span> <span class="ty">Boolean</span> isPublic;
+  <span class="kw">private</span> <span class="ty">UUID</span> createdBy; <span class="cm">// FK → users.id</span>
+
+  <span class="kw">public enum</span> <span class="ty">Category</span>
+    { gym, yoga, pilates }
+  <span class="kw">public enum</span> <span class="ty">Difficulty</span>
+    { beginner, intermediate, advanced }
+}</pre>
+      <p><strong>@Enumerated(STRING)</strong>: los valores se almacenan como texto legible en la BD (<code>'gym'</code>, no <code>0</code>). Así el esquema SQL puede usar <code>CHECK (category IN (...))</code> y los datos son legibles sin código Java.</p>
+      <p><strong>isPublic</strong>: las rutinas creadas por entrenadores pueden marcarse como públicas para que todos los usuarios las vean.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">WorkoutSession — estructura de la sesión de entrenamiento</div>
+    <table>
+      <thead><tr><th>Campo</th><th>Tipo SQL</th><th>Propósito</th></tr></thead>
+      <tbody>
+        <tr><td><strong>id</strong></td><td>UUID (PK)</td><td>Identificador único de la sesión</td></tr>
+        <tr><td><strong>userId</strong></td><td>UUID (FK → users)</td><td>Usuario que realizó el entrenamiento</td></tr>
+        <tr><td><strong>routineId</strong></td><td>UUID (FK → routines)</td><td>Rutina que se entrenó</td></tr>
+        <tr><td><strong>startedAt</strong></td><td>TIMESTAMP</td><td>Inicio automático (NOW() al crear)</td></tr>
+        <tr><td><strong>completedAt</strong></td><td>TIMESTAMP (nullable)</td><td>Se rellena en PUT /sessions/{id}/complete</td></tr>
+        <tr><td><strong>durationMinutes</strong></td><td>INTEGER</td><td>Duración real declarada por el usuario</td></tr>
+        <tr><td><strong>caloriesBurned</strong></td><td>INTEGER</td><td>Calorías declaradas</td></tr>
+        <tr><td><strong>rating</strong></td><td>SMALLINT (1-5)</td><td>Valoración subjetiva del entrenamiento</td></tr>
+        <tr><td><strong>notes</strong></td><td>TEXT</td><td>Apuntes personales del usuario</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="sep">
+
+  <!-- ═══════════════════════════════════ 3. CONEXIÓN ══════════════════════════ -->
+  <div id="s3"></div>
+  <div class="section-title"><span class="tag green">03</span>Capa de conexión — Spring Boot ↔ PostgreSQL <span class="crit c3">Criterio 3</span></div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title green">application.yml — Connection Pool HikariCP</div>
+      <pre class="green">
+<span class="kv">spring</span>:
+  <span class="kv">datasource</span>:
+    <span class="kv">url</span>: <span class="st">${DB_URL}</span>
+    <span class="kv">username</span>: <span class="st">${DB_USERNAME}</span>
+    <span class="kv">password</span>: <span class="st">${DB_PASSWORD}</span>
+    <span class="kv">hikari</span>:
+      <span class="kv">maximum-pool-size</span>: <span class="num">5</span>
+      <span class="kv">minimum-idle</span>: <span class="num">1</span>
+      <span class="kv">connection-timeout</span>: <span class="num">20000</span>
+  <span class="kv">jpa</span>:
+    <span class="kv">hibernate.ddl-auto</span>: <span class="st">validate</span>
+    <span class="kv">properties.hibernate</span>:
+      <span class="kv">dialect</span>: <span class="ty">PostgreSQLDialect</span></pre>
+      <p><strong>HikariCP</strong> mantiene un <em>pool</em> de 5 conexiones reutilizables. En lugar de abrir/cerrar una conexión TCP por cada petición HTTP (costoso), las conexiones ya están abiertas y listas. El límite de 5 encaja con el plan gratuito de Supabase.</p>
+      <p><strong>ddl-auto: validate</strong>: Hibernate verifica que las entidades Java coincidan con el esquema real de la BD, pero <em>nunca lo modifica</em>. El esquema se gestiona con <code>supabase-schema.sql</code>.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title green">Repositorios JPA — Spring Data</div>
+      <pre class="green">
+<span class="cm">// Spring genera la implementación automáticamente</span>
+<span class="kw">public interface</span> <span class="ty">RoutineRepository</span>
+    <span class="kw">extends</span> <span class="ty">JpaRepository</span>&lt;<span class="ty">Routine</span>, <span class="ty">UUID</span>&gt; {
+
+  <span class="cm">// Spring traduce el nombre → SQL WHERE:</span>
+  <span class="ty">List</span>&lt;<span class="ty">Routine</span>&gt; <span class="fn">findByIsPublicTrue</span>();
+
+  <span class="ty">List</span>&lt;<span class="ty">Routine</span>&gt; <span class="fn">findByIsPublicTrueAndCategory</span>(
+    <span class="ty">Routine.Category</span> category);
+
+  <span class="ty">List</span>&lt;<span class="ty">Routine</span>&gt; <span class="fn">findByIsPublicTrueAndDifficulty</span>(
+    <span class="ty">Routine.Difficulty</span> difficulty);
+
+  <span class="ty">List</span>&lt;<span class="ty">Routine</span>&gt; <span class="fn">findByIsPublicTrueAndCategoryAndDifficulty</span>(
+    <span class="ty">Routine.Category</span> cat,
+    <span class="ty">Routine.Difficulty</span> diff);
+}</pre>
+      <p>Con <strong>Spring Data JPA</strong> no hace falta escribir SQL para operaciones estándar. El framework interpreta el nombre del método y genera la consulta: <code>findByIsPublicTrueAndCategory</code> → <code>SELECT * FROM routines WHERE is_public = true AND category = ?</code>.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title green">Patrón upsert en AuthController — sincronización usuario Supabase ↔ BD</div>
+    <p>Cuando un usuario se autentica en Supabase, la app llama a <code>POST /api/auth/sync</code>. El backend busca al usuario en su propia BD por <code>supabase_id</code>. Si no existe, lo crea; si ya existe, actualiza sus datos. Esto mantiene coherencia entre ambas fuentes de verdad sin duplicados.</p>
+    <pre>
+<span class="cm">// MovoControllers.java — AuthController</span>
+<span class="ty">User</span> user = userRepo
+  .<span class="fn">findBySupabaseId</span>(req.supabaseId())   <span class="cm">// ¿ya existe este usuario?</span>
+  .<span class="fn">orElseGet</span>(() <span class="op">-></span> {                     <span class="cm">// no existe → creamos uno nuevo</span>
+    <span class="ty">User.Role</span> role = <span class="ty">User.Role</span>.<span class="fn">valueOf</span>(req.role().toLowerCase());
+    <span class="kw">return</span> <span class="ty">User</span>.builder()
+      .<span class="fn">supabaseId</span>(req.supabaseId())
+      .<span class="fn">email</span>(req.email())
+      .<span class="fn">fullName</span>(req.fullName())
+      .<span class="fn">role</span>(role)
+      .<span class="fn">build</span>();
+  });
+
+user.<span class="fn">setFullName</span>(req.fullName());   <span class="cm">// actualiza si ya existía</span>
+<span class="kw">return</span> <span class="ty">ResponseEntity</span>.<span class="fn">ok</span>(userRepo.<span class="fn">save</span>(user)); <span class="cm">// INSERT o UPDATE</span></pre>
+  </div>
+
+  <hr class="sep">
+
+  <!-- ═══════════════════════════════════ 4. API REST ════════════════════════════ -->
+  <div id="s4"></div>
+  <div class="section-title"><span class="tag">04</span>API REST — Controladores Spring Boot</div>
+
+  <div class="card">
+    <div class="card-title">Estructura de la API</div>
+    <p>Todos los controladores REST viven en un único fichero <code>MovoControllers.java</code> como clases de nivel de paquete (package-private), lo que simplifica la navegación del código sin sacrificar la separación lógica.</p>
+    <table>
+      <thead><tr><th>Controlador</th><th>Rutas</th><th>Auth</th></tr></thead>
+      <tbody>
+        <tr><td><strong>AuthController</strong></td><td>POST /api/auth/sync</td><td>Pública</td></tr>
+        <tr><td><strong>UserController</strong></td><td>GET/PUT /api/users/me</td><td>JWT requerido</td></tr>
+        <tr><td><strong>RoutineController</strong></td><td>GET/POST /api/routines · GET /api/routines/assigned</td><td>JWT requerido</td></tr>
+        <tr><td><strong>ExerciseController</strong></td><td>GET /api/exercises/routine/{id} · POST/PUT</td><td>JWT requerido</td></tr>
+        <tr><td><strong>SessionController</strong></td><td>POST /start · PUT /{id}/complete · GET /my · GET /stats</td><td>JWT requerido</td></tr>
+        <tr><td><strong>AIController</strong></td><td>POST /api/ai/chat</td><td>JWT requerido</td></tr>
+        <tr><td><strong>TrainerController</strong></td><td>GET /clients · GET /clients/{id}/sessions · POST /messages</td><td>JWT requerido (rol trainer)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">RoutineController — Lógica de filtrado con 4 ramas</div>
+    <p>El endpoint <code>GET /api/routines</code> acepta parámetros opcionales <code>category</code> y <code>difficulty</code>. En lugar de concatenar SQL dinámico (vulnerable a SQL injection), se convierten a enums Java y se selecciona la query JPA adecuada según qué parámetros llegaron:</p>
+    <pre>
+<span class="an">@GetMapping</span>
+<span class="kw">public</span> <span class="ty">ResponseEntity</span>&lt;<span class="ty">List</span>&lt;<span class="ty">Routine</span>&gt;&gt; <span class="fn">list</span>(
+    <span class="an">@RequestParam</span> <span class="ty">Optional</span>&lt;<span class="ty">String</span>&gt; category,
+    <span class="an">@RequestParam</span> <span class="ty">Optional</span>&lt;<span class="ty">String</span>&gt; difficulty) {
+
+  <span class="cm">// Conversión segura String → Enum con try/catch</span>
+  <span class="ty">Routine.Category</span> cat = category.<span class="fn">map</span>(s <span class="op">-></span> {
+    <span class="kw">try</span> { <span class="kw">return</span> <span class="ty">Routine.Category</span>.<span class="fn">valueOf</span>(s.toLowerCase()); }
+    <span class="kw">catch</span> (<span class="ty">IllegalArgumentException</span> e) { <span class="kw">return null</span>; }
+  }).<span class="fn">orElse</span>(<span class="kw">null</span>);
+
+  <span class="cm">// Selección de query según combinación de filtros (4 ramas):</span>
+  <span class="kw">if</span> (cat <span class="op">!=</span> <span class="kw">null</span> <span class="op">&&</span> diff <span class="op">!=</span> <span class="kw">null</span>)
+    <span class="kw">return</span> routineRepo.<span class="fn">findByIsPublicTrueAndCategoryAndDifficulty</span>(cat, diff);
+  <span class="kw">else if</span> (cat <span class="op">!=</span> <span class="kw">null</span>)
+    <span class="kw">return</span> routineRepo.<span class="fn">findByIsPublicTrueAndCategory</span>(cat);
+  <span class="kw">else if</span> (diff <span class="op">!=</span> <span class="kw">null</span>)
+    <span class="kw">return</span> routineRepo.<span class="fn">findByIsPublicTrueAndDifficulty</span>(diff);
+  <span class="kw">else</span>
+    <span class="kw">return</span> routineRepo.<span class="fn">findByIsPublicTrue</span>();
+}</pre>
+    <p>La conversión con <code>try/catch</code> es clave: si el usuario manda <code>category=hacking</code>, el <code>valueOf</code> lanza <code>IllegalArgumentException</code> y devolvemos <code>null</code> → la rama <em>sin filtro</em> devuelve todas las rutinas públicas, en lugar de crashear el servidor.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">SessionController — Ciclo de vida de un entrenamiento</div>
+    <pre>
+<span class="cm">// 1. Crear sesión (al pulsar "Iniciar entrenamiento")</span>
+<span class="an">@PostMapping</span>(<span class="st">"/start"</span>)
+<span class="kw">public</span> <span class="ty">WorkoutSession</span> <span class="fn">start</span>(<span class="an">@RequestBody</span> <span class="ty">StartRequest</span> req,
+                             <span class="an">@AuthenticationPrincipal</span> <span class="ty">User</span> user) {
+  <span class="kw">var</span> s = <span class="ty">WorkoutSession</span>.builder()
+    .<span class="fn">userId</span>(user.<span class="fn">getId</span>())      <span class="cm">// CRITERIO 5: del JWT, no del body</span>
+    .<span class="fn">routineId</span>(req.routineId())
+    .<span class="fn">build</span>();
+  <span class="kw">return</span> sessionRepo.<span class="fn">save</span>(s);
+}
+
+<span class="cm">// 2. Marcar como completada (al finalizar el entrenamiento)</span>
+<span class="an">@PutMapping</span>(<span class="st">"/{id}/complete"</span>)
+<span class="kw">public</span> <span class="ty">WorkoutSession</span> <span class="fn">complete</span>(<span class="an">@PathVariable</span> <span class="ty">UUID</span> id,
+                               <span class="an">@RequestBody</span> <span class="ty">CompleteRequest</span> req) {
+  <span class="kw">return</span> sessionRepo.<span class="fn">findById</span>(id).<span class="fn">map</span>(s <span class="op">-></span> {
+    s.<span class="fn">setCompletedAt</span>(<span class="ty">LocalDateTime</span>.<span class="fn">now</span>());
+    s.<span class="fn">setDurationMinutes</span>(req.durationMinutes());
+    s.<span class="fn">setRating</span>(req.rating()); <span class="cm">// 1-5</span>
+    <span class="kw">return</span> sessionRepo.<span class="fn">save</span>(s);
+  }).<span class="fn">orElse</span>(<span class="ty">ResponseEntity</span>.<span class="fn">notFound</span>().<span class="fn">build</span>());
+}
+
+<span class="cm">// 3. Estadísticas (para ProgressScreen.tsx)</span>
+<span class="an">@GetMapping</span>(<span class="st">"/stats"</span>)
+<span class="kw">public</span> <span class="ty">StatsResponse</span> <span class="fn">stats</span>(<span class="an">@AuthenticationPrincipal</span> <span class="ty">User</span> user) {
+  <span class="kw">long</span> total   = sessionRepo.<span class="fn">countCompletedByUserId</span>(user.<span class="fn">getId</span>());
+  <span class="kw">int</span>  minutes = sessionRepo.<span class="fn">sumDurationByUserId</span>(user.<span class="fn">getId</span>());
+  <span class="kw">return new</span> <span class="ty">StatsResponse</span>(total, minutes, <span class="num">0</span>, <span class="kw">new int</span>[<span class="num">7</span>]);
+}</pre>
+    <p>El <strong>userId siempre viene del JWT</strong>, nunca del cuerpo de la petición. Si se permitiera enviarlo en el body, un usuario malintencionado podría registrar sesiones como otro usuario.</p>
+  </div>
+
+  <hr class="sep">
+
+  <!-- ═══════════════════════════════════ 5. API EXTERNA ═════════════════════════ -->
+  <div id="s5"></div>
+  <div class="section-title"><span class="tag yellow">05</span>API Externa — Groq AI (Llama 3.3-70B) <span class="crit c4">Criterio 4</span></div>
+
+  <div class="card">
+    <div class="card-title yellow">GroqAIService.java — Arquitectura del AI Coach</div>
+    <p>El AI Coach <strong>no llama a Groq desde la app móvil</strong>. La lógica vive en el backend: el servidor construye un <em>system prompt</em> personalizado con el perfil del usuario obtenido de la BD, añade el historial de conversación, y envía todo a Groq mediante <strong>Spring WebClient</strong> (cliente HTTP reactivo y no bloqueante).</p>
+    <pre class="yellow">
+<span class="an">@Service</span>
+<span class="kw">public class</span> <span class="ty">GroqAIService</span> {
+
+  <span class="an">@Value</span>(<span class="st">"${app.groq.api-key}"</span>)   <span class="cm">// inyectado desde env var</span>
+  <span class="kw">private</span> <span class="ty">String</span> groqApiKey;
+
+  <span class="an">@Value</span>(<span class="st">"${app.groq.model}"</span>)      <span class="cm">// llama-3.3-70b-versatile</span>
+  <span class="kw">private</span> <span class="ty">String</span> groqModel;
+
+  <span class="cm">// Historial en memoria por conversationId</span>
+  <span class="kw">private final</span> <span class="ty">Map</span>&lt;<span class="ty">String</span>, <span class="ty">List</span>&lt;<span class="ty">Map</span>&lt;<span class="ty">String</span>,<span class="ty">String</span>&gt;&gt;&gt; conversations
+    = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();
+
+  <span class="kw">public</span> <span class="ty">ChatResult</span> <span class="fn">chat</span>(<span class="ty">UUID</span> userId, <span class="ty">String</span> message, <span class="ty">String</span> convId) {
+
+    <span class="cm">// Paso 1: construir contexto desde la BD (nombre, sesiones completadas...)</span>
+    <span class="ty">String</span> context = <span class="fn">buildUserContext</span>(userId);
+
+    <span class="cm">// Paso 2: system prompt personalizado con los datos del usuario</span>
+    <span class="ty">String</span> systemPrompt = <span class="st">"""
+      Eres MOVO Coach, entrenador virtual experto en fitness, yoga y pilates.
+      Hablas en español, eres motivador y cercano.
+      Perfil del usuario: %s
+      Máximo 150 palabras por respuesta.
+      """</span>.<span class="fn">formatted</span>(context);
+
+    <span class="cm">// Paso 3: limitar historial a 20 mensajes (evitar superar token limit)</span>
+    <span class="kw">if</span> (history.size() <span class="op">></span> <span class="num">20</span>)
+      history = history.subList(history.size() <span class="op">-</span> <span class="num">20</span>, history.size());
+
+    <span class="cm">// Paso 4: llamar a Groq con WebClient (no bloqueante)</span>
+    <span class="kw">var</span> response = <span class="ty">WebClient</span>.builder()
+      .<span class="fn">baseUrl</span>(groqBaseUrl)
+      .<span class="fn">defaultHeader</span>(HttpHeaders.AUTHORIZATION,
+                     <span class="st">"Bearer "</span> + groqApiKey)
+      .<span class="fn">build</span>()
+      .<span class="fn">post</span>().<span class="fn">uri</span>(<span class="st">"/chat/completions"</span>)
+      .<span class="fn">bodyValue</span>(requestBody)
+      .<span class="fn">retrieve</span>()
+      .<span class="fn">bodyToMono</span>(<span class="ty">JsonNode</span>.<span class="kw">class</span>)
+      .<span class="fn">block</span>();
+  }
+}</pre>
+    <p><strong>Ventaja de seguridad</strong>: la <code>GROQ_API_KEY</code> nunca sale del servidor. Si se llamara a Groq desde la app móvil, cualquiera podría extraerla del código bundle y usarla libremente.</p>
+    <p><strong>Historial limitado a 20 mensajes</strong>: el modelo Llama 3.3 tiene 128K tokens de ventana de contexto, pero enviar conversaciones largas hace las respuestas más lentas y caras. 20 mensajes cubren una conversación completa con buen rendimiento.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title yellow">Formato de petición a la API Groq (compatible OpenAI)</div>
+    <pre class="yellow">
+<span class="cm">// POST https://api.groq.com/openai/v1/chat/completions</span>
+{
+  <span class="kv">"model"</span>: <span class="st">"llama-3.3-70b-versatile"</span>,
+  <span class="kv">"messages"</span>: [
+    { <span class="kv">"role"</span>: <span class="st">"system"</span>,    <span class="kv">"content"</span>: <span class="st">"Eres MOVO Coach..."</span> },
+    { <span class="kv">"role"</span>: <span class="st">"user"</span>,      <span class="kv">"content"</span>: <span class="st">"¿Qué ejercicio me recomiendas?"</span> },
+    { <span class="kv">"role"</span>: <span class="st">"assistant"</span>, <span class="kv">"content"</span>: <span class="st">"Te recomiendo empezar con..."</span> },
+    { <span class="kv">"role"</span>: <span class="st">"user"</span>,      <span class="kv">"content"</span>: <span class="st">"¿Y si tengo dolor de espalda?"</span> }
+  ],
+  <span class="kv">"max_tokens"</span>: <span class="num">512</span>,
+  <span class="kv">"temperature"</span>: <span class="num">0.7</span>
+}</pre>
+    <p>El campo <code>messages</code> incluye todo el historial previo de la conversación. El modelo recibe el contexto completo y puede responder de forma coherente recordando lo anterior. La propiedad <code>temperature: 0.7</code> equilibra creatividad y coherencia factual.</p>
+  </div>
+
+  <hr class="sep">
+
+  <!-- ═══════════════════════════════════ 6. SEGURIDAD ═══════════════════════════ -->
+  <div id="s6"></div>
+  <div class="section-title"><span class="tag red">06</span>Seguridad — JWT ES256 + Spring Security <span class="crit c5">Criterio 5</span></div>
+
+  <div class="card">
+    <div class="card-title red">¿Por qué ES256 (ECDSA) en lugar de HS256 (HMAC)?</div>
+    <div class="grid2">
+      <div>
+        <p><strong>HS256 (simétrico)</strong>: la misma clave se usa para firmar y verificar. Si el backend necesita verificar, tiene que conocer la clave <em>privada</em>, que Supabase guarda en sus servidores. Imposible sin compartirla.</p>
+      </div>
+      <div>
+        <p><strong>ES256 (asimétrico, P-256)</strong>: Supabase firma con la clave privada (que nunca sale). El backend solo necesita la clave <em>pública</em> para verificar la firma. La clave pública es pública por definición.</p>
+      </div>
+    </div>
+    <pre class="red">
+<span class="cm">// JwtAuthFilter.java — Reconstrucción de la clave pública EC desde JWKS</span>
+<span class="cm">// Coordenadas del punto en la curva P-256 (obtenidas del JWKS de Supabase)</span>
+<span class="kw">private static final</span> <span class="ty">String</span> JWK_X = <span class="st">"qU87OhwUzO0YpKxSn2OBu_f7H976uFlYCTlzpt6xtYA"</span>;
+<span class="kw">private static final</span> <span class="ty">String</span> JWK_Y = <span class="st">"0B7ZiNwBvKL1n7n0D4OGDcfCnX-EJjD1JeX7P6yElpg"</span>;
+
+<span class="kw">private</span> <span class="ty">PublicKey</span> <span class="fn">buildEcPublicKey</span>() <span class="kw">throws</span> <span class="ty">Exception</span> {
+  <span class="kw">byte</span>[] x = <span class="ty">Base64</span>.<span class="fn">getUrlDecoder</span>().<span class="fn">decode</span>(JWK_X);
+  <span class="kw">byte</span>[] y = <span class="ty">Base64</span>.<span class="fn">getUrlDecoder</span>().<span class="fn">decode</span>(JWK_Y);
+
+  <span class="ty">ECPoint</span> point = <span class="kw">new</span> <span class="ty">ECPoint</span>(
+    <span class="kw">new</span> <span class="ty">BigInteger</span>(<span class="num">1</span>, x),
+    <span class="kw">new</span> <span class="ty">BigInteger</span>(<span class="num">1</span>, y));
+
+  <span class="ty">AlgorithmParameters</span> params = <span class="ty">AlgorithmParameters</span>.<span class="fn">getInstance</span>(<span class="st">"EC"</span>);
+  params.<span class="fn">init</span>(<span class="kw">new</span> <span class="ty">ECGenParameterSpec</span>(<span class="st">"secp256r1"</span>)); <span class="cm">// curva NIST P-256</span>
+
+  <span class="ty">ECPublicKeySpec</span> spec = <span class="kw">new</span> <span class="ty">ECPublicKeySpec</span>(
+    point, params.<span class="fn">getParameterSpec</span>(<span class="ty">ECParameterSpec</span>.<span class="kw">class</span>));
+
+  <span class="kw">return</span> <span class="ty">KeyFactory</span>.<span class="fn">getInstance</span>(<span class="st">"EC"</span>).<span class="fn">generatePublic</span>(spec);
+}</pre>
+  </div>
+
+  <div class="card">
+    <div class="card-title red">doFilterInternal — Validación por petición</div>
+    <pre class="red">
+<span class="an">@Override</span>
+<span class="kw">protected void</span> <span class="fn">doFilterInternal</span>(<span class="ty">HttpServletRequest</span> req, ...) {
+
+  <span class="cm">// 1. Leer header Authorization: Bearer &lt;token&gt;</span>
+  <span class="ty">String</span> auth = req.<span class="fn">getHeader</span>(<span class="st">"Authorization"</span>);
+  <span class="kw">if</span> (auth == <span class="kw">null</span> || !auth.<span class="fn">startsWith</span>(<span class="st">"Bearer "</span>)) {
+    filterChain.<span class="fn">doFilter</span>(req, res); <span class="cm">// sin token → sigue sin auth</span>
+    <span class="kw">return</span>;
+  }
+
+  <span class="ty">String</span> token = auth.<span class="fn">substring</span>(<span class="num">7</span>); <span class="cm">// descarta "Bearer "</span>
+
+  <span class="cm">// 2. Verificar firma ES256 con clave pública de Supabase</span>
+  <span class="ty">Claims</span> claims = <span class="ty">Jwts</span>.<span class="fn">parser</span>()
+    .<span class="fn">verifyWith</span>(<span class="fn">buildEcPublicKey</span>()) <span class="cm">// ← verifica firma</span>
+    .<span class="fn">build</span>()
+    .<span class="fn">parseSignedClaims</span>(token)     <span class="cm">// lanza exc. si expirado/inválido</span>
+    .<span class="fn">getPayload</span>();
+
+  <span class="cm">// 3. Extraer supabase_id del claim "sub"</span>
+  <span class="ty">String</span> supabaseId = claims.<span class="fn">getSubject</span>();
+
+  <span class="cm">// 4. Cargar User de la BD y asignar rol (ROLE_USER / ROLE_TRAINER)</span>
+  userRepository.<span class="fn">findBySupabaseId</span>(supabaseId).<span class="fn">ifPresent</span>(user <span class="op">-></span> {
+    <span class="ty">String</span> authority = <span class="st">"ROLE_"</span> + user.<span class="fn">getRole</span>().<span class="fn">name</span>().<span class="fn">toUpperCase</span>();
+    <span class="ty">var</span> authToken = <span class="kw">new</span> <span class="ty">UsernamePasswordAuthenticationToken</span>(
+      user, <span class="kw">null</span>,
+      <span class="ty">List</span>.<span class="fn">of</span>(<span class="kw">new</span> <span class="ty">SimpleGrantedAuthority</span>(authority)));
+    <span class="ty">SecurityContextHolder</span>.<span class="fn">getContext</span>().<span class="fn">setAuthentication</span>(authToken);
+  });
+}</pre>
+    <p>Una vez ejecutado el filtro, <strong>cualquier método de cualquier controlador puede inyectar el usuario autenticado</strong> con <code>@AuthenticationPrincipal User user</code> sin necesidad de leer tokens manualmente.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title red">SecurityConfig — Cadena de filtros HTTP</div>
+    <pre class="red">
+<span class="kw">return</span> http
+  .<span class="fn">csrf</span>(csrf <span class="op">-></span> csrf.<span class="fn">disable</span>())
+  <span class="cm">// CSRF desactivado: las apps móviles usan Bearer, no cookies</span>
+
+  .<span class="fn">sessionManagement</span>(sm <span class="op">-></span>
+    sm.<span class="fn">sessionCreationPolicy</span>(<span class="ty">SessionCreationPolicy</span>.STATELESS))
+  <span class="cm">// Sin sesión en servidor → cada request lleva su propio JWT</span>
+
+  .<span class="fn">authorizeHttpRequests</span>(auth <span class="op">-></span> auth
+    .<span class="fn">requestMatchers</span>(<span class="st">"/api/auth/**"</span>, <span class="st">"/actuator/health"</span>)
+    .<span class="fn">permitAll</span>()          <span class="cm">// login/registro: sin JWT</span>
+    .<span class="fn">anyRequest</span>().<span class="fn">authenticated</span>()) <span class="cm">// todo lo demás: JWT requerido</span>
+
+  .<span class="fn">addFilterBefore</span>(jwtAuthFilter,
+    <span class="ty">UsernamePasswordAuthenticationFilter</span>.<span class="kw">class</span>)
+  <span class="cm">// JwtAuthFilter se ejecuta ANTES del filtro de usuario/contraseña</span>
+  .<span class="fn">build</span>();</pre>
+  </div>
+
+  <hr class="sep">
+
+  <!-- ═══════════════════════════════════ 7. FRONTEND ════════════════════════════ -->
+  <div id="s7"></div>
+  <div class="section-title"><span class="tag">07</span>Frontend React Native — Stores Zustand + Axios</div>
+
+  <div class="card">
+    <div class="card-title">api.ts — Cliente Axios centralizado</div>
+    <p>Toda la comunicación con el backend pasa por una única instancia Axios con un <strong>interceptor de request</strong> que añade automáticamente el JWT de Supabase a cada petición. Los módulos de la app simplemente llaman a <code>routineApi.getPublic()</code> sin preocuparse de tokens.</p>
+    <pre>
+<span class="cm">// Instancia Axios con baseURL y timeout</span>
+<span class="kw">const</span> api = axios.<span class="fn">create</span>({
+  baseURL: API_BASE_URL, <span class="cm">// 'http://localhost:8080/api'</span>
+  timeout: <span class="num">5000</span>,
+  headers: { <span class="st">'Content-Type'</span>: <span class="st">'application/json'</span> },
+});
+
+<span class="cm">// CRITERIO 5: Interceptor de request → añade JWT a cada llamada</span>
+api.interceptors.request.<span class="fn">use</span>(<span class="kw">async</span> (config) <span class="op">=></span> {
+  <span class="kw">const</span> token = <span class="kw">await</span> <span class="fn">getAccessToken</span>(); <span class="cm">// lee de AsyncStorage</span>
+  <span class="kw">if</span> (token) config.headers.Authorization = <span class="st">`Bearer ${token}`</span>;
+  <span class="kw">return</span> config;
+});
+
+<span class="cm">// APIs agrupadas por dominio:</span>
+<span class="kw">export const</span> routineApi = {
+  getPublic: (filters?) <span class="op">=></span> api.<span class="fn">get</span>&lt;<span class="ts">Routine[]</span>&gt;(<span class="st">'/routines'</span>, { params: filters }),
+  create: (data) <span class="op">=></span> api.<span class="fn">post</span>&lt;<span class="ts">Routine</span>&gt;(<span class="st">'/routines'</span>, data),
+};
+
+<span class="kw">export const</span> aiApi = {
+  chat: (message, convId?) <span class="op">=></span>
+    api.<span class="fn">post</span>&lt;<span class="ts">AIChatResponse</span>&gt;(<span class="st">'/ai/chat'</span>, { message, conversationId: convId }),
+};</pre>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">authStore.ts — Zustand + Supabase Auth</div>
+      <pre>
+<span class="cm">// Estado reactivo de autenticación</span>
+<span class="kw">export const</span> useAuthStore = <span class="fn">create</span>&lt;<span class="ts">AuthState</span>&gt;((set, get) <span class="op">=></span> ({
+  user: <span class="kw">null</span>,
+  isAuthenticated: <span class="kw">false</span>,
+  isLoading: <span class="kw">true</span>, <span class="cm">// splash mientras comprueba sesión</span>
+
+  login: <span class="kw">async</span> (email, password) <span class="op">=></span> {
+    <span class="cm">// 1. Autenticar con Supabase</span>
+    <span class="kw">const</span> { data } = <span class="kw">await</span> supabase.auth
+      .<span class="fn">signInWithPassword</span>({ email, password });
+
+    <span class="cm">// 2. Sincronizar con backend Spring Boot</span>
+    <span class="kw">await</span> authApi.<span class="fn">syncUser</span>({
+      supabaseId: data.user.id,
+      email: data.user.email,
+      role: data.user.user_metadata.role
+    });
+
+    set({ user: ..., isAuthenticated: <span class="kw">true</span> });
+  },
+
+  initialize: <span class="kw">async</span> () <span class="op">=></span> {
+    <span class="cm">// Comprueba AsyncStorage al arrancar</span>
+    <span class="kw">const</span> { data: { session } } =
+      <span class="kw">await</span> supabase.auth.<span class="fn">getSession</span>();
+    set({ isLoading: <span class="kw">false</span>,
+          isAuthenticated: !!session });
+  },
+}));</pre>
+      <p><strong>withTimeout</strong>: si Supabase no responde en 8 s, la app no se queda colgada — rechaza la promesa con un mensaje legible para el usuario.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">AppNavigator — Rutas según estado</div>
+      <pre>
+<span class="cm">// AppNavigator.tsx</span>
+<span class="kw">const</span> { isAuthenticated, isLoading, user }
+  = <span class="fn">useAuthStore</span>();
+
+<span class="kw">if</span> (isLoading)
+  <span class="kw">return</span> &lt;<span class="ty">SplashScreen</span> /&gt;;
+
+<span class="kw">if</span> (!isAuthenticated)
+  <span class="kw">return</span> &lt;<span class="ty">AuthStack</span> /&gt;;
+  <span class="cm">// Login / Register / ForgotPassword</span>
+
+<span class="kw">if</span> (user?.role === <span class="st">'trainer'</span>)
+  <span class="kw">return</span> &lt;<span class="ty">TrainerStack</span> /&gt;;
+  <span class="cm">// Clientes / Mensajes / Progreso</span>
+
+<span class="kw">return</span> &lt;<span class="ty">UserStack</span> /&gt;;
+  <span class="cm">// Home / Rutinas / AI Coach / Perfil</span></pre>
+      <p>El navegador reacciona automáticamente al estado Zustand. Si el token expira y el store limpia <code>isAuthenticated</code>, el usuario vuelve al login instantáneamente sin ninguna lógica adicional.</p>
+    </div>
+  </div>
+
+  <hr class="sep">
+
+  <!-- ═══════════════════════════════════ 8. FLUJOS ════════════════════════════ -->
+  <div id="s8"></div>
+  <div class="section-title"><span class="tag">08</span>Flujos completos de extremo a extremo</div>
+
+  <div class="card">
+    <div class="card-title">Flujo 1 — Login y sincronización</div>
+    <div class="flow">
+      <div class="flow-step"><p><strong>LoginScreen.tsx</strong> llama a <code>authStore.login(email, password)</code></p></div>
+      <div class="flow-step"><p><strong>Supabase Auth</strong> valida credenciales y devuelve un <strong>JWT ES256</strong> firmado con la clave privada de Supabase</p></div>
+      <div class="flow-step"><p>El JWT se almacena en <strong>AsyncStorage</strong> (persistencia local). <code>supabase.auth</code> lo gestiona automáticamente</p></div>
+      <div class="flow-step"><p><strong>authApi.syncUser()</strong> → <code>POST /api/auth/sync</code> con supabaseId, email y rol</p></div>
+      <div class="flow-step"><p><strong>AuthController</strong> en Spring: busca o crea el usuario en PostgreSQL (<em>upsert</em>) y devuelve la entidad Java</p></div>
+      <div class="flow-step"><p><strong>AppNavigator</strong> detecta <code>isAuthenticated = true</code> → navega al stack correcto (User o Trainer)</p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Flujo 2 — Petición autenticada (ej. listar rutinas)</div>
+    <div class="flow">
+      <div class="flow-step green"><p><strong>RoutinesScreen.tsx</strong> llama a <code>routineApi.getPublic({ category: 'gym' })</code></p></div>
+      <div class="flow-step green"><p><strong>Interceptor Axios</strong> añade <code>Authorization: Bearer &lt;JWT&gt;</code> automáticamente antes de enviar</p></div>
+      <div class="flow-step green"><p><strong>JwtAuthFilter</strong> en Spring extrae el token, verifica la firma ES256 con la clave pública de Supabase</p></div>
+      <div class="flow-step green"><p>Extrae el <code>sub</code> (supabaseId), carga el usuario de la BD desde <code>UserRepository</code>, inyecta <code>ROLE_USER</code> en el SecurityContext</p></div>
+      <div class="flow-step green"><p><strong>RoutineController.list()</strong> recibe el filtro, convierte a enum, ejecuta la query JPA apropiada</p></div>
+      <div class="flow-step green"><p>JSON de rutinas devuelto → Axios lo deserializa → Zustand actualiza el estado → React Native re-renderiza</p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Flujo 3 — AI Coach</div>
+    <div class="flow">
+      <div class="flow-step yellow"><p><strong>AICoachScreen.tsx</strong> llama a <code>aiApi.chat("¿Qué ejercicio me recomiendas?", convId)</code></p></div>
+      <div class="flow-step yellow"><p>Axios añade el JWT → <strong>AIController.chat()</strong> recibe la petición con el usuario autenticado vía <code>@AuthenticationPrincipal</code></p></div>
+      <div class="flow-step yellow"><p><strong>GroqAIService.buildUserContext(userId)</strong> consulta <code>UserRepository</code> (nombre, objetivos) y <code>WorkoutSessionRepository</code> (sesiones recientes)</p></div>
+      <div class="flow-step yellow"><p>Construye el <em>system prompt</em> personalizado e incluye el historial de la conversación (hasta 20 mensajes)</p></div>
+      <div class="flow-step yellow"><p><strong>WebClient</strong> hace <code>POST https://api.groq.com/openai/v1/chat/completions</code> con el modelo <code>llama-3.3-70b-versatile</code></p></div>
+      <div class="flow-step yellow"><p>Groq devuelve la respuesta generada → el servicio la parsea, actualiza el historial → la app muestra el mensaje del AI Coach</p></div>
+    </div>
+  </div>
+
+  <hr class="sep">
+
+  <!-- ═══════════════════════════════════ 9. RESUMEN ════════════════════════════ -->
+  <div id="s9"></div>
+  <div class="section-title"><span class="tag green">09</span>Resumen por criterios de evaluación</div>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Criterio</th>
+          <th>Descripción</th>
+          <th>Implementación en MOVO</th>
+          <th>Ficheros clave</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Criterio 1</strong><br/>Diseño del proyecto</td>
+          <td>Arquitectura, organización del código y estructura</td>
+          <td>Arquitectura de 3 capas (React Native / Spring Boot / PostgreSQL) con separación clara de responsabilidades. Paquetes por capa en backend, carpetas por dominio en frontend</td>
+          <td><code>movo-app/src/</code>, <code>movo-backend/src/main/java/com/movo/</code></td>
+        </tr>
+        <tr>
+          <td><strong>Criterio 2</strong><br/>Diseño de la BD</td>
+          <td>Modelo relacional, normalización, tipos de datos</td>
+          <td>4 entidades JPA con UUID como PK, enums con @Enumerated(STRING), FK entre tablas, @PrePersist para timestamps, schema SQL declarativo en <code>supabase-schema.sql</code></td>
+          <td><code>User.java</code>, <code>Routine.java</code>, <code>Exercise.java</code>, <code>WorkoutSession.java</code>, <code>supabase-schema.sql</code></td>
+        </tr>
+        <tr>
+          <td><strong>Criterio 3</strong><br/>Conexión BD</td>
+          <td>Conexión a base de datos y operaciones CRUD</td>
+          <td>Spring Data JPA con generación automática de queries por nombre de método. HikariCP connection pool (máx. 5). Patrón upsert en AuthController. WebClient para llamadas HTTP reactivas</td>
+          <td><code>application.yml</code>, <code>*Repository.java</code>, <code>MovoControllers.java</code></td>
+        </tr>
+        <tr>
+          <td><strong>Criterio 4</strong><br/>API externa</td>
+          <td>Integración con APIs de terceros</td>
+          <td>Groq API (Llama 3.3-70B): system prompt personalizado con datos de BD, historial de conversación de 20 mensajes, Spring WebClient no bloqueante, parseo JSON con Jackson</td>
+          <td><code>GroqAIService.java</code>, <code>AIController</code>, <code>aiStore.ts</code>, <code>api.ts:aiApi</code></td>
+        </tr>
+        <tr>
+          <td><strong>Criterio 5</strong><br/>Seguridad</td>
+          <td>Autenticación, autorización, protección de datos</td>
+          <td>JWT ES256 (ECDSA P-256) de Supabase validado en cada request. SecurityConfig stateless (sin cookies). CORS configurado. Clave pública reconstruida desde coordenadas JWKS. userId siempre del JWT (nunca del body). API key en variable de entorno</td>
+          <td><code>JwtAuthFilter.java</code>, <code>SecurityConfig.java</code>, <code>api.ts interceptor</code>, <code>authStore.ts</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card" style="border-color: var(--purple); background: rgba(124,111,255,.06);">
+    <div class="card-title">Decisiones técnicas destacadas</div>
+    <div class="grid2">
+      <div>
+        <p><strong>UUID como PK</strong>: permite generar IDs en el cliente sin consultar la BD, facilita la distribución y evita enumerar recursos.</p>
+        <p><strong>ES256 vs HS256</strong>: la clave privada nunca sale de Supabase; el backend solo necesita la clave pública para verificar, lo que es más seguro y escalable.</p>
+        <p><strong>userId del JWT, nunca del body</strong>: impide que un usuario autenticado suplante a otro enviando un userId arbitrario en el cuerpo de la petición.</p>
+      </div>
+      <div>
+        <p><strong>Groq en backend</strong>: la API key de Groq nunca está en el código de la app móvil. Además, el backend puede enriquecer cada petición con el contexto del usuario antes de enviársela al LLM.</p>
+        <p><strong>Spring Data JPA query methods</strong>: sin SQL manual para las queries de rutinas → sin posibilidad de inyección SQL, code más limpio.</p>
+        <p><strong>Zustand + interceptor Axios</strong>: la gestión del token es completamente transparente para los componentes de UI, que simplemente llaman a las funciones de la API.</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center; margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--border); color:var(--muted); font-size:.82rem;">
+    MOVO — Análisis Técnico del Código Fuente · Spring Boot 3.2 · React Native · PostgreSQL · Groq AI (Llama 3.3-70B)
+  </div>
+
+</div>
+</body>
+</html>

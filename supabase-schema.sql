@@ -1,109 +1,167 @@
--- ═══════════════════════════════════════════════════════════════════════════
---  MOVO — Supabase PostgreSQL Schema + Seed Data
---  Run this entire file in Supabase SQL Editor (supabase.com → SQL Editor)
--- ═══════════════════════════════════════════════════════════════════════════
+-- ╔══════════════════════════════════════════════════════════════════════════════╗
+-- ║  supabase-schema.sql — Esquema de la Base de Datos MOVO                     ║
+-- ║  Ejecutar en Supabase → SQL Editor                                          ║
+-- ║                                                                              ║
+-- ║  CRITERIO 1 — JUSTIFICACIÓN DE POSTGRESQL:                                  ║
+-- ║   • UUID como clave primaria: distribuido, sin colisiones, imposible         ║
+-- ║     adivinar IDs (seguridad por oscuridad)                                  ║
+-- ║   • TEXT[]: arrays nativos de PostgreSQL para goals y preferred_types       ║
+-- ║     (evita tabla intermedia para listas simples de strings)                 ║
+-- ║   • JSONB: ai_conversations.messages guarda todo el historial de chat       ║
+-- ║     en un solo campo, con indexación y búsqueda eficiente                   ║
+-- ║   • TIMESTAMPTZ: timestamps con zona horaria para usuarios globales         ║
+-- ║   • CHECK constraints: validación de datos a nivel de BD (última barrera)  ║
+-- ║   • Row Level Security (RLS): cada usuario sólo ve sus propios datos        ║
+-- ║     (seguridad a nivel de fila, gestionada por PostgreSQL directamente)     ║
+-- ║                                                                              ║
+-- ║  CRITERIO 2 — DISEÑO DE LA BASE DE DATOS:                                   ║
+-- ║   • 7 tablas: users, user_profiles, routines, exercises, user_routines,     ║
+-- ║               workout_sessions, ai_conversations, trainer_messages          ║
+-- ║   • 3FN: sin redundancia, cada campo depende sólo de la clave primaria     ║
+-- ║   • Relación N:M: user_routines (usuario puede tener muchas rutinas,        ║
+-- ║     y una rutina puede ser asignada a muchos usuarios)                      ║
+-- ║   • FK CASCADE: al borrar un usuario, se borran todos sus datos asociados  ║
+-- ║   • FK SET NULL: borrar entrenador → clients.trainer_id = NULL (no se      ║
+-- ║     borran los clientes cuando se elimina su entrenador)                    ║
+-- ╚══════════════════════════════════════════════════════════════════════════════╝
 
--- Enable UUID extension
+-- CRITERIO 1: Extensión UUID de PostgreSQL para generar UUIDs v4 automáticamente
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- ─── TABLES ──────────────────────────────────────────────────────────────────
+-- ─── TABLAS ──────────────────────────────────────────────────────────────────
 
+-- CRITERIO 2 — TABLA 1: users
+-- Tabla central del sistema. Relacionada con todas las demás tablas.
+-- trainer_id → auto-referencia: un User puede ser cliente de otro User (entrenador)
 CREATE TABLE IF NOT EXISTS users (
-  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),  -- CRITERIO 1: UUID, no INT
   email       TEXT NOT NULL UNIQUE,
   full_name   TEXT,
   avatar_url  TEXT,
-  role        TEXT NOT NULL CHECK (role IN ('trainer', 'user')) DEFAULT 'user',
-  trainer_id  UUID REFERENCES users(id) ON DELETE SET NULL,
-  supabase_id TEXT UNIQUE,
-  created_at  TIMESTAMPTZ DEFAULT NOW()
+  role        TEXT NOT NULL CHECK (role IN ('trainer', 'user')) DEFAULT 'user',  -- CHECK constraint
+  trainer_id  UUID REFERENCES users(id) ON DELETE SET NULL,  -- FK SET NULL (no cascade)
+  supabase_id TEXT UNIQUE,   -- vincula con Supabase Auth (auth.users.id)
+  created_at  TIMESTAMPTZ DEFAULT NOW()  -- CRITERIO 1: TIMESTAMPTZ con zona horaria
 );
 
+-- CRITERIO 2 — TABLA 2: user_profiles
+-- Datos físicos separados de users: 3FN → los datos del perfil tienen su propia tabla
+-- UNIQUE en user_id: relación 1:1 con users (un usuario, un perfil)
+-- ON DELETE CASCADE: al borrar el usuario, se borra su perfil
 CREATE TABLE IF NOT EXISTS user_profiles (
   id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id             UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE UNIQUE,
-  weight_kg           DECIMAL(5,2),
+  user_id             UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE UNIQUE,  -- 1:1
+  weight_kg           DECIMAL(5,2),     -- ej: 75.50 kg
   height_cm           INT,
   age                 INT,
   gender              TEXT CHECK (gender IN ('male', 'female', 'prefer_not_to_say')),
   activity_level      TEXT CHECK (activity_level IN ('sedentary', 'beginner', 'intermediate', 'advanced')),
-  goals               TEXT[] DEFAULT '{}',
-  preferred_types     TEXT[] DEFAULT '{}',
+  goals               TEXT[] DEFAULT '{}',          -- CRITERIO 1: array nativo PostgreSQL
+  preferred_types     TEXT[] DEFAULT '{}',          -- ej: {'yoga', 'pilates'}
   available_days      INT DEFAULT 3,
   session_duration    INT DEFAULT 45,
   notes_from_trainer  TEXT,
   updated_at          TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- CRITERIO 2 — TABLA 3: routines
+-- Catálogo de rutinas de entrenamiento. Una rutina contiene muchos ejercicios (1:N).
+-- created_by → FK a users (entrenador que la creó). NULL = rutina del sistema.
+-- is_public → controla visibilidad (RLS filtra las privadas)
 CREATE TABLE IF NOT EXISTS routines (
   id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   title            TEXT NOT NULL,
   description      TEXT,
-  category         TEXT NOT NULL CHECK (category IN ('gym', 'yoga', 'pilates')),
+  category         TEXT NOT NULL CHECK (category IN ('gym', 'yoga', 'pilates')),  -- CHECK
   difficulty       TEXT NOT NULL CHECK (difficulty IN ('beginner', 'intermediate', 'advanced')),
   duration_minutes INT,
-  created_by       UUID REFERENCES users(id),
+  created_by       UUID REFERENCES users(id),  -- FK nullable (NULL = sistema)
   is_public        BOOLEAN DEFAULT TRUE,
   thumbnail_url    TEXT,
   created_at       TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- CRITERIO 2 — TABLA 4: exercises
+-- Relación 1:N con routines. Cada ejercicio pertenece a exactamente 1 rutina.
+-- ON DELETE CASCADE → al borrar la rutina, se borran todos sus ejercicios
+-- order_index: orden de ejecución dentro de la rutina
 CREATE TABLE IF NOT EXISTS exercises (
   id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  routine_id       UUID NOT NULL REFERENCES routines(id) ON DELETE CASCADE,
+  routine_id       UUID NOT NULL REFERENCES routines(id) ON DELETE CASCADE,  -- 1:N cascade
   name             TEXT NOT NULL,
   description      TEXT,
   sets             INT,
   reps             INT,
-  duration_seconds INT,
+  duration_seconds INT,   -- para ejercicios por tiempo (plancha, etc.) en lugar de reps
   rest_seconds     INT DEFAULT 60,
-  order_index      INT NOT NULL DEFAULT 0,
+  order_index      INT NOT NULL DEFAULT 0,  -- posición en la rutina (usado para ordenar)
   video_url        TEXT,
   image_url        TEXT,
   muscle_group     TEXT
 );
 
+-- CRITERIO 2 — TABLA 5: user_routines (relación N:M)
+-- Tabla de unión entre users y routines.
+-- CRITERIO 1 JUSTIFICACIÓN: N:M requiere tabla intermedia en cualquier SGBD relacional.
+-- Un usuario puede tener asignadas muchas rutinas, y una rutina puede asignarse a muchos.
+-- UNIQUE(user_id, routine_id) → no se puede asignar la misma rutina dos veces al mismo usuario
 CREATE TABLE IF NOT EXISTS user_routines (
   id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  routine_id   UUID NOT NULL REFERENCES routines(id) ON DELETE CASCADE,
-  assigned_by  UUID REFERENCES users(id),
+  user_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,     -- → usuarios
+  routine_id   UUID NOT NULL REFERENCES routines(id) ON DELETE CASCADE,  -- → rutinas
+  assigned_by  UUID REFERENCES users(id),  -- entrenador que asignó la rutina (puede ser NULL)
   start_date   DATE,
   end_date     DATE,
   status       TEXT DEFAULT 'active' CHECK (status IN ('active', 'completed', 'paused')),
-  UNIQUE(user_id, routine_id)
+  UNIQUE(user_id, routine_id)  -- constraint de unicidad compuesto
 );
 
+-- CRITERIO 2 — TABLA 6: workout_sessions
+-- Registro histórico de cada sesión de entrenamiento completa.
+-- Al completar → completedAt se rellena (en SessionController.java)
+-- rating: valoración del usuario 1-5 (CHECK en BD, no sólo en aplicación)
 CREATE TABLE IF NOT EXISTS workout_sessions (
   id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id          UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  routine_id       UUID NOT NULL REFERENCES routines(id),
+  routine_id       UUID NOT NULL REFERENCES routines(id),  -- no cascade (referencia histórica)
   started_at       TIMESTAMPTZ DEFAULT NOW(),
-  completed_at     TIMESTAMPTZ,
+  completed_at     TIMESTAMPTZ,   -- NULL = sesión en progreso
   duration_minutes INT,
   calories_burned  INT,
   notes            TEXT,
-  rating           INT CHECK (rating BETWEEN 1 AND 5)
+  rating           INT CHECK (rating BETWEEN 1 AND 5)  -- CRITERIO 1: CHECK constraint
 );
 
+-- CRITERIO 2 — TABLA 7: ai_conversations
+-- CRITERIO 1 JUSTIFICACIÓN: messages es JSONB → almacena el historial completo de chat
+-- en PostgreSQL de forma eficiente. Permite consultas dentro del JSON con operadores ->> y @>
+-- Sin JSONB necesitaríamos una tabla ai_messages separada con muchos joins.
 CREATE TABLE IF NOT EXISTS ai_conversations (
   id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  messages    JSONB DEFAULT '[]',
+  messages    JSONB DEFAULT '[]',  -- CRITERIO 1: JSONB nativo de PostgreSQL
   created_at  TIMESTAMPTZ DEFAULT NOW(),
   updated_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- CRITERIO 2 — TABLA 8: trainer_messages
+-- Mensajes entre entrenadores y sus clientes (sistema de mensajería interna).
+-- Dos FKs a users: trainer_id y user_id (ambos son filas de la tabla users)
 CREATE TABLE IF NOT EXISTS trainer_messages (
   id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  trainer_id  UUID NOT NULL REFERENCES users(id),
-  user_id     UUID NOT NULL REFERENCES users(id),
+  trainer_id  UUID NOT NULL REFERENCES users(id),  -- FK al entrenador
+  user_id     UUID NOT NULL REFERENCES users(id),  -- FK al cliente
   message     TEXT NOT NULL,
-  is_read     BOOLEAN DEFAULT FALSE,
+  is_read     BOOLEAN DEFAULT FALSE,  -- para mostrar el contador de mensajes no leídos
   created_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ─── ROW LEVEL SECURITY ───────────────────────────────────────────────────────
+-- ─── ROW LEVEL SECURITY (RLS) ─────────────────────────────────────────────────
+-- CRITERIO 1 + 5 — JUSTIFICACIÓN Y SEGURIDAD:
+-- RLS es una característica nativa de PostgreSQL.
+-- Añade una capa de seguridad a nivel de BD: aunque alguien tenga acceso directo
+-- a la BD, sólo puede ver/modificar sus propias filas.
+-- auth.uid() = función de Supabase que devuelve el UUID del usuario autenticado con JWT.
 
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
@@ -113,21 +171,22 @@ ALTER TABLE workout_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_conversations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE trainer_messages ENABLE ROW LEVEL SECURITY;
 
--- users: anyone can read; write only own row
+-- POLÍTICA users: lectura pública (necesario para mostrar perfiles de entrenadores)
+-- escritura: sólo puede actualizar su propia fila (supabase_id = auth.uid())
 CREATE POLICY "users_select" ON users FOR SELECT USING (true);
 CREATE POLICY "users_update" ON users FOR UPDATE USING (auth.uid()::text = supabase_id);
 
--- user_profiles: own profile only
+-- POLÍTICA user_profiles: sólo el propio usuario puede ver/editar su perfil físico
 CREATE POLICY "profiles_own" ON user_profiles USING (user_id IN (SELECT id FROM users WHERE supabase_id = auth.uid()::text));
 
--- routines: public ones visible to all
+-- POLÍTICA routines: rutinas públicas visibles para todos; las privadas sólo para su creador
 CREATE POLICY "routines_public" ON routines FOR SELECT USING (is_public = true);
 CREATE POLICY "routines_own" ON routines FOR ALL USING (created_by IN (SELECT id FROM users WHERE supabase_id = auth.uid()::text));
 
--- sessions: own only
+-- POLÍTICA workout_sessions: cada usuario sólo ve sus propias sesiones
 CREATE POLICY "sessions_own" ON workout_sessions USING (user_id IN (SELECT id FROM users WHERE supabase_id = auth.uid()::text));
 
--- ai_conversations: own only
+-- POLÍTICA ai_conversations: cada usuario sólo ve su propio historial de chat con la IA
 CREATE POLICY "ai_own" ON ai_conversations USING (user_id IN (SELECT id FROM users WHERE supabase_id = auth.uid()::text));
 
 -- ─── SEED DATA ────────────────────────────────────────────────────────────────
