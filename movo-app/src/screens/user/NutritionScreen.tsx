@@ -398,6 +398,8 @@ export const NutritionScreen: React.FC = () => {
     const generate = useCallback(async () => {
         const p = useAuthStore.getState().profile;
         if (!p?.weight_kg || !p?.height_cm || !p?.age) return;
+        // Hide wizard and show loading screen immediately
+        setShowSetup(false);
         setLoading(true);
         try {
             const result = await generateDietPlan(
@@ -409,10 +411,10 @@ export const NutritionScreen: React.FC = () => {
                 p.activity_level ?? 'beginner',
             );
             setPlan(result);
-            setShowSetup(false);
             if (planKey) await AsyncStorage.setItem(planKey, JSON.stringify(result));
         } catch (e: any) {
             Alert.alert('Error al generar', e?.message ?? 'Inténtalo de nuevo');
+            setShowSetup(true); // go back to wizard on error
         } finally {
             setLoading(false);
         }
@@ -467,8 +469,8 @@ export const NutritionScreen: React.FC = () => {
         );
     }
 
-    // Generating plan (loading state)
-    if (loading && !plan) {
+    // Generating plan (loading state) — shown both on first gen and re-gen
+    if (loading) {
         return (
             <LinearGradient colors={['#0A0A0A', '#0D0A18']} style={s.center}>
                 <LinearGradient colors={[primary + '33', primary + '11']} style={s.loadCard}>
@@ -494,25 +496,13 @@ export const NutritionScreen: React.FC = () => {
                         <Text style={s.heading}>🍽️ Nutrición</Text>
                         <Text style={s.sub}>Plan personalizado para ti</Text>
                     </View>
-                    <View style={{ flexDirection: 'row', gap: 8 }}>
-                        <TouchableOpacity
-                            onPress={reset}
-                            style={[s.regenBtn, { borderColor: Colors.border, backgroundColor: Colors.surface }]}
-                        >
-                            <Ionicons name="refresh-circle-outline" size={16} color={Colors.textSecondary} />
-                            <Text style={[s.regenText, { color: Colors.textSecondary }]}>Reiniciar</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            onPress={generate}
-                            disabled={loading}
-                            style={[s.regenBtn, { borderColor: primary + '55', backgroundColor: primary + '15' }]}
-                        >
-                            {loading
-                                ? <ActivityIndicator size="small" color={primary} />
-                                : <><Ionicons name="refresh-outline" size={16} color={primary} /><Text style={[s.regenText, { color: primary }]}>Regenerar</Text></>
-                            }
-                        </TouchableOpacity>
-                    </View>
+                    <TouchableOpacity
+                        onPress={reset}
+                        style={[s.regenBtn, { borderColor: Colors.border, backgroundColor: Colors.surface }]}
+                    >
+                        <Ionicons name="refresh-circle-outline" size={16} color={Colors.textSecondary} />
+                        <Text style={[s.regenText, { color: Colors.textSecondary }]}>Reiniciar</Text>
+                    </TouchableOpacity>
                 </View>
 
                 {plan ? (
@@ -570,7 +560,7 @@ export const NutritionScreen: React.FC = () => {
                         </View>
 
                         <TouchableOpacity
-                            onPress={generate}
+                            onPress={() => { setPlan(null); generate(); }}
                             disabled={loading}
                             style={[s.regenBig, { backgroundColor: primary }]}
                         >
