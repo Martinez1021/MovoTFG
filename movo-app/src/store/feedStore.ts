@@ -104,11 +104,16 @@ export const useFeedStore = create<FeedState>((set, get) => ({
                 (usersData ?? []).forEach((u: any) => { avatarMap[u.supabase_id] = u.avatar_url ?? null; });
             }
 
+            // For the current logged-in user, always use their real-time avatar
+            const currentUser = useAuthStore.getState().user;
+
             const posts: Post[] = (data ?? []).map((p: any) => ({
                 id: p.id,
                 supabase_uid: p.supabase_uid,
                 user_name: p.user_name ?? 'Usuario',
-                user_avatar: avatarMap[p.supabase_uid] ?? p.user_avatar,
+                user_avatar: (currentUser && p.supabase_uid === currentUser.id && currentUser.avatar_url)
+                    ? currentUser.avatar_url
+                    : (avatarMap[p.supabase_uid] ?? p.user_avatar),
                 content: p.content ?? '',
                 image_url: p.image_url,
                 workout_data: p.workout_data ?? undefined,

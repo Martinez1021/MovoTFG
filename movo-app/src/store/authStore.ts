@@ -105,13 +105,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
                 // Sincronizamos con el backend Spring Boot en segundo plano (no bloquea la UI)
                 // Si el backend está offline, usamos los datos de Supabase (degradación elegante)
+                const metaAvatar = supabaseUser.user_metadata?.avatar_url ?? null;
                 authApi.syncUser({
                     supabaseId: supabaseUser.id,
                     email: supabaseUser.email!,
                     fullName: supabaseUser.user_metadata?.full_name ?? '',
                     role: supabaseUser.user_metadata?.role ?? 'user',
                 }).then(({ data }) => {
-                    if (data) set({ user: { ...normalizeBackendUser(data), id: supabaseUser.id } });
+                    if (data) {
+                        const synced = { ...normalizeBackendUser(data), id: supabaseUser.id };
+                        // Preserve auth metadata avatar if backend row still has null
+                        if (!synced.avatar_url && metaAvatar) synced.avatar_url = metaAvatar;
+                        set({ user: synced });
+                        // Sync avatar to public.users so feed hydration works correctly
+                        if (metaAvatar) {
+                            supabase.from('users')
+                                .update({ avatar_url: metaAvatar })
+                                .eq('supabase_id', supabaseUser.id)
+                                .then(() => {});
+                        }
+                    }
                 }).catch(() => { /* backend offline — se usa Supabase data */ });
             }
         } catch (e) {
@@ -171,13 +184,25 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             set({ user: localUser, isAuthenticated: true, isLoading: false });
 
             // Sincronizamos con el backend en segundo plano (no bloquea la navegación)
+            const loginMetaAvatar = supabaseUser.user_metadata?.avatar_url ?? null;
             authApi.syncUser({
                 supabaseId: supabaseUser.id,
                 email: supabaseUser.email!,
                 fullName: supabaseUser.user_metadata?.full_name ?? '',
                 role: supabaseUser.user_metadata?.role ?? 'user',
             }).then(({ data: syncRes }) => {
-                if (syncRes) set({ user: { ...normalizeBackendUser(syncRes), id: supabaseUser.id } });
+                if (syncRes) {
+                    const synced = { ...normalizeBackendUser(syncRes), id: supabaseUser.id };
+                    if (!synced.avatar_url && loginMetaAvatar) synced.avatar_url = loginMetaAvatar;
+                    set({ user: synced });
+                    // Sync avatar to public.users so feed hydration works
+                    if (loginMetaAvatar) {
+                        supabase.from('users')
+                            .update({ avatar_url: loginMetaAvatar })
+                            .eq('supabase_id', supabaseUser.id)
+                            .then(() => {});
+                    }
+                }
             }).catch(() => { });
         } catch (e) {
             set({ isLoading: false });

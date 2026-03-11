@@ -54,20 +54,23 @@ class AuthController {
      */
     @PostMapping("/sync")
     public ResponseEntity<User> sync(@RequestBody SyncRequest req) {
-        User user = userRepo.findBySupabaseId(req.supabaseId()).orElseGet(() -> {
-            // Usuario nuevo: creamos el registro en nuestra BD
-            User.Role role = User.Role.valueOf(req.role().toLowerCase());
-            return User.builder()
-                    .supabaseId(req.supabaseId())
-                    .email(req.email())
-                    .fullName(req.fullName())
-                    .role(role)
-                    .build();
-        });
-        // Actualizamos los datos por si el usuario cambió su perfil en Supabase
+        // 1. Buscar por supabaseId (caso normal)
+        // 2. Si no hay, buscar por email (cubre datos demo insertados sin supabase_id)
+        //    y vincular la fila existente con el supabaseId real
+        User user = userRepo.findBySupabaseId(req.supabaseId())
+                .orElseGet(() -> userRepo.findByEmail(req.email()).orElseGet(() -> {
+                    User.Role role = User.Role.valueOf(req.role().toLowerCase());
+                    return User.builder()
+                            .supabaseId(req.supabaseId())
+                            .email(req.email())
+                            .fullName(req.fullName())
+                            .role(role)
+                            .build();
+                }));
+        // Siempre asignamos el supabaseId correcto (vincula datos demo al usuario real)
+        user.setSupabaseId(req.supabaseId());
         user.setEmail(req.email());
         user.setFullName(req.fullName());
-        // JPA save(): INSERT si es nuevo, UPDATE si ya existe (por el @Id)
         return ResponseEntity.ok(userRepo.save(user));
     }
 }
