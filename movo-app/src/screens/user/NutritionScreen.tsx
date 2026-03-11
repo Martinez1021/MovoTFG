@@ -119,9 +119,15 @@ const SetupWizard: React.FC<{
 }> = ({ primary, onComplete }) => {
     const { user, profile, setProfile } = useAuthStore();
     const [step, setStep] = useState(0);
-    const [weight, setWeight] = useState(String(profile?.weight_kg ?? ''));
-    const [height, setHeight] = useState(String(profile?.height_cm ?? ''));
-    const [age, setAge] = useState(String(profile?.age ?? ''));
+    const [weight, setWeight] = useState(
+        profile?.weight_kg ? String(profile.weight_kg) : ''
+    );
+    const [height, setHeight] = useState(
+        profile?.height_cm ? String(profile.height_cm) : ''
+    );
+    const [age, setAge] = useState(
+        profile?.age ? String(profile.age) : ''
+    );
     const [selectedGoals, setSelectedGoals] = useState<string[]>(profile?.goals ?? []);
     const [saving, setSaving] = useState(false);
 
@@ -160,8 +166,12 @@ const SetupWizard: React.FC<{
     const steps = [
         // Step 0: physical data
         <View key="physical">
-            <Text style={sw.title}>🍽️ Tu plan personalizado</Text>
-            <Text style={sw.sub}>Necesitamos conocerte para crear una dieta adaptada a ti</Text>
+            <Text style={sw.title}>🍽️ Tu plan de nutrición</Text>
+            <Text style={sw.sub}>
+                {(profile?.weight_kg && profile?.height_cm && profile?.age)
+                    ? 'Tus datos del perfil están pre-rellenados. Confirma o ajústalos y pulsa Siguiente.'
+                    : 'Necesitamos conocerte para crear una dieta adaptada a ti'}
+            </Text>
 
             <View style={sw.fieldGroup}>
                 <Text style={[sw.fieldLabel, { color: primary }]}>Peso actual (kg)</Text>
@@ -374,73 +384,90 @@ const mc = StyleSheet.create({
 
 // ── Main screen ─────────────────────────────────────────
 export const NutritionScreen: React.FC = () => {
-    const { user, profile } = useAuthStore();
+    const { user } = useAuthStore();
     const { primary } = useThemeStore();
     const [plan, setPlan] = useState<DietPlan | null>(null);
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+    const [showSetup, setShowSetup] = useState(false);
+    const [initializing, setInitializing] = useState(true);
 
     const planKey = user?.id ? `movo_diet_plan_${user.id}` : null;
 
-    const profileComplete =
-        !!(profile?.weight_kg && profile?.height_cm && profile?.age && profile?.goals?.length);
-
-    const generate = useCallback(async (force = false) => {
-        if (!profileComplete || !profile) return;
-        // If we already have a plan in state and not forced, skip
-        if (plan && !force) return;
+    // Always reads fresh profile from store at call time (avoids stale closure)
+    const generate = useCallback(async () => {
+        const p = useAuthStore.getState().profile;
+        if (!p?.weight_kg || !p?.height_cm || !p?.age) return;
         setLoading(true);
         try {
             const result = await generateDietPlan(
-                profile.weight_kg!,
-                profile.height_cm!,
-                profile.age!,
-                profile.gender ?? 'prefer_not_to_say',
-                profile.goals ?? [],
-                profile.activity_level ?? 'beginner',
+                p.weight_kg!,
+                p.height_cm!,
+                p.age!,
+                p.gender ?? 'prefer_not_to_say',
+                p.goals ?? [],
+                p.activity_level ?? 'beginner',
             );
             setPlan(result);
-            // Persist
+            setShowSetup(false);
             if (planKey) await AsyncStorage.setItem(planKey, JSON.stringify(result));
         } catch (e: any) {
             Alert.alert('Error al generar', e?.message ?? 'Inténtalo de nuevo');
         } finally {
             setLoading(false);
         }
-    }, [profile, profileComplete, planKey, plan]);
+    }, [planKey]);
 
-    // On mount: try to load persisted plan, only generate if none exists
+    const reset = useCallback(async () => {
+        setPlan(null);
+        if (planKey) await AsyncStorage.removeItem(planKey);
+        setShowSetup(true);
+    }, [planKey]);
+
+    // On mount: load cached plan or show wizard — NEVER auto-generate
     useEffect(() => {
-        if (!profileComplete) return;
-        if (plan) return; // already have plan in memory
         (async () => {
             if (planKey) {
                 try {
                     const saved = await AsyncStorage.getItem(planKey);
-                    if (saved) { setPlan(JSON.parse(saved)); return; }
+                    if (saved) {
+                        setPlan(JSON.parse(saved));
+                        setShowSetup(false);
+                        setInitializing(false);
+                        return;
+                    }
                 } catch { /* ignore */ }
             }
-            // No saved plan → generate for the first time
-            generate();
+            setShowSetup(true);
+            setInitializing(false);
         })();
-    }, [profileComplete, planKey, plan, generate]);
+    }, [planKey]);
 
     const onRefresh = async () => {
         setRefreshing(true);
-        await generate(true); // force regenerate
+        await generate();
         setRefreshing(false);
     };
 
-    // ── Profile not complete → show wizard
-    if (!profileComplete) {
+    // Brief initializing check (AsyncStorage read)
+    if (initializing) {
         return (
-            <LinearGradient colors={['#0A0A0A', '#0D0A18']} style={{ flex: 1 }}>
-                <SetupWizard primary={primary} onComplete={() => generate(true)} />
+            <LinearGradient colors={['#0A0A0A', '#0D0A18']} style={s.center}>
+                <ActivityIndicator color={primary} size="large" />
             </LinearGradient>
         );
     }
 
-    // ── Loading spinner
+    // Show wizard: first time or after reset
+    if (showSetup) {
+        return (
+            <LinearGradient colors={['#0A0A0A', '#0D0A18']} style={{ flex: 1 }}>
+                <SetupWizard primary={primary} onComplete={generate} />
+            </LinearGradient>
+        );
+    }
+
+    // Generating plan (loading state)
     if (loading && !plan) {
         return (
             <LinearGradient colors={['#0A0A0A', '#0D0A18']} style={s.center}>
@@ -467,16 +494,25 @@ export const NutritionScreen: React.FC = () => {
                         <Text style={s.heading}>🍽️ Nutrición</Text>
                         <Text style={s.sub}>Plan personalizado para ti</Text>
                     </View>
-                    <TouchableOpacity
-                        onPress={() => generate(true)}
-                        disabled={loading}
-                        style={[s.regenBtn, { borderColor: primary + '55', backgroundColor: primary + '15' }]}
-                    >
-                        {loading
-                            ? <ActivityIndicator size="small" color={primary} />
-                            : <><Ionicons name="refresh-outline" size={16} color={primary} /><Text style={[s.regenText, { color: primary }]}>Regenerar</Text></>
-                        }
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                        <TouchableOpacity
+                            onPress={reset}
+                            style={[s.regenBtn, { borderColor: Colors.border, backgroundColor: Colors.surface }]}
+                        >
+                            <Ionicons name="refresh-circle-outline" size={16} color={Colors.textSecondary} />
+                            <Text style={[s.regenText, { color: Colors.textSecondary }]}>Reiniciar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={generate}
+                            disabled={loading}
+                            style={[s.regenBtn, { borderColor: primary + '55', backgroundColor: primary + '15' }]}
+                        >
+                            {loading
+                                ? <ActivityIndicator size="small" color={primary} />
+                                : <><Ionicons name="refresh-outline" size={16} color={primary} /><Text style={[s.regenText, { color: primary }]}>Regenerar</Text></>
+                            }
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 {plan ? (
@@ -534,7 +570,7 @@ export const NutritionScreen: React.FC = () => {
                         </View>
 
                         <TouchableOpacity
-                            onPress={() => generate(true)}
+                            onPress={generate}
                             disabled={loading}
                             style={[s.regenBig, { backgroundColor: primary }]}
                         >
