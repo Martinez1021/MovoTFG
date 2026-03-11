@@ -384,7 +384,7 @@ const mc = StyleSheet.create({
 
 // ── Main screen ─────────────────────────────────────────
 export const NutritionScreen: React.FC = () => {
-    const { user } = useAuthStore();
+    const { user, profile } = useAuthStore();
     const { primary } = useThemeStore();
     const [plan, setPlan] = useState<DietPlan | null>(null);
     const [loading, setLoading] = useState(false);
