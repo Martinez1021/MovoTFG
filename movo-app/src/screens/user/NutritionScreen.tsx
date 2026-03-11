@@ -12,8 +12,8 @@ import { useThemeStore } from '../../store/themeStore';
 import { supabase } from '../../services/supabase';
 import { Colors, Spacing, FontSizes, BorderRadius, Goals } from '../../utils/constants';
 
-// ── Groq config (same key as AI Coach) ──────────────────
-const GROQ_KEY = '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';
+// ── Groq config — clave leída de variable de entorno (nunca hardcodeada) ──
+const GROQ_KEY = process.env.EXPO_PUBLIC_GROQ_KEY ?? '';
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 // ── Types ───────────────────────────────────────────────
