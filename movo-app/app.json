@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/icon.png",
       "resizeMode": "contain",
@@ -25,7 +25,7 @@
         "backgroundColor": "#0A0A0A"
       },
       "package": "com.movo.app",
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": false
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -41,7 +41,11 @@
       ]
     ],
     "extra": {
-      "supabaseUrl": "https://uyxysrodgxxduzyekgjo.supabase.co"
-    }
+      "supabaseUrl": "https://uyxysrodgxxduzyekgjo.supabase.co",
+      "eas": {
+        "projectId": "db3ab9cb-ddea-41a0-8124-2adeb298075b"
+      }
+    },
+    "owner": "martinez1021"
   }
 }
